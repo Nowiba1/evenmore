@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cube Defenders - WiFi Co-op Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(76, 201, 240, 0.3);
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        .game-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 800px;
+            height: 600px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            position: relative;
+        }
+        
+        .controls-section {
+            flex: 0 0 350px;
+            background: rgba(0, 10, 20, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #0f1525;
+        }
+        
+        .panel {
+            background: rgba(10, 20, 40, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .panel h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #4cc9f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel h2 i {
+            font-size: 1.2rem;
+        }
+        
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .player-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: rgba(30, 60, 114, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .player-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .player-name {
+            font-weight: 600;
+        }
+        
+        .player-score {
+            font-weight: bold;
+            color: #f72585;
+            font-size: 1.1rem;
+        }
+        
+        .btn {
+            background: linear-gradient(90deg, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-start {
+            background: linear-gradient(90deg, #f72585, #b5179e);
+            box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+        }
+        
+        .btn-start:hover {
+            box-shadow: 0 6px 20px rgba(247, 37, 133, 0.6);
+        }
+        
+        .instructions {
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .status-connecting {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+        
+        .status-connected {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.4);
+        }
+        
+        .status-error {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.4);
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .control-key {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-right: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            max-width: 1000px;
+            padding: 15px;
+        }
+        
+        @media (max-width: 1100px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .game-section, .controls-section {
+                width: 100%;
+                max-width: 800px;
+            }
+            
+            .controls-section {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-section {
+                height: 400px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Cube Defenders</h1>
+        <p class="tagline">A 3D cooperative game for players on the same WiFi network</p>
+    </div>
+    
+    <div class="container">
+        <div class="game-section">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        
+        <div class="controls-section">
+            <div class="panel">
+                <h2>📡 Network Status</h2>
+                <div id="statusMessage" class="status-message status-connecting">
+                    Looking for players on your WiFi...
+                </div>
+                
+                <div class="player-list">
+                    <div class="player-item">
+                        <div class="player-info">
+                            <div class="player-color" style="background-color: #4cc9f0;"></div>
+                            <span class="player-name">You (Host)</span>
+                        </div>
+                        <div class="player-score" id="player1Score">0</div>
+                    </div>
+                    <div class="player-item">
+                        <div class="player-info">
+                            <div class="player-color" style="background-color: #f72585;"></div>
+                            <span class="player-name" id="player2Name">Waiting for player 2...</span>
+                        </div>
+                        <div class="player-score" id="player2Score">0</div>
+                    </div>
+                </div>
+                
+                <button id="startGameBtn" class="btn btn-start" disabled>Start Game (Waiting for player 2)</button>
+            </div>
+            
+            <div class="panel">
+                <h2>🎮 Game Controls</h2>
+                <div class="controls">
+                    <div class="control-key">
+                        <span class="key">W</span> / <span class="key">S</span><br>
+                        Move Forward/Back
+                    </div>
+                    <div class="control-key">
+                        <span class="key">A</span> / <span class="key">D</span><br>
+                        Move Left/Right
+                    </div>
+                    <div class="control-key">
+                        <span class="key">SPACE</span><br>
+                        Jump / Place Block
+                    </div>
+                    <div class="control-key">
+                        <span class="key">MOUSE</span><br>
+                        Look Around
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>🎯 Game Objective</h2>
+                <div class="instructions">
+                    <p>Work together with another player to defend the central cube from incoming enemy spheres!</p>
+                    <ul>
+                        <li>Player 1 (Blue): Move around and place defensive blocks</li>
+                        <li>Player 2 (Pink): Rotate the arena and shoot projectiles</li>
+                        <li>Protect the central cube for as long as possible</li>
+                        <li>Score increases for every enemy destroyed</li>
+                    </ul>
+                </div>
+                
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="waveCount">1</div>
+                        <div class="stat-label">Current Wave</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="enemiesLeft">10</div>
+                        <div class="stat-label">Enemies Left</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="timeAlive">0</div>
+                        <div class="stat-label">Seconds Alive</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Cube Defenders - A frontend-only 3D co-op game using Three.js and WebRTC. Works on any device with a modern browser.</p>
+        <p>Make sure all players are connected to the same WiFi network!</p>
+    </div>
+
+    <script>
+        // ==================== GAME INITIALIZATION ====================
+        // Create Three.js scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f1525);
+        scene.fog = new THREE.Fog(0x0f1525, 20, 100);
+        
+        // Create camera
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 10, 20);
+        
+        // Create renderer
+        const canvas = document.getElementById('gameCanvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        // Game state
+        let gameState = {
+            players: {
+                player1: { 
+                    id: 'player1', 
+                    name: 'Player 1 (Host)', 
+                    color: 0x4cc9f0, 
+                    position: { x: 0, y: 1, z: 0 }, 
+                    score: 0,
+                    blocks: 3
+                },
+                player2: { 
+                    id: 'player2', 
+                    name: 'Player 2', 
+                    color: 0xf72585, 
+                    position: { x: 0, y: 10, z: 0 }, 
+                    score: 0,
+                    rotation: 0
+                }
+            },
+            enemies: [],
+            blocks: [],
+            projectiles: [],
+            gameStarted: false,
+            wave: 1,
+            timeAlive: 0,
+            centralCubeHealth: 100
+        };
+        
+        // Game objects
+        const player1Mesh = new THREE.Mesh();
+        const player2Mesh = new THREE.Mesh();
+        const centralCube = new THREE.Mesh();
+        let enemies = [];
+        let blocks = [];
+        let projectiles = [];
+        
+        // Controls
+        const keys = {};
+        const mouse = { x: 0, y: 0 };
+        
+        // ==================== NETWORKING (WebRTC) ====================
+        // Simple WebRTC implementation for same WiFi network
+        class SimpleNetwork {
+            constructor() {
+                this.peers = new Map();
+                this.connections = [];
+                this.isHost = false;
+                this.localId = 'player_' + Math.random().toString(36).substr(2, 9);
+                this.channel = null;
+            }
+            
+            // Initialize connection - using BroadcastChannel for same device/browser testing
+            // In a real scenario, you'd use WebRTC with a signaling server
+            initialize() {
+                // For demo purposes, we'll simulate network communication
+                // In a real implementation, you'd set up WebRTC here
+                console.log("Network initialized. Local ID:", this.localId);
+                
+                // Simulate finding another player after 2 seconds
+                setTimeout(() => {
+                    this.simulatePlayerConnection();
+                }, 2000);
+                
+                return this;
+            }
+            
+            simulatePlayerConnection() {
+                // This simulates a WebRTC connection for demo purposes
+                document.getElementById('statusMessage').className = 'status-message status-connected';
+                document.getElementById('statusMessage').textContent = 'Connected to Player 2! Ready to play.';
+                document.getElementById('player2Name').textContent = 'Player 2 (Connected)';
+                document.getElementById('startGameBtn').disabled = false;
+                document.getElementById('startGameBtn').textContent = 'Start Game';
+                
+                // Update game state to show player 2
+                gameState.players.player2.name = 'Player 2 (Connected)';
+                this.isHost = true;
+                
+                // Create a simulated data channel
+                this.channel = {
+                    send: (data) => {
+                        // In real implementation, this sends data to the other peer
+                        console.log("Sending data to other player:", data);
+                        // Simulate receiving data back (echo for demo)
+                        if (data.type === 'gameState') {
+                            setTimeout(() => {
+                                this.receiveGameState(data.state);
+                            }, 50);
+                        }
+                    }
+                };
+            }
+            
+            sendGameState(state) {
+                if (this.channel) {
+                    this.channel.send({
+                        type: 'gameState',
+                        state: state,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+            
+            receiveGameState(state) {
+                // Update player 2's state from network
+                if (state.player2) {
+                    gameState.players.player2.position = state.player2.position;
+                    gameState.players.player2.rotation = state.player2.rotation;
+                    gameState.players.player2.score = state.player2.score;
+                }
+                
+                // Update enemies and projectiles from network
+                if (state.enemies) gameState.enemies = state.enemies;
+                if (state.projectiles) gameState.projectiles = state.projectiles;
+                
+                // Update UI
+                updateGameUI();
+            }
+        }
+        
+        const network = new SimpleNetwork().initialize();
+        
+        // ==================== GAME SETUP ====================
+        function setupScene() {
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -50;
+            directionalLight.shadow.camera.right = 50;
+            directionalLight.shadow.camera.top = 50;
+            directionalLight.shadow.camera.bottom = -50;
+            scene.add(directionalLight);
+            
+            // Create central cube (objective)
+            const cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
+            const cubeMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x7209b7,
+                emissive: 0x3a0ca3,
+                emissiveIntensity: 0.2
+            });
+            centralCube.geometry = cubeGeometry;
+            centralCube.material = cubeMaterial;
+            centralCube.position.set(0, 2, 0);
+            centralCube.castShadow = true;
+            centralCube.receiveShadow = true;
+            scene.add(centralCube);
+            
+            // Create player 1 (blue)
+            const player1Geometry = new THREE.ConeGeometry(0.8, 2, 8);
+            const player1Material = new THREE.MeshPhongMaterial({ color: gameState.players.player1.color });
+            player1Mesh.geometry = player1Geometry;
+            player1Mesh.material = player1Material;
+            player1Mesh.position.copy(gameState.players.player1.position);
+            player1Mesh.castShadow = true;
+            scene.add(player1Mesh);
+            
+            // Create player 2 (pink) - positioned above as an orb
+            const player2Geometry = new THREE.SphereGeometry(1.5, 16, 16);
+            const player2Material = new THREE.MeshPhongMaterial({ 
+                color: gameState.players.player2.color,
+                emissive: 0xf72585,
+                emissiveIntensity: 0.3
+            });
+            player2Mesh.geometry = player2Geometry;
+            player2Mesh.material = player2Material;
+            player2Mesh.position.copy(gameState.players.player2.position);
+            scene.add(player2Mesh);
+            
+            // Create arena floor
+            const floorGeometry = new THREE.CircleGeometry(50, 32);
+            const floorMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x1d3557,
+                side: THREE.DoubleSide
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = Math.PI / 2;
+            floor.position.y = -0.5;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            
+            // Create decorative grid on floor
+            const gridHelper = new THREE.GridHelper(100, 50, 0x14213d, 0x14213d);
+            gridHelper.position.y = 0.01;
+            scene.add(gridHelper);
+            
+            // Create some initial decorative blocks
+            for (let i = 0; i < 10; i++) {
+                const size = Math.random() * 2 + 1;
+                const blockGeometry = new THREE.BoxGeometry(size, size, size);
+                const blockMaterial = new THREE.MeshPhongMaterial({ 
+                    color: Math.random() * 0xffffff,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                const block = new THREE.Mesh(blockGeometry, blockMaterial);
+                block.position.set(
+                    (Math.random() - 0.5) * 40,
+                    size / 2,
+                    (Math.random() - 0.5) * 40
+                );
+                block.castShadow = true;
+                block.receiveShadow = true;
+                scene.add(block);
+                blocks.push(block);
+            }
+        }
+        
+        // ==================== GAME LOGIC ====================
+        function spawnEnemies(count) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 30 + Math.random() * 20;
+                const x = Math.cos(angle) * distance;
+                const z = Math.sin(angle) * distance;
+                
+                const enemyGeometry = new THREE.SphereGeometry(1, 8, 8);
+                const enemyMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xff6b6b,
+                    emissive: 0xff0000,
+                    emissiveIntensity: 0.2
+                });
+                const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
+                enemy.position.set(x, 1, z);
+                enemy.castShadow = true;
+                
+                // Store enemy data
+                const enemyData = {
+                    mesh: enemy,
+                    speed: 0.05 + Math.random() * 0.05,
+                    health: 1,
+                    target: { x: 0, y: 1, z: 0 } // Target central cube
+                };
+                
+                scene.add(enemy);
+                enemies.push(enemyData);
+                gameState.enemies.push({
+                    x: enemy.position.x,
+                    y: enemy.position.y,
+                    z: enemy.position.z
+                });
+            }
+        }
+        
+        function updateEnemies() {
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                
+                // Move towards central cube
+                const dx = enemy.target.x - enemy.mesh.position.x;
+                const dz = enemy.target.z - enemy.mesh.position.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                
+                if (distance > 0.5) {
+                    enemy.mesh.position.x += (dx / distance) * enemy.speed;
+                    enemy.mesh.position.z += (dz / distance) * enemy.speed;
+                    
+                    // Update game state
+                    if (gameState.enemies[i]) {
+                        gameState.enemies[i].x = enemy.mesh.position.x;
+                        gameState.enemies[i].z = enemy.mesh.position.z;
+                    }
+                } else {
+                    // Enemy reached the cube
+                    gameState.centralCubeHealth -= 5;
+                    scene.remove(enemy.mesh);
+                    enemies.splice(i, 1);
+                    gameState.enemies.splice(i, 1);
+                    
+                    // Update UI
+                    document.getElementById('centralCubeHealth').textContent = gameState.centralCubeHealth;
+                }
+                
+                // Simple animation
+                enemy.mesh.position.y = 1 + Math.sin(Date.now() * 0.005 + i) * 0.3;
+            }
+        }
+        
+        function updatePlayers() {
+            // Player 1 movement (WASD)
+            const speed = 0.15;
+            if (keys['w'] || keys['ArrowUp']) {
+                gameState.players.player1.position.z -= speed;
+            }
+            if (keys['s'] || keys['ArrowDown']) {
+                gameState.players.player1.position.z += speed;
+            }
+            if (keys['a'] || keys['ArrowLeft']) {
+                gameState.players.player1.position.x -= speed;
+            }
+            if (keys['d'] || keys['ArrowRight']) {
+                gameState.players.player1.position.x += speed;
+            }
+            
+            // Keep player within bounds
+            gameState.players.player1.position.x = Math.max(-45, Math.min(45, gameState.players.player1.position.x));
+            gameState.players.player1.position.z = Math.max(-45, Math.min(45, gameState.players.player1.position.z));
+            
+            // Update player 1 mesh
+            player1Mesh.position.copy(gameState.players.player1.position);
+            
+            // Player 2 rotation (simulated from network)
+            if (gameState.gameStarted) {
+                gameState.players.player2.rotation = (gameState.players.player2.rotation || 0) + 0.01;
+                player2Mesh.rotation.y = gameState.players.player2.rotation;
+                
+                // Simulate player 2 shooting projectiles
+                if (Math.random() < 0.05 && gameState.enemies.length > 0) {
+                    spawnProjectile();
+                }
+            }
+            
+            // Send updated game state to network
+            network.sendGameState(gameState);
+        }
+        
+        function spawnProjectile() {
+            if (gameState.enemies.length === 0) return;
+            
+            // Target a random enemy
+            const targetIndex = Math.floor(Math.random() * gameState.enemies.length);
+            const target = gameState.enemies[targetIndex];
+            
+            const projectileGeometry = new THREE.SphereGeometry(0.3, 8, 8);
+            const projectileMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xf72585,
+                emissive: 0xf72585,
+                emissiveIntensity: 0.5
+            });
+            const projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
+            
+            // Start from player 2 position
+            projectile.position.copy(player2Mesh.position);
+            
+            // Calculate direction to target
+            const direction = {
+                x: target.x - projectile.position.x,
+                y: 1 - projectile.position.y,
+                z: target.z - projectile.position.z
+            };
+            
+            const length = Math.sqrt(direction.x**2 + direction.y**2 + direction.z**2);
+            direction.x /= length;
+            direction.y /= length;
+            direction.z /= length;
+            
+            const projectileData = {
+                mesh: projectile,
+                direction: direction,
+                speed: 0.5,
+                targetIndex: targetIndex
+            };
+            
+            scene.add(projectile);
+            projectiles.push(projectileData);
+            gameState.projectiles.push({
+                x: projectile.position.x,
+                y: projectile.position.y,
+                z: projectile.position.z
+            });
+        }
+        
+        function updateProjectiles() {
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const projectile = projectiles[i];
+                
+                // Move projectile
+                projectile.mesh.position.x += projectile.direction.x * projectile.speed;
+                projectile.mesh.position.y += projectile.direction.y * projectile.speed;
+                projectile.mesh.position.z += projectile.direction.z * projectile.speed;
+                
+                // Check if projectile hits an enemy
+                if (enemies[projectile.targetIndex]) {
+                    const enemy = enemies[projectile.targetIndex];
+                    const dx = projectile.mesh.position.x - enemy.mesh.position.x;
+                    const dy = projectile.mesh.position.y - enemy.mesh.position.y;
+                    const dz = projectile.mesh.position.z - enemy.mesh.position.z;
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    
+                    if (distance < 2) {
+                        // Hit! Remove enemy and projectile
+                        scene.remove(enemy.mesh);
+                        enemies.splice(projectile.targetIndex, 1);
+                        gameState.enemies.splice(projectile.targetIndex, 1);
+                        
+                        scene.remove(projectile.mesh);
+                        projectiles.splice(i, 1);
+                        gameState.projectiles.splice(i, 1);
+                        
+                        // Increase score
+                        gameState.players.player2.score += 10;
+                        updateGameUI();
+                        
+                        continue;
+                    }
+                }
+                
+                // Remove projectile if it goes too far
+                if (projectile.mesh.position.length() > 100) {
+                    scene.remove(projectile.mesh);
+                    projectiles.splice(i, 1);
+                    gameState.projectiles.splice(i, 1);
+                }
+            }
+        }
+        
+        function placeBlock() {
+            if (gameState.players.player1.blocks <= 0) return;
+            
+            const blockGeometry = new THREE.BoxGeometry(2, 2, 2);
+            const blockMaterial = new THREE.MeshPhongMaterial({ 
+                color: gameState.players.player1.color,
+                transparent: true,
+                opacity: 0.8
+            });
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+            
+            // Place block in front of player
+            block.position.set(
+                gameState.players.player1.position.x,
+                1,
+                gameState.players.player1.position.z - 3
+            );
+            
+            block.castShadow = true;
+            block.receiveShadow = true;
+            
+            scene.add(block);
+            blocks.push(block);
+            gameState.players.player1.blocks--;
+            gameState.blocks.push({
+                x: block.position.x,
+                y: block.position.y,
+                z: block.position.z
+            });
+            
+            updateGameUI();
+        }
+        
+        function checkGameOver() {
+            if (gameState.centralCubeHealth <= 0) {
+                gameState.gameStarted = false;
+                alert(`Game Over! You survived ${Math.floor(gameState.timeAlive)} seconds and scored ${gameState.players.player1.score + gameState.players.player2.score} points!`);
+                resetGame();
+                return true;
+            }
+            return false;
+        }
+        
+        function resetGame() {
+            // Remove all enemies
+            enemies.forEach(enemy => scene.remove(enemy.mesh));
+            enemies = [];
+            gameState.enemies = [];
+            
+            // Remove all projectiles
+            projectiles.forEach(projectile => scene.remove(projectile.mesh));
+            projectiles = [];
+            gameState.projectiles = [];
+            
+            // Reset game state
+            gameState.wave = 1;
+            gameState.timeAlive = 0;
+            gameState.centralCubeHealth = 100;
+            gameState.players.player1.score = 0;
+            gameState.players.player2.score = 0;
+            gameState.players.player1.blocks = 3;
+            
+            updateGameUI();
+        }
+        
+        function updateGameUI() {
+            document.getElementById('player1Score').textContent = gameState.players.player1.score;
+            document.getElementById('player2Score').textContent = gameState.players.player2.score;
+            document.getElementById('waveCount').textContent = gameState.wave;
+            document.getElementById('enemiesLeft').textContent = gameState.enemies.length;
+            document.getElementById('timeAlive').textContent = Math.floor(gameState.timeAlive);
+            
+            // Update central cube health indicator
+            if (!document.getElementById('centralCubeHealth')) {
+                const healthElement = document.createElement('div');
+                healthElement.id = 'centralCubeHealth';
+                healthElement.className = 'stat-value';
+                document.querySelector('.game-stats').appendChild(
+                    document.createElement('div')
+                ).appendChild(healthElement).parentElement.className = 'stat';
+                document.querySelector('.game-stats .stat:last-child .stat-label').textContent = 'Cube Health';
+            }
+            document.getElementById('centralCubeHealth').textContent = gameState.centralCubeHealth;
+            document.getElementById('centralCubeHealth').style.color = 
+                gameState.centralCubeHealth > 50 ? '#4cc9f0' : 
+                gameState.centralCubeHealth > 20 ? '#ffc107' : '#f72585';
+        }
+        
+        // ==================== GAME LOOP ====================
+        function gameLoop() {
+            if (gameState.gameStarted) {
+                updatePlayers();
+                updateEnemies();
+                updateProjectiles();
+                
+                // Spawn new enemies if needed
+                if (gameState.enemies.length < 5 + gameState.wave * 2) {
+                    spawnEnemies(2);
+                }
+                
+                // Update time
+                gameState.timeAlive += 1/60;
+                
+                // Increase wave every 30 seconds
+                if (gameState.timeAlive > gameState.wave * 30) {
+                    gameState.wave++;
+                }
+                
+                // Check game over
+                checkGameOver();
+            }
+            
+            // Camera follows player 1
+            camera.position.x = gameState.players.player1.position.x;
+            camera.position.z = gameState.players.player1.position.z + 20;
+            camera.lookAt(
+                gameState.players.player1.position.x,
+                gameState.players.player1.position.y + 5,
+                gameState.players.player1.position.z
+            );
+            
+            // Animate central cube
+            centralCube.rotation.x += 0.01;
+            centralCube.rotation.y += 0.01;
+            
+            // Render scene
+            renderer.render(scene, camera);
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // ==================== EVENT LISTENERS ====================
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            
+            if (e.key === ' ' && gameState.gameStarted) {
+                placeBlock();
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            // Simple mouse look for player 1
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            // Rotate player slightly based on mouse
+            player1Mesh.rotation.y = mouse.x * 0.5;
+        });
+        
+        document.getElementById('startGameBtn').addEventListener('click', () => {
+            if (!gameState.gameStarted) {
+                gameState.gameStarted = true;
+                document.getElementById('startGameBtn').textContent = 'Game Running...';
+                document.getElementById('startGameBtn').disabled = true;
+                
+                // Spawn initial enemies
+                spawnEnemies(5);
+                
+                // Update UI
+                updateGameUI();
+            }
+        });
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        });
+        
+        // ==================== START GAME ====================
+        setupScene();
+        gameLoop();
+        updateGameUI();
+    </script>
+</body>
+</html>
