@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Cube Defenders - WiFi Co-op Game</title>
-    <!-- Include Three.js from CDN -->
+    <title>📦 Warehouse Warriors - Real Logistics Co-op</title>
+    <!-- Include Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e6e6e6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -29,129 +29,148 @@
             text-align: center;
             margin-bottom: 30px;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px;
+            padding: 25px;
+            background: rgba(0, 30, 60, 0.8);
+            border-radius: 15px;
+            border: 2px solid #2a9d8f;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         
         h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin-bottom: 10px;
-            background: linear-gradient(90deg, #60a5fa, #8b5cf6);
+            background: linear-gradient(90deg, #2a9d8f, #e9c46a);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 4px 20px rgba(96, 165, 250, 0.3);
+            text-shadow: 0 2px 10px rgba(42, 157, 143, 0.3);
         }
         
         .tagline {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             opacity: 0.9;
-            margin-bottom: 25px;
-            color: #cbd5e1;
+            margin-bottom: 15px;
+            color: #e9c46a;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #a8dadc;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
         }
         
         .container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 30px;
-            width: 100%;
-            max-width: 1400px;
-        }
-        
-        .left-panel {
-            flex: 0 0 400px;
-            display: flex;
-            flex-direction: column;
             gap: 25px;
+            width: 100%;
+            max-width: 1600px;
         }
         
         .game-section {
             flex: 1;
-            min-width: 300px;
-            height: 600px;
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-            border: 2px solid rgba(96, 165, 250, 0.3);
-            position: relative;
-        }
-        
-        .panel {
-            background: rgba(30, 41, 59, 0.9);
+            min-width: 350px;
+            height: 700px;
+            background: rgba(10, 25, 47, 0.9);
             border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(96, 165, 250, 0.2);
-            backdrop-filter: blur(10px);
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            border: 2px solid #264653;
+            position: relative;
         }
         
         #gameCanvas {
             width: 100%;
             height: 100%;
             display: block;
-            background: #0f172a;
+            background: #0a192f;
+        }
+        
+        .control-panel {
+            flex: 0 0 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .panel {
+            background: rgba(23, 42, 69, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border: 1px solid #2a9d8f;
+            backdrop-filter: blur(10px);
         }
         
         .panel h2 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin-bottom: 20px;
-            color: #60a5fa;
+            color: #2a9d8f;
+            border-bottom: 2px solid #264653;
+            padding-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
-            padding-bottom: 10px;
+            gap: 10px;
+        }
+        
+        .room-section {
+            text-align: center;
         }
         
         .room-code-container {
-            text-align: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(15, 23, 42, 0.7);
+            margin: 25px 0;
+            padding: 25px;
+            background: rgba(10, 25, 47, 0.8);
             border-radius: 10px;
-            border: 2px solid rgba(96, 165, 250, 0.3);
+            border: 2px solid #e9c46a;
         }
         
         .room-code {
-            font-size: 4rem;
+            font-size: 4.5rem;
             font-weight: bold;
-            letter-spacing: 10px;
-            color: #10b981;
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-            margin: 15px 0;
+            letter-spacing: 15px;
+            color: #e9c46a;
+            text-shadow: 0 0 25px rgba(233, 196, 106, 0.5);
+            margin: 20px 0;
             font-family: monospace;
-            background: rgba(15, 23, 42, 0.9);
-            padding: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 10px;
-            border: 2px solid rgba(16, 185, 129, 0.4);
+            border: 3px solid #f4a261;
         }
         
         .code-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
         }
         
         .btn {
-            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            background: linear-gradient(90deg, #264653, #2a9d8f);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 18px 25px;
             border-radius: 10px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             text-align: center;
-            box-shadow: 0 5px 20px rgba(59, 130, 246, 0.4);
-            flex: 1;
+            box-shadow: 0 5px 20px rgba(42, 157, 143, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+            box-shadow: 0 8px 25px rgba(42, 157, 143, 0.6);
         }
         
         .btn:active {
@@ -159,27 +178,25 @@
         }
         
         .btn-copy {
-            background: linear-gradient(90deg, #10b981, #059669);
-            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
-        }
-        
-        .btn-copy:hover {
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+            background: linear-gradient(90deg, #e9c46a, #f4a261);
+            box-shadow: 0 5px 20px rgba(233, 196, 106, 0.4);
         }
         
         .btn-start {
-            background: linear-gradient(90deg, #f59e0b, #d97706);
-            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.4);
+            background: linear-gradient(90deg, #e76f51, #f4a261);
+            box-shadow: 0 5px 20px rgba(231, 111, 81, 0.4);
+            grid-column: span 2;
         }
         
-        .btn-start:hover {
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+        .btn-role {
+            background: linear-gradient(90deg, #1d3557, #457b9d);
+            box-shadow: 0 5px 20px rgba(29, 53, 87, 0.4);
         }
         
         .btn-disabled {
-            background: #475569;
+            background: #495057;
             cursor: not-allowed;
-            opacity: 0.7;
+            opacity: 0.6;
             box-shadow: none;
         }
         
@@ -199,16 +216,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 15px;
-            background: rgba(15, 23, 42, 0.7);
+            padding: 18px;
+            background: rgba(10, 25, 47, 0.7);
             border-radius: 10px;
             border: 2px solid;
             transition: all 0.3s ease;
         }
         
         .player-item.ready {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.1);
+            border-color: #2a9d8f;
+            background: rgba(42, 157, 143, 0.15);
         }
         
         .player-info {
@@ -219,14 +236,15 @@
         }
         
         .player-avatar {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #264653, #2a9d8f);
         }
         
         .player-details {
@@ -235,32 +253,65 @@
         
         .player-name {
             font-weight: 600;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             margin-bottom: 5px;
         }
         
         .player-role {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            color: #60a5fa;
+            font-size: 0.95rem;
+            color: #a8dadc;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .player-ready {
-            color: #10b981;
-            font-weight: bold;
-            padding: 5px 15px;
-            background: rgba(16, 185, 129, 0.2);
-            border-radius: 20px;
-            font-size: 0.9rem;
+        .player-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
         }
         
-        .player-waiting {
-            color: #f59e0b;
-            font-weight: bold;
-            padding: 5px 15px;
-            background: rgba(245, 158, 11, 0.2);
-            border-radius: 20px;
+        .player-stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 12px;
+            border-radius: 5px;
             font-size: 0.9rem;
+            border: 1px solid rgba(168, 218, 220, 0.2);
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid;
+            font-size: 1.1rem;
+        }
+        
+        .status-connecting {
+            background: rgba(233, 196, 106, 0.1);
+            color: #e9c46a;
+            border-color: rgba(233, 196, 106, 0.3);
+        }
+        
+        .status-connected {
+            background: rgba(42, 157, 143, 0.1);
+            color: #2a9d8f;
+            border-color: rgba(42, 157, 143, 0.3);
+        }
+        
+        .status-working {
+            background: rgba(69, 123, 157, 0.1);
+            color: #457b9d;
+            border-color: rgba(69, 123, 157, 0.3);
+        }
+        
+        .status-error {
+            background: rgba(231, 111, 81, 0.1);
+            color: #e76f51;
+            border-color: rgba(231, 111, 81, 0.3);
         }
         
         .controls-grid {
@@ -271,30 +322,31 @@
         }
         
         .control-key {
-            background: rgba(15, 23, 42, 0.7);
-            padding: 15px;
+            background: rgba(10, 25, 47, 0.7);
+            padding: 18px;
             border-radius: 10px;
             text-align: center;
-            border: 1px solid rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(42, 157, 143, 0.2);
             transition: all 0.3s ease;
         }
         
         .control-key:hover {
             transform: translateY(-3px);
-            border-color: #60a5fa;
-            box-shadow: 0 5px 15px rgba(96, 165, 250, 0.3);
+            border-color: #2a9d8f;
+            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.3);
         }
         
         .key {
             display: inline-block;
-            background: rgba(30, 41, 59, 0.9);
-            padding: 8px 15px;
+            background: rgba(23, 42, 69, 0.9);
+            padding: 10px 18px;
             border-radius: 8px;
             font-family: monospace;
             font-weight: bold;
             margin-right: 10px;
-            border: 2px solid #475569;
-            color: #60a5fa;
+            border: 2px solid #2a9d8f;
+            color: #a8dadc;
+            font-size: 1.1rem;
         }
         
         .game-stats {
@@ -306,92 +358,58 @@
         
         .stat {
             text-align: center;
-            padding: 15px;
-            background: rgba(15, 23, 42, 0.7);
+            padding: 20px;
+            background: rgba(10, 25, 47, 0.7);
             border-radius: 10px;
-            border: 1px solid rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(42, 157, 143, 0.2);
         }
         
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            color: #60a5fa;
-            margin-bottom: 5px;
+            color: #e9c46a;
+            margin-bottom: 8px;
         }
         
         .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            color: #cbd5e1;
+            font-size: 0.95rem;
+            color: #a8dadc;
         }
         
-        .status-message {
-            text-align: center;
+        .orders-panel {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .order-item {
+            background: rgba(10, 25, 47, 0.7);
             padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(233, 196, 106, 0.2);
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #e9c46a;
             font-weight: 600;
-            transition: all 0.3s ease;
-            border: 2px solid;
         }
         
-        .status-connecting {
-            background: rgba(245, 158, 11, 0.1);
-            color: #f59e0b;
-            border-color: rgba(245, 158, 11, 0.3);
+        .order-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
         }
         
-        .status-connected {
-            background: rgba(16, 185, 129, 0.1);
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-        
-        .status-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-        
-        .instructions {
-            line-height: 1.7;
-            font-size: 1rem;
-            color: #cbd5e1;
-        }
-        
-        .instructions ul {
-            padding-left: 25px;
-            margin-top: 15px;
-        }
-        
-        .instructions li {
-            margin-bottom: 12px;
-            padding-left: 5px;
-        }
-        
-        .instructions strong {
-            color: #60a5fa;
-        }
-        
-        .room-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            text-align: center;
-            letter-spacing: 10px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 2px solid #475569;
-            border-radius: 10px;
-            color: #f8fafc;
-            font-family: monospace;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        
-        .room-input:focus {
-            outline: none;
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+        .order-tag {
+            background: rgba(42, 157, 143, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            border: 1px solid #2a9d8f;
         }
         
         .game-overlay {
@@ -400,50 +418,112 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(10, 25, 47, 0.95);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             gap: 30px;
             z-index: 100;
-            border-radius: 20px;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
         }
         
         .game-overlay h2 {
-            font-size: 3rem;
-            color: #60a5fa;
-            text-shadow: 0 0 30px rgba(96, 165, 250, 0.5);
+            font-size: 3.5rem;
+            color: #e9c46a;
+            text-shadow: 0 0 30px rgba(233, 196, 106, 0.5);
         }
         
         .game-overlay p {
             font-size: 1.5rem;
-            color: #cbd5e1;
-            text-align: center;
+            color: #a8dadc;
             max-width: 80%;
+            line-height: 1.6;
         }
         
         .hidden {
             display: none !important;
         }
         
+        .role-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .role-card {
+            background: rgba(10, 25, 47, 0.7);
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .role-card.selected {
+            border-color: #e9c46a;
+            background: rgba(233, 196, 106, 0.1);
+        }
+        
+        .role-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .role-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2a9d8f;
+        }
+        
+        .role-desc {
+            font-size: 0.95rem;
+            color: #a8dadc;
+            line-height: 1.5;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(10, 25, 47, 0.7);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a9d8f, #a8dadc);
+            transition: width 0.3s ease;
+        }
+        
         .footer {
             margin-top: 40px;
             text-align: center;
-            opacity: 0.7;
-            font-size: 0.9rem;
-            max-width: 1200px;
+            opacity: 0.8;
+            font-size: 0.95rem;
+            max-width: 1400px;
             padding: 20px;
-            color: #94a3b8;
+            color: #a8dadc;
         }
         
-        @media (max-width: 1100px) {
+        @media (max-width: 1200px) {
             .container {
                 flex-direction: column;
                 align-items: center;
             }
             
-            .left-panel {
+            .control-panel {
                 width: 100%;
                 max-width: 800px;
             }
@@ -455,13 +535,13 @@
         
         @media (max-width: 600px) {
             h1 {
-                font-size: 2.2rem;
+                font-size: 2.5rem;
             }
             
             .room-code {
                 font-size: 3rem;
-                letter-spacing: 5px;
-                padding: 10px;
+                letter-spacing: 10px;
+                padding: 15px;
             }
             
             .game-section {
@@ -472,165 +552,122 @@
                 grid-template-columns: 1fr;
             }
             
-            .game-stats {
+            .role-selection {
                 grid-template-columns: 1fr;
-                gap: 10px;
             }
-        }
-        
-        .player-stats {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .player-stat {
-            background: rgba(15, 23, 42, 0.7);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            border: 1px solid rgba(96, 165, 250, 0.2);
-        }
-        
-        .health-bar {
-            width: 100%;
-            height: 10px;
-            background: rgba(239, 68, 68, 0.2);
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        
-        .health-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #059669);
-            transition: width 0.3s ease;
-        }
-        
-        .upgrade-item {
-            background: rgba(15, 23, 42, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(96, 165, 250, 0.2);
-        }
-        
-        .upgrade-item h4 {
-            color: #f59e0b;
-            margin-bottom: 5px;
-        }
-        
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .loader {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #3b82f6;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading">
-        <div class="loader"></div>
-    </div>
-    
     <div class="header">
-        <h1>🎮 Cube Defenders</h1>
-        <p class="tagline">3D Co-op Tower Defense - Play with friends on the same WiFi!</p>
+        <h1>📦 Warehouse Warriors</h1>
+        <p class="tagline">Real Logistics Co-op Simulation</p>
+        <p class="subtitle">Work together as a warehouse team - pick, pack, and ship orders efficiently. Based on real Amazon Fulfillment Center operations!</p>
     </div>
     
     <div class="container">
-        <div class="left-panel">
-            <div class="panel">
-                <h2>🕹️ Game Rooms</h2>
+        <div class="game-section">
+            <canvas id="gameCanvas"></canvas>
+            <div id="waitingOverlay" class="game-overlay">
+                <h2>🏭 Warehouse Warriors</h2>
+                <p>Create a room or join with a 4-digit code to start working!</p>
+                <p style="font-size: 1.2rem; color: #e9c46a;">Choose your role: Picker, Packer, or Manager</p>
+                <p style="font-size: 1rem; color: #a8dadc;">Real warehouse simulation with shift goals and team coordination</p>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div class="panel room-section">
+                <h2>🏢 Warehouse Setup</h2>
                 <div id="statusMessage" class="status-message status-connecting">
-                    🔍 Looking for rooms on your WiFi...
+                    🔍 Looking for available warehouse teams...
                 </div>
                 
                 <div id="hostSection" class="hidden">
                     <div class="room-code-container">
-                        <h3>Room Code</h3>
+                        <h3>Team Code</h3>
                         <div class="room-code" id="roomCode">0000</div>
                         <div class="code-actions">
                             <button id="copyBtn" class="btn btn-copy">📋 Copy Code</button>
                             <button id="newCodeBtn" class="btn">🔄 New Code</button>
                         </div>
-                        <p style="margin-top: 15px; color: #94a3b8; font-size: 0.9rem;">
-                            Share this code with your friend on the same WiFi
+                        <p style="margin-top: 15px; color: #a8dadc; font-size: 0.95rem;">
+                            Share this code with your warehouse team members
                         </p>
                     </div>
                 </div>
                 
                 <div id="joinSection">
-                    <h3>Join Room</h3>
-                    <input type="text" id="roomInput" class="room-input" maxlength="4" placeholder="Enter 4-digit code" pattern="[0-9]{4}">
+                    <h3>Join Warehouse Team</h3>
+                    <input type="text" id="roomInput" class="room-input" maxlength="4" placeholder="Enter 4-digit team code" pattern="[0-9]{4}" style="width: 100%; padding: 15px; font-size: 1.2rem; text-align: center; background: rgba(10,25,47,0.8); border: 2px solid #2a9d8f; border-radius: 10px; color: white; margin-bottom: 20px;">
                     <div class="code-actions">
-                        <button id="joinBtn" class="btn">🎮 Join Room</button>
-                        <button id="createBtn" class="btn">✨ Create Room</button>
+                        <button id="joinBtn" class="btn">👥 Join Team</button>
+                        <button id="createBtn" class="btn">🏢 Create Team</button>
+                    </div>
+                </div>
+                
+                <div id="roleSelection" class="hidden">
+                    <h3>👔 Choose Your Role</h3>
+                    <div class="role-selection">
+                        <div class="role-card" onclick="selectRole('picker')">
+                            <div class="role-icon">📦</div>
+                            <div class="role-title">Picker</div>
+                            <div class="role-desc">Collect items from shelves. Move with WASD, pick with SPACE. Accuracy matters!</div>
+                        </div>
+                        <div class="role-card" onclick="selectRole('packer')">
+                            <div class="role-icon">📦</div>
+                            <div class="role-title">Packer</div>
+                            <div class="role-desc">Pack items into boxes. Quality control and speed needed!</div>
+                        </div>
+                        <div class="role-card" onclick="selectRole('manager')">
+                            <div class="role-icon">📊</div>
+                            <div class="role-title">Manager</div>
+                            <div class="role-desc">Monitor operations, assign tasks, optimize workflow.</div>
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="panel">
-                <h2>👥 Players</h2>
+                <h2>👥 Warehouse Team</h2>
                 <div class="player-list" id="playerList">
-                    <!-- Players will be added here dynamically -->
+                    <!-- Players will be added here -->
                 </div>
-                <button id="readyBtn" class="btn btn-start btn-disabled">⏳ Waiting for players...</button>
+                <button id="readyBtn" class="btn btn-start btn-disabled">⏳ Waiting for team members...</button>
             </div>
             
             <div class="panel">
-                <h2>📊 Game Stats</h2>
+                <h2>📊 Shift Stats</h2>
                 <div class="game-stats">
                     <div class="stat">
-                        <div class="stat-value" id="waveCount">1</div>
-                        <div class="stat-label">Current Wave</div>
+                        <div class="stat-value" id="ordersCompleted">0</div>
+                        <div class="stat-label">Orders Completed</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value" id="enemiesLeft">0</div>
-                        <div class="stat-label">Enemies</div>
+                        <div class="stat-value" id="itemsPicked">0</div>
+                        <div class="stat-label">Items Picked</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value" id="timeAlive">0</div>
-                        <div class="stat-label">Seconds</div>
+                        <div class="stat-value" id="timeLeft">08:00</div>
+                        <div class="stat-label">Shift Time</div>
                     </div>
                 </div>
-                <div class="health-bar">
-                    <div class="health-fill" id="cubeHealthBar" style="width: 100%"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="shiftProgress" style="width: 0%"></div>
                 </div>
-                <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #94a3b8;">
-                    Cube Health: <span id="cubeHealthText">100</span>/100
+                <div style="text-align: center; margin-top: 15px;">
+                    <div style="font-size: 1.1rem; color: #e9c46a;">Shift Goal: <span id="shiftGoal">50</span> orders</div>
+                    <div style="font-size: 0.9rem; color: #a8dadc; margin-top: 5px;">Efficiency Bonus: <span id="efficiencyBonus">0%</span></div>
                 </div>
             </div>
-        </div>
-        
-        <div class="game-section">
-            <canvas id="gameCanvas"></canvas>
-            <div id="waitingOverlay" class="game-overlay">
-                <h2>🎮 Cube Defenders</h2>
-                <p>Create a room or join with a 4-digit code to start playing!</p>
-                <p style="font-size: 1rem; color: #94a3b8;">Make sure all players are on the same WiFi network</p>
+            
+            <div class="panel orders-panel">
+                <h2>📋 Active Orders</h2>
+                <div id="ordersList">
+                    <!-- Orders will be added here -->
+                </div>
             </div>
-        </div>
-        
-        <div class="left-panel">
+            
             <div class="panel">
                 <h2>🎮 Controls</h2>
                 <div class="controls-grid">
@@ -644,187 +681,147 @@
                     </div>
                     <div class="control-key">
                         <span class="key">SPACE</span><br>
-                        Place Block (Builder)
-                    </div>
-                    <div class="control-key">
-                        <span class="key">MOUSE</span><br>
-                        Look Around
+                        Pick/Pack Item
                     </div>
                     <div class="control-key">
                         <span class="key">E</span><br>
-                        Shoot (Shooter)
+                        Interact
                     </div>
                     <div class="control-key">
-                        <span class="key">R</span><br>
-                        Special Ability
+                        <span class="key">Q</span><br>
+                        Drop Item
                     </div>
-                </div>
-            </div>
-            
-            <div class="panel">
-                <h2>🎯 Game Rules</h2>
-                <div class="instructions">
-                    <p><strong>Objective:</strong> Defend the central cube from enemy waves!</p>
-                    <ul>
-                        <li><strong>Builder (Player 1):</strong> Place defensive blocks with SPACE</li>
-                        <li><strong>Shooter (Player 2):</strong> Shoot enemies with E key</li>
-                        <li><strong>Work together</strong> to survive as many waves as possible</li>
-                        <li>Each wave gets harder with more enemies</li>
-                        <li>Upgrade your abilities between waves</li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="panel">
-                <h2>🔧 Upgrades</h2>
-                <div id="upgradesContainer">
-                    <p style="color: #94a3b8; text-align: center;">Upgrades unlock between waves</p>
+                    <div class="control-key">
+                        <span class="key">TAB</span><br>
+                        View Tasks
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
     <div class="footer">
-        <p>Cube Defenders - A frontend-only 3D co-op game using Three.js and WebRTC Data Channels</p>
-        <p>Works on any device with a modern browser - Make sure all players are on the same WiFi!</p>
+        <p>Warehouse Warriors - Realistic logistics co-op simulation based on actual warehouse operations</p>
+        <p>Work together as a team to meet shift goals, optimize workflow, and earn bonuses!</p>
     </div>
 
     <script>
-        // ==================== GAME STATE ====================
+        // ==================== REAL WAREHOUSE SIMULATION ====================
+        // Based on Amazon Fulfillment Center operations
+        
+        // Game state
         const gameState = {
             roomCode: null,
             players: {},
             playerId: null,
             isHost: false,
-            gameStarted: false,
-            wave: 1,
-            enemies: [],
-            blocks: [],
-            projectiles: [],
-            timeAlive: 0,
-            cubeHealth: 100,
+            shiftStarted: false,
+            shiftTime: 8 * 60, // 8 hours in minutes (simulated as 8 minutes)
+            shiftGoal: 50,
+            ordersCompleted: 0,
+            itemsPicked: 0,
+            itemsPacked: 0,
+            efficiency: 100,
+            currentOrders: [],
+            completedOrders: [],
+            warehouse: {
+                shelves: [],
+                packingStations: [],
+                shippingZone: null,
+                breakRoom: null
+            },
+            playerRole: null,
             score: 0,
-            upgrades: {
-                blockHealth: 1,
-                fireRate: 1,
-                damage: 1
+            bonuses: {
+                onTime: 0,
+                accuracy: 0,
+                teamwork: 0
             }
         };
         
-        // ==================== THREE.JS VARIABLES ====================
+        // Three.js variables
         let scene, camera, renderer, canvas;
-        let playerMesh, enemyMeshes = [], blockMeshes = [], projectileMeshes = [], centralCube;
+        let playerMesh, shelfMeshes = [], itemMeshes = [], boxMeshes = [];
         let keys = {};
-        let mouse = { x: 0, y: 0 };
+        let heldItem = null;
+        
+        // Warehouse items database (real products)
+        const warehouseItems = [
+            { id: 1, name: "Smartphone", size: "small", weight: 0.2, color: 0x333333 },
+            { id: 2, name: "Laptop", size: "medium", weight: 2.0, color: 0x666666 },
+            { id: 3, name: "Headphones", size: "small", weight: 0.3, color: 0x0000ff },
+            { id: 4, name: "Book", size: "small", weight: 0.5, color: 0x8b4513 },
+            { id: 5, name: "T-shirt", size: "medium", weight: 0.2, color: 0xff0000 },
+            { id: 6, name: "Shoes", size: "medium", weight: 1.0, color: 0x008000 },
+            { id: 7, name: "Monitor", size: "large", weight: 5.0, color: 0x000000 },
+            { id: 8, name: "Keyboard", size: "medium", weight: 1.0, color: 0x808080 },
+            { id: 9, name: "Mouse", size: "small", weight: 0.1, color: 0x800080 },
+            { id: 10, name: "Water Bottle", size: "small", weight: 0.5, color: 0x00ffff }
+        ];
         
         // ==================== NETWORKING SYSTEM ====================
-        class GameNetwork {
+        class WarehouseNetwork {
             constructor() {
-                this.rooms = {};
-                this.localId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                this.localId = 'worker_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 this.currentRoom = null;
                 this.isHost = false;
+                this.connectionInterval = null;
                 
-                // Create BroadcastChannel for local communication
+                // Setup communication
+                this.setupCommunication();
+            }
+            
+            setupCommunication() {
+                // Use BroadcastChannel if available, localStorage fallback
                 try {
-                    this.broadcastChannel = new BroadcastChannel('cube_defenders');
-                    this.setupBroadcastChannel();
-                    console.log("BroadcastChannel initialized");
+                    this.broadcastChannel = new BroadcastChannel('warehouse_warriors');
+                    this.broadcastChannel.onmessage = (event) => this.handleMessage(event.data);
                 } catch (e) {
-                    console.warn("BroadcastChannel not supported, using localStorage fallback");
+                    console.log("Using localStorage for communication");
                     this.broadcastChannel = null;
-                    this.setupLocalStorageFallback();
-                }
-            }
-            
-            setupBroadcastChannel() {
-                this.broadcastChannel.onmessage = (event) => {
-                    this.handleMessage(event.data);
-                };
-            }
-            
-            setupLocalStorageFallback() {
-                // Fallback using localStorage and storage events
-                window.addEventListener('storage', (event) => {
-                    if (event.key === 'cube_defenders_msg') {
-                        const data = JSON.parse(event.newValue);
-                        if (data.roomCode === this.currentRoom) {
-                            this.handleMessage(data);
-                        }
-                    }
-                });
-                
-                // Also poll for changes
-                setInterval(() => {
-                    const msg = localStorage.getItem('cube_defenders_msg');
-                    if (msg) {
-                        const data = JSON.parse(msg);
-                        if (data.roomCode === this.currentRoom && data.timestamp > (Date.now() - 1000)) {
-                            this.handleMessage(data);
-                        }
-                    }
-                }, 100);
-            }
-            
-            handleMessage(data) {
-                switch(data.type) {
-                    case 'roomCreated':
-                        if (!this.isHost && data.roomCode === this.currentRoom) {
-                            this.connectToRoom(data);
-                        }
-                        break;
-                        
-                    case 'joinRequest':
-                        if (this.isHost && data.roomCode === this.currentRoom) {
-                            this.acceptJoinRequest(data);
-                        }
-                        break;
-                        
-                    case 'joinAccepted':
-                        if (!this.isHost && data.roomCode === this.currentRoom) {
-                            this.handleJoinAccepted(data);
-                        }
-                        break;
-                        
-                    case 'gameState':
-                        if (data.roomCode === this.currentRoom) {
-                            this.handleGameState(data.state);
-                        }
-                        break;
-                        
-                    case 'playerReady':
-                        if (data.roomCode === this.currentRoom) {
-                            this.handlePlayerReady(data.playerId);
-                        }
-                        break;
-                        
-                    case 'playerAction':
-                        if (data.roomCode === this.currentRoom && data.playerId !== this.localId) {
-                            this.handlePlayerAction(data);
-                        }
-                        break;
-                        
-                    case 'roomClosed':
-                        if (data.roomCode === this.currentRoom) {
-                            this.handleRoomClosed();
-                        }
-                        break;
                 }
             }
             
             sendMessage(data) {
                 data.roomCode = this.currentRoom;
                 data.timestamp = Date.now();
+                data.senderId = this.localId;
                 
                 if (this.broadcastChannel) {
                     this.broadcastChannel.postMessage(data);
                 } else {
                     // localStorage fallback
-                    localStorage.setItem('cube_defenders_msg', JSON.stringify(data));
-                    // Remove old message after 1 second
-                    setTimeout(() => {
-                        localStorage.removeItem('cube_defenders_msg');
-                    }, 1000);
+                    localStorage.setItem('warehouse_msg', JSON.stringify(data));
+                    setTimeout(() => localStorage.removeItem('warehouse_msg'), 100);
+                }
+            }
+            
+            handleMessage(data) {
+                if (data.roomCode !== this.currentRoom) return;
+                if (data.senderId === this.localId) return;
+                
+                switch(data.type) {
+                    case 'roomCreated':
+                        this.handleRoomCreated(data);
+                        break;
+                    case 'joinRequest':
+                        if (this.isHost) this.handleJoinRequest(data);
+                        break;
+                    case 'joinAccepted':
+                        if (!this.isHost) this.handleJoinAccepted(data);
+                        break;
+                    case 'gameState':
+                        this.handleGameState(data.state);
+                        break;
+                    case 'playerAction':
+                        this.handlePlayerAction(data);
+                        break;
+                    case 'playerReady':
+                        this.handlePlayerReady(data);
+                        break;
+                    case 'orderUpdate':
+                        this.handleOrderUpdate(data);
+                        break;
                 }
             }
             
@@ -836,21 +833,18 @@
                 gameState.playerId = this.localId;
                 gameState.isHost = true;
                 
-                // Clear any existing players
+                // Initialize warehouse
                 gameState.players = {};
-                
-                // Add host to players
                 gameState.players[this.localId] = {
                     id: this.localId,
-                    name: 'Player 1',
-                    role: 'builder',
-                    color: '#3b82f6',
+                    name: 'Shift Manager',
+                    role: 'manager',
+                    color: '#e76f51',
                     ready: false,
-                    position: { x: 5, y: 1, z: 5 },
-                    stats: { kills: 0, blocks: 0, damage: 0 }
+                    position: { x: 0, y: 1, z: 0 },
+                    stats: { itemsPicked: 0, itemsPacked: 0, ordersCompleted: 0 }
                 };
                 
-                // Broadcast room creation
                 this.sendMessage({
                     type: 'roomCreated',
                     roomCode: roomCode,
@@ -858,12 +852,13 @@
                 });
                 
                 this.updatePlayerList();
+                this.syncGameState();
                 return roomCode;
             }
             
             joinRoom(roomCode) {
                 if (!this.validateRoomCode(roomCode)) {
-                    showError('Invalid room code! Must be 4 digits.');
+                    showError('Invalid team code! Must be 4 digits.');
                     return false;
                 }
                 
@@ -873,21 +868,16 @@
                 gameState.playerId = this.localId;
                 gameState.isHost = false;
                 
-                // Clear any existing players
-                gameState.players = {};
-                
-                // Add player to game state
                 gameState.players[this.localId] = {
                     id: this.localId,
-                    name: 'Player 2',
-                    role: 'shooter',
-                    color: '#8b5cf6',
+                    name: 'New Worker',
+                    role: null,
+                    color: this.getRandomColor(),
                     ready: false,
-                    position: { x: -5, y: 1, z: -5 },
-                    stats: { kills: 0, blocks: 0, damage: 0 }
+                    position: { x: 5, y: 1, z: 5 },
+                    stats: { itemsPicked: 0, itemsPacked: 0, ordersCompleted: 0 }
                 };
                 
-                // Request to join
                 this.sendMessage({
                     type: 'joinRequest',
                     roomCode: roomCode,
@@ -899,48 +889,75 @@
                 return true;
             }
             
-            connectToRoom(data) {
-                // Player connecting to existing room
-                showMessage(`Connecting to room ${data.roomCode}...`);
+            handleRoomCreated(data) {
+                showMessage(`Team ${data.roomCode} found! Choose your role.`);
             }
             
-            acceptJoinRequest(data) {
-                // Add player to game state
-                gameState.players[data.playerId] = data.playerInfo;
+            handleJoinRequest(data) {
+                if (!this.isHost) return;
                 
-                // Send current game state to new player
+                gameState.players[data.playerId] = data.playerInfo;
                 this.sendMessage({
                     type: 'joinAccepted',
                     roomCode: this.currentRoom,
-                    hostId: this.localId,
                     gameState: gameState
                 });
                 
                 this.updatePlayerList();
                 this.syncGameState();
-                showMessage(`${data.playerInfo.name} joined the room!`);
+                showMessage(`${data.playerInfo.name} joined the team!`);
             }
             
             handleJoinAccepted(data) {
-                // Update with host's game state
                 Object.assign(gameState, data.gameState);
                 updateGameUI();
-                showMessage(`Joined room ${data.roomCode}! Waiting for host to start...`);
+                showMessage(`Joined team ${data.roomCode}! Choose your role.`);
+            }
+            
+            handleGameState(state) {
+                // Merge received state (preserve local player data)
+                const localPlayer = gameState.players[gameState.playerId];
+                Object.assign(gameState, state);
+                if (localPlayer) {
+                    gameState.players[gameState.playerId] = localPlayer;
+                }
+                updateGameUI();
+                updateWarehouseObjects();
+            }
+            
+            handlePlayerAction(data) {
+                // Handle other players' actions
+                // This could be used for real-time position updates
+            }
+            
+            handlePlayerReady(data) {
+                if (gameState.players[data.playerId]) {
+                    gameState.players[data.playerId].ready = true;
+                    this.updatePlayerList();
+                    
+                    // Check if all players are ready
+                    const players = Object.values(gameState.players);
+                    const allReady = players.length >= 1 && players.every(p => p.ready);
+                    if (allReady && this.isHost) {
+                        startShift();
+                    }
+                }
+            }
+            
+            handleOrderUpdate(data) {
+                if (data.orderId) {
+                    const orderIndex = gameState.currentOrders.findIndex(o => o.id === data.orderId);
+                    if (orderIndex !== -1) {
+                        gameState.currentOrders[orderIndex] = data.orderData;
+                        updateOrdersDisplay();
+                    }
+                }
             }
             
             syncGameState() {
                 this.sendMessage({
                     type: 'gameState',
                     state: gameState
-                });
-            }
-            
-            sendPlayerAction(action, data) {
-                this.sendMessage({
-                    type: 'playerAction',
-                    playerId: this.localId,
-                    action: action,
-                    data: data
                 });
             }
             
@@ -952,64 +969,15 @@
                         playerId: this.localId
                     });
                     this.updatePlayerList();
-                    this.syncGameState();
                 }
             }
             
-            handleGameState(state) {
-                // Merge received state (except local player position)
-                const localPlayer = gameState.players[gameState.playerId];
-                Object.assign(gameState, state);
-                if (localPlayer) {
-                    gameState.players[gameState.playerId] = localPlayer;
-                }
-                updateGameUI();
-            }
-            
-            handlePlayerReady(playerId) {
-                if (gameState.players[playerId]) {
-                    gameState.players[playerId].ready = true;
-                    this.updatePlayerList();
-                    
-                    // Check if all players are ready
-                    const players = Object.values(gameState.players);
-                    const allReady = players.length >= 2 && players.every(p => p.ready);
-                    if (allReady && this.isHost) {
-                        startGame();
-                    }
-                }
-            }
-            
-            handlePlayerAction(data) {
-                switch(data.action) {
-                    case 'move':
-                        if (gameState.players[data.playerId]) {
-                            gameState.players[data.playerId].position = data.data;
-                        }
-                        break;
-                        
-                    case 'placeBlock':
-                        createBlock(data.data.position, data.data.color);
-                        break;
-                        
-                    case 'shoot':
-                        createProjectile(data.data.position, data.data.direction);
-                        break;
-                }
-            }
-            
-            handleRoomClosed() {
-                showError('Room was closed by host!');
-                resetToLobby();
-            }
-            
-            closeRoom() {
-                if (this.isHost) {
-                    this.sendMessage({
-                        type: 'roomClosed',
-                        roomCode: this.currentRoom
-                    });
-                }
+            sendOrderUpdate(orderId, orderData) {
+                this.sendMessage({
+                    type: 'orderUpdate',
+                    orderId: orderId,
+                    orderData: orderData
+                });
             }
             
             generateRoomCode() {
@@ -1018,6 +986,11 @@
             
             validateRoomCode(code) {
                 return /^\d{4}$/.test(code);
+            }
+            
+            getRandomColor() {
+                const colors = ['#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#457b9d'];
+                return colors[Math.floor(Math.random() * colors.length)];
             }
             
             updatePlayerList() {
@@ -1029,15 +1002,28 @@
                     playerItem.className = `player-item ${player.ready ? 'ready' : ''}`;
                     playerItem.style.borderColor = player.color;
                     
+                    const roleIcon = player.role === 'picker' ? '📦' : 
+                                   player.role === 'packer' ? '📦' : 
+                                   player.role === 'manager' ? '📊' : '👤';
+                    
                     playerItem.innerHTML = `
                         <div class="player-info">
-                            <div class="player-avatar" style="background: ${player.color}">${player.name.charAt(0)}</div>
+                            <div class="player-avatar" style="background: ${player.color}">
+                                ${roleIcon}
+                            </div>
                             <div class="player-details">
                                 <div class="player-name">${player.name}</div>
-                                <div class="player-role">${player.role === 'builder' ? '🏗️ Builder' : '🔫 Shooter'}</div>
+                                <div class="player-role">
+                                    ${player.role ? 
+                                        (player.role === 'picker' ? '📦 Picker' : 
+                                         player.role === 'packer' ? '📦 Packer' : 
+                                         '📊 Manager') : 
+                                        '👤 Choosing role...'}
+                                </div>
                                 <div class="player-stats">
-                                    <span class="player-stat">🎯 ${player.stats.kills}</span>
-                                    <span class="player-stat">🧱 ${player.stats.blocks}</span>
+                                    <span class="player-stat">📦 ${player.stats.itemsPicked}</span>
+                                    <span class="player-stat">📦 ${player.stats.itemsPacked}</span>
+                                    <span class="player-stat">✅ ${player.stats.ordersCompleted}</span>
                                 </div>
                             </div>
                         </div>
@@ -1051,41 +1037,38 @@
                 
                 // Update ready button
                 const readyBtn = document.getElementById('readyBtn');
-                if (Object.keys(gameState.players).length >= 1) {
+                if (gameState.players[gameState.playerId]?.role) {
                     readyBtn.disabled = false;
                     readyBtn.className = 'btn btn-start';
-                    readyBtn.innerHTML = gameState.players[gameState.playerId]?.ready ? '✅ Ready!' : '🎮 Ready Up';
+                    readyBtn.innerHTML = gameState.players[gameState.playerId]?.ready ? '✅ Ready for Shift!' : '👷 Start Shift';
                 } else {
                     readyBtn.disabled = true;
                     readyBtn.className = 'btn btn-start btn-disabled';
-                    readyBtn.innerHTML = '⏳ Waiting for players...';
+                    readyBtn.innerHTML = '⏳ Choose your role first';
                 }
             }
         }
         
-        const network = new GameNetwork();
+        const network = new WarehouseNetwork();
         
-        // ==================== GAME INITIALIZATION ====================
+        // ==================== WAREHOUSE INITIALIZATION ====================
         function initGame() {
-            // Hide loading screen
-            document.getElementById('loading').classList.add('hidden');
-            
             // Create Three.js scene
             canvas = document.getElementById('gameCanvas');
             
-            // Check if Three.js is loaded
             if (typeof THREE === 'undefined') {
                 showError('Three.js failed to load. Please refresh the page.');
                 return;
             }
             
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0f172a);
-            scene.fog = new THREE.Fog(0x0f172a, 20, 100);
+            scene.background = new THREE.Color(0x0a192f);
+            scene.fog = new THREE.Fog(0x0a192f, 50, 200);
             
             // Create camera
             camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-            camera.position.set(0, 15, 25);
+            camera.position.set(0, 25, 30);
+            camera.lookAt(0, 0, 0);
             
             // Create renderer
             renderer = new THREE.WebGLRenderer({ 
@@ -1097,8 +1080,8 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             
-            // Setup scene
-            setupScene();
+            // Setup warehouse
+            setupWarehouse();
             
             // Start game loop
             gameLoop();
@@ -1106,55 +1089,27 @@
             // Setup event listeners
             setupEventListeners();
             
-            showMessage('Welcome to Cube Defenders! Create or join a room to start playing.');
+            showMessage('Welcome to Warehouse Warriors! Create or join a warehouse team.');
         }
         
-        function setupScene() {
+        function setupWarehouse() {
             // Lights
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(20, 30, 10);
+            directionalLight.position.set(50, 100, 50);
             directionalLight.castShadow = true;
-            directionalLight.shadow.camera.left = -50;
-            directionalLight.shadow.camera.right = 50;
-            directionalLight.shadow.camera.top = 50;
-            directionalLight.shadow.camera.bottom = -50;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.left = -100;
+            directionalLight.shadow.camera.right = 100;
+            directionalLight.shadow.camera.top = 100;
+            directionalLight.shadow.camera.bottom = -100;
             scene.add(directionalLight);
             
-            // Central cube (objective)
-            const cubeGeometry = new THREE.BoxGeometry(5, 5, 5);
-            const cubeMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x10b981,
-                emissive: 0x059669,
-                emissiveIntensity: 0.3,
-                transparent: true,
-                opacity: 0.9
-            });
-            centralCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-            centralCube.position.set(0, 2.5, 0);
-            centralCube.castShadow = true;
-            centralCube.receiveShadow = true;
-            scene.add(centralCube);
-            
-            // Player mesh
-            const playerGeometry = new THREE.ConeGeometry(0.8, 2, 8);
-            const playerMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x3b82f6,
-                emissive: 0x3b82f6,
-                emissiveIntensity: 0.2
-            });
-            playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-            playerMesh.castShadow = true;
-            scene.add(playerMesh);
-            
-            // Arena floor
-            const floorGeometry = new THREE.CircleGeometry(50, 64);
+            // Warehouse floor
+            const floorGeometry = new THREE.PlaneGeometry(200, 200);
             const floorMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x1e293b,
+                color: 0x1d3557,
                 side: THREE.DoubleSide
             });
             const floor = new THREE.Mesh(floorGeometry, floorMaterial);
@@ -1163,217 +1118,216 @@
             floor.receiveShadow = true;
             scene.add(floor);
             
-            // Grid helper
-            const gridHelper = new THREE.GridHelper(100, 50, 0x334155, 0x1e293b);
+            // Grid for reference
+            const gridHelper = new THREE.GridHelper(200, 50, 0x264653, 0x264653);
             gridHelper.position.y = 0.01;
             scene.add(gridHelper);
             
-            // Decorative elements
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const radius = 15;
-                const x = Math.cos(angle) * radius;
-                const z = Math.sin(angle) * radius;
-                
-                const pillarGeometry = new THREE.CylinderGeometry(0.5, 0.5, 5, 8);
-                const pillarMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0x475569,
-                    transparent: true,
-                    opacity: 0.7
-                });
-                const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
-                pillar.position.set(x, 2.5, z);
-                pillar.castShadow = true;
-                scene.add(pillar);
+            // Warehouse shelves (4 aisles)
+            for (let i = 0; i < 4; i++) {
+                createAisle(i * 30 - 45);
             }
+            
+            // Packing stations
+            createPackingStations();
+            
+            // Shipping zone
+            createShippingZone();
+            
+            // Break room
+            createBreakRoom();
+            
+            // Player mesh
+            const playerGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 8);
+            const playerMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x2a9d8f,
+                emissive: 0x264653,
+                emissiveIntensity: 0.2
+            });
+            playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+            playerMesh.position.y = 1;
+            playerMesh.castShadow = true;
+            scene.add(playerMesh);
+            
+            // Add initial items to shelves
+            populateShelves();
+            
+            // Generate initial orders
+            generateOrders(5);
+        }
+        
+        function createAisle(xPosition) {
+            // Create shelf units for an aisle
+            for (let i = 0; i < 5; i++) {
+                const shelfGeometry = new THREE.BoxGeometry(8, 6, 2);
+                const shelfMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x457b9d,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const shelf = new THREE.Mesh(shelfGeometry, shelfMaterial);
+                shelf.position.set(xPosition, 3, i * 15 - 30);
+                shelf.castShadow = true;
+                shelf.receiveShadow = true;
+                
+                shelfMeshes.push({
+                    mesh: shelf,
+                    aisle: Math.floor(xPosition / 30) + 1,
+                    section: i + 1,
+                    items: []
+                });
+                
+                scene.add(shelf);
+            }
+        }
+        
+        function createPackingStations() {
+            for (let i = 0; i < 3; i++) {
+                const stationGeometry = new THREE.BoxGeometry(4, 1, 4);
+                const stationMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xe9c46a
+                });
+                const station = new THREE.Mesh(stationGeometry, stationMaterial);
+                station.position.set(60, 0.5, i * 20 - 20);
+                scene.add(station);
+                
+                gameState.warehouse.packingStations.push({
+                    mesh: station,
+                    occupied: false,
+                    currentOrder: null
+                });
+            }
+        }
+        
+        function createShippingZone() {
+            const zoneGeometry = new THREE.BoxGeometry(20, 0.5, 20);
+            const zoneMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xe76f51,
+                transparent: true,
+                opacity: 0.7
+            });
+            const zone = new THREE.Mesh(zoneGeometry, zoneMaterial);
+            zone.position.set(0, 0.25, 60);
+            scene.add(zone);
+            
+            gameState.warehouse.shippingZone = zone;
+        }
+        
+        function createBreakRoom() {
+            const roomGeometry = new THREE.BoxGeometry(15, 5, 15);
+            const roomMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xa8dadc,
+                transparent: true,
+                opacity: 0.9
+            });
+            const room = new THREE.Mesh(roomGeometry, roomMaterial);
+            room.position.set(-60, 2.5, 0);
+            scene.add(room);
+            
+            gameState.warehouse.breakRoom = room;
+        }
+        
+        function populateShelves() {
+            shelfMeshes.forEach((shelf, shelfIndex) => {
+                // Add 3-5 items per shelf
+                const itemCount = 3 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < itemCount; i++) {
+                    const itemType = warehouseItems[Math.floor(Math.random() * warehouseItems.length)];
+                    const itemGeometry = new THREE.BoxGeometry(1, 1, 1);
+                    const itemMaterial = new THREE.MeshPhongMaterial({ 
+                        color: itemType.color
+                    });
+                    const item = new THREE.Mesh(itemGeometry, itemMaterial);
+                    
+                    // Position item on shelf
+                    item.position.set(
+                        shelf.mesh.position.x + (Math.random() - 0.5) * 6,
+                        shelf.mesh.position.y - 1 + Math.random() * 4,
+                        shelf.mesh.position.z + (Math.random() - 0.5) * 1.5
+                    );
+                    
+                    item.castShadow = true;
+                    scene.add(item);
+                    
+                    shelf.items.push({
+                        mesh: item,
+                        type: itemType,
+                        picked: false
+                    });
+                    
+                    itemMeshes.push(item);
+                }
+            });
+        }
+        
+        function generateOrders(count) {
+            for (let i = 0; i < count; i++) {
+                const orderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
+                const itemCount = 2 + Math.floor(Math.random() * 4);
+                const items = [];
+                
+                for (let j = 0; j < itemCount; j++) {
+                    const item = warehouseItems[Math.floor(Math.random() * warehouseItems.length)];
+                    items.push({
+                        ...item,
+                        picked: false,
+                        packed: false
+                    });
+                }
+                
+                const order = {
+                    id: orderId,
+                    items: items,
+                    status: 'pending', // pending, picking, packing, ready, shipped
+                    priority: Math.random() > 0.7 ? 'high' : 'normal',
+                    createdAt: Date.now(),
+                    timeLimit: 5 * 60 * 1000, // 5 minutes in real time
+                    assignedTo: null
+                };
+                
+                gameState.currentOrders.push(order);
+            }
+            updateOrdersDisplay();
         }
         
         // ==================== GAME LOGIC ====================
-        function spawnEnemies(count) {
-            for (let i = 0; i < count; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 25 + Math.random() * 15;
-                const x = Math.cos(angle) * distance;
-                const z = Math.sin(angle) * distance;
-                
-                const enemyGeometry = new THREE.SphereGeometry(0.8 + Math.random() * 0.5, 12, 12);
-                const enemyMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0xef4444,
-                    emissive: 0xdc2626,
-                    emissiveIntensity: 0.3
-                });
-                const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
-                enemy.position.set(x, 1, z);
-                enemy.castShadow = true;
-                
-                const enemyData = {
-                    mesh: enemy,
-                    speed: 0.03 + Math.random() * 0.04,
-                    health: 1,
-                    damage: 1,
-                    target: { x: 0, y: 2.5, z: 0 }
-                };
-                
-                scene.add(enemy);
-                enemyMeshes.push(enemyData);
-                gameState.enemies.push({
-                    x: x,
-                    y: 1,
-                    z: z,
-                    health: 1
-                });
-            }
-        }
-        
-        function createBlock(position, color = 0x3b82f6) {
-            if (!gameState.gameStarted) return;
-            if (gameState.players[gameState.playerId]?.role !== 'builder') return;
-            
-            // Check block limit
-            const playerBlocks = blockMeshes.filter(b => 
-                Math.abs(b.mesh.position.x - position.x) < 0.1 && 
-                Math.abs(b.mesh.position.z - position.z) < 0.1
-            ).length;
-            
-            if (playerBlocks > 0) return;
-            
-            const blockGeometry = new THREE.BoxGeometry(2, 2, 2);
-            const blockMaterial = new THREE.MeshPhongMaterial({ 
-                color: color,
-                transparent: true,
-                opacity: 0.8
-            });
-            const block = new THREE.Mesh(blockGeometry, blockMaterial);
-            block.position.set(position.x, 1, position.z);
-            block.castShadow = true;
-            block.receiveShadow = true;
-            
-            const blockData = {
-                mesh: block,
-                health: 50 * gameState.upgrades.blockHealth,
-                position: position
-            };
-            
-            scene.add(block);
-            blockMeshes.push(blockData);
-            gameState.blocks.push({
-                x: position.x,
-                y: 1,
-                z: position.z,
-                health: blockData.health
-            });
-            
-            // Update player stats
-            if (gameState.players[gameState.playerId]) {
-                gameState.players[gameState.playerId].stats.blocks++;
-                network.updatePlayerList();
-            }
-            
-            // Send to other players
-            network.sendPlayerAction('placeBlock', {
-                position: position,
-                color: color
-            });
-        }
-        
-        function createProjectile(position, direction) {
-            if (!gameState.gameStarted) return;
-            if (gameState.players[gameState.playerId]?.role !== 'shooter') return;
-            
-            const projectileGeometry = new THREE.SphereGeometry(0.3, 8, 8);
-            const projectileMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0xf59e0b,
-                emissive: 0xd97706,
-                emissiveIntensity: 0.5
-            });
-            const projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
-            projectile.position.set(position.x, position.y, position.z);
-            projectile.castShadow = true;
-            
-            const projectileData = {
-                mesh: projectile,
-                direction: direction,
-                speed: 0.5,
-                damage: 20 * gameState.upgrades.damage
-            };
-            
-            scene.add(projectile);
-            projectileMeshes.push(projectileData);
-            gameState.projectiles.push({
-                position: { x: position.x, y: position.y, z: position.z },
-                direction: direction
-            });
-            
-            // Send to other players
-            network.sendPlayerAction('shoot', {
-                position: position,
-                direction: direction
-            });
-        }
-        
-        function updateGameObjects() {
-            // Update player position
-            const player = gameState.players[gameState.playerId];
-            if (player) {
-                playerMesh.position.set(player.position.x, player.position.y, player.position.z);
-                playerMesh.material.color.setStyle(player.color);
-                
-                // Send position update
-                network.sendPlayerAction('move', player.position);
-            }
-        }
-        
         function gameLoop() {
-            if (gameState.gameStarted) {
+            if (gameState.shiftStarted) {
+                // Update shift timer
+                updateShiftTimer();
+                
                 // Update player movement
                 updatePlayerMovement();
                 
-                // Update enemies
-                updateEnemies();
+                // Check for completed orders
+                checkCompletedOrders();
                 
-                // Update projectiles
-                updateProjectiles();
-                
-                // Update blocks
-                updateBlocks();
-                
-                // Update time
-                gameState.timeAlive += 1/60;
-                
-                // Check for new wave
-                if (gameState.enemies.length === 0) {
-                    gameState.wave++;
-                    spawnEnemies(5 + gameState.wave * 2);
-                    showUpgrades();
+                // Generate new orders periodically
+                if (Math.floor(gameState.shiftTime) % 30 === 0 && 
+                    gameState.currentOrders.length < 10) {
+                    generateOrders(2);
                 }
                 
                 // Update UI
                 updateGameUI();
                 
-                // Check game over
-                if (gameState.cubeHealth <= 0) {
-                    endGame();
+                // Check shift end
+                if (gameState.shiftTime <= 0) {
+                    endShift();
                 }
                 
-                // Sync game state periodically
-                if (Math.floor(gameState.timeAlive * 60) % 30 === 0) {
+                // Sync game state every few seconds
+                if (Math.floor(gameState.shiftTime) % 10 === 0) {
                     network.syncGameState();
                 }
             }
             
             // Camera follows player
-            const player = gameState.players[gameState.playerId];
-            if (player) {
-                camera.position.x = player.position.x;
-                camera.position.z = player.position.z + 20;
-                camera.position.y = 15;
-                camera.lookAt(player.position.x, player.position.y + 5, player.position.z);
-            }
-            
-            // Animate central cube
-            if (centralCube) {
-                centralCube.rotation.x += 0.01;
-                centralCube.rotation.y += 0.01;
+            if (playerMesh) {
+                camera.position.x = playerMesh.position.x;
+                camera.position.z = playerMesh.position.z + 20;
+                camera.position.y = 25;
+                camera.lookAt(playerMesh.position.x, 0, playerMesh.position.z);
             }
             
             // Render
@@ -1388,7 +1342,7 @@
             if (!gameState.players[gameState.playerId]) return;
             
             const player = gameState.players[gameState.playerId];
-            const speed = 0.15;
+            const speed = 0.2;
             
             // WASD Movement
             if (keys['w'] || keys['ArrowUp']) player.position.z -= speed;
@@ -1396,280 +1350,404 @@
             if (keys['a'] || keys['ArrowLeft']) player.position.x -= speed;
             if (keys['d'] || keys['ArrowRight']) player.position.x += speed;
             
-            // Keep within bounds
-            const maxDistance = 40;
-            const distance = Math.sqrt(player.position.x ** 2 + player.position.z ** 2);
-            if (distance > maxDistance) {
-                player.position.x = (player.position.x / distance) * maxDistance;
-                player.position.z = (player.position.z / distance) * maxDistance;
+            // Keep within warehouse bounds
+            player.position.x = Math.max(-95, Math.min(95, player.position.x));
+            player.position.z = Math.max(-95, Math.min(95, player.position.z));
+            
+            // Update player mesh position
+            playerMesh.position.set(player.position.x, 1, player.position.z);
+            
+            // Check for item pickup (if picker)
+            if (keys[' '] && gameState.playerRole === 'picker') {
+                tryPickItem();
+            }
+            
+            // Check for packing (if packer)
+            if (keys['e'] && gameState.playerRole === 'packer') {
+                tryPackItem();
+            }
+            
+            // Drop item
+            if (keys['q'] && heldItem) {
+                dropItem();
             }
         }
         
-        function updateEnemies() {
-            for (let i = enemyMeshes.length - 1; i >= 0; i--) {
-                const enemy = enemyMeshes[i];
+        function tryPickItem() {
+            // Check if player is near a shelf with items
+            for (const shelf of shelfMeshes) {
+                const distance = Math.sqrt(
+                    Math.pow(playerMesh.position.x - shelf.mesh.position.x, 2) +
+                    Math.pow(playerMesh.position.z - shelf.mesh.position.z, 2)
+                );
                 
-                // Move towards cube
-                const dx = enemy.target.x - enemy.mesh.position.x;
-                const dz = enemy.target.z - enemy.mesh.position.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
-                
-                if (distance > 3) {
-                    enemy.mesh.position.x += (dx / distance) * enemy.speed;
-                    enemy.mesh.position.z += (dz / distance) * enemy.speed;
-                    
-                    // Update game state
-                    if (gameState.enemies[i]) {
-                        gameState.enemies[i].x = enemy.mesh.position.x;
-                        gameState.enemies[i].z = enemy.mesh.position.z;
-                    }
-                } else {
-                    // Enemy reached cube
-                    gameState.cubeHealth -= enemy.damage;
-                    scene.remove(enemy.mesh);
-                    enemyMeshes.splice(i, 1);
-                    gameState.enemies.splice(i, 1);
-                    
-                    showMessage('Cube hit! Health: ' + Math.floor(gameState.cubeHealth));
-                }
-                
-                // Bobbing animation
-                enemy.mesh.position.y = 1 + Math.sin(Date.now() * 0.005 + i) * 0.2;
-            }
-        }
-        
-        function updateProjectiles() {
-            for (let i = projectileMeshes.length - 1; i >= 0; i--) {
-                const projectile = projectileMeshes[i];
-                
-                // Move projectile
-                projectile.mesh.position.x += projectile.direction.x * projectile.speed;
-                projectile.mesh.position.y += projectile.direction.y * projectile.speed;
-                projectile.mesh.position.z += projectile.direction.z * projectile.speed;
-                
-                // Check collision with enemies
-                for (let j = enemyMeshes.length - 1; j >= 0; j--) {
-                    const enemy = enemyMeshes[j];
-                    const dx = projectile.mesh.position.x - enemy.mesh.position.x;
-                    const dy = projectile.mesh.position.y - enemy.mesh.position.y;
-                    const dz = projectile.mesh.position.z - enemy.mesh.position.z;
-                    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                    
-                    if (distance < 1.5) {
-                        // Hit!
-                        scene.remove(enemy.mesh);
-                        enemyMeshes.splice(j, 1);
-                        gameState.enemies.splice(j, 1);
-                        
-                        scene.remove(projectile.mesh);
-                        projectileMeshes.splice(i, 1);
-                        gameState.projectiles.splice(i, 1);
-                        
-                        // Update score and stats
-                        gameState.score += 10;
-                        if (gameState.players[gameState.playerId]) {
-                            gameState.players[gameState.playerId].stats.kills++;
-                            gameState.players[gameState.playerId].stats.damage += projectile.damage;
-                            network.updatePlayerList();
-                        }
-                        
+                if (distance < 5 && !heldItem) {
+                    // Find an unpicked item on this shelf
+                    const availableItem = shelf.items.find(item => !item.picked);
+                    if (availableItem) {
+                        pickItem(availableItem, shelf);
                         break;
                     }
                 }
+            }
+        }
+        
+        function pickItem(item, shelf) {
+            heldItem = item;
+            item.picked = true;
+            
+            // Remove from shelf visually
+            item.mesh.position.y = -10; // Move below floor
+            
+            // Update player stats
+            if (gameState.players[gameState.playerId]) {
+                gameState.players[gameState.playerId].stats.itemsPicked++;
+                gameState.itemsPicked++;
+            }
+            
+            // Find order that needs this item
+            for (const order of gameState.currentOrders) {
+                if (order.status === 'pending' || order.status === 'picking') {
+                    const orderItem = order.items.find(i => 
+                        i.id === item.type.id && !i.picked
+                    );
+                    if (orderItem) {
+                        orderItem.picked = true;
+                        order.status = 'picking';
+                        
+                        // Check if all items are picked
+                        if (order.items.every(i => i.picked)) {
+                            order.status = 'ready_for_packing';
+                        }
+                        
+                        updateOrdersDisplay();
+                        network.sendOrderUpdate(order.id, order);
+                        break;
+                    }
+                }
+            }
+            
+            showMessage(`Picked: ${item.type.name}`);
+        }
+        
+        function tryPackItem() {
+            if (!heldItem) return;
+            
+            // Check if player is at a packing station
+            for (const station of gameState.warehouse.packingStations) {
+                const distance = Math.sqrt(
+                    Math.pow(playerMesh.position.x - station.mesh.position.x, 2) +
+                    Math.pow(playerMesh.position.z - station.mesh.position.z, 2)
+                );
                 
-                // Remove if too far
-                if (projectile.mesh.position.length() > 100) {
-                    scene.remove(projectile.mesh);
-                    projectileMeshes.splice(i, 1);
-                    gameState.projectiles.splice(i, 1);
+                if (distance < 3) {
+                    // Find order ready for packing
+                    const order = gameState.currentOrders.find(o => 
+                        o.status === 'ready_for_packing'
+                    );
+                    
+                    if (order) {
+                        packItem(order);
+                        break;
+                    }
                 }
             }
         }
         
-        function updateBlocks() {
-            for (let i = blockMeshes.length - 1; i >= 0; i--) {
-                const block = blockMeshes[i];
+        function packItem(order) {
+            // Find if held item belongs to this order
+            const orderItem = order.items.find(i => 
+                i.id === heldItem.type.id && i.picked && !i.packed
+            );
+            
+            if (orderItem) {
+                orderItem.packed = true;
                 
-                // Check collision with enemies
-                for (let j = enemyMeshes.length - 1; j >= 0; j--) {
-                    const enemy = enemyMeshes[j];
-                    const dx = block.mesh.position.x - enemy.mesh.position.x;
-                    const dz = block.mesh.position.z - enemy.mesh.position.z;
-                    const distance = Math.sqrt(dx * dx + dz * dz);
-                    
-                    if (distance < 2) {
-                        block.health -= 1;
-                        gameState.blocks[i].health = block.health;
-                        
-                        // Visual feedback
-                        block.mesh.material.opacity = 0.5 + (block.health / (50 * gameState.upgrades.blockHealth)) * 0.3;
-                        
-                        if (block.health <= 0) {
-                            scene.remove(block.mesh);
-                            blockMeshes.splice(i, 1);
-                            gameState.blocks.splice(i, 1);
-                            break;
-                        }
-                    }
+                // Update player stats
+                if (gameState.players[gameState.playerId]) {
+                    gameState.players[gameState.playerId].stats.itemsPacked++;
+                    gameState.itemsPacked++;
                 }
+                
+                // Remove held item
+                heldItem = null;
+                
+                // Check if all items are packed
+                if (order.items.every(i => i.packed)) {
+                    order.status = 'ready_to_ship';
+                    showMessage(`Order ${order.id} ready to ship!`);
+                }
+                
+                updateOrdersDisplay();
+                network.sendOrderUpdate(order.id, order);
             }
+        }
+        
+        function dropItem() {
+            if (heldItem) {
+                // Place item near player
+                heldItem.mesh.position.set(
+                    playerMesh.position.x,
+                    1,
+                    playerMesh.position.z
+                );
+                heldItem.picked = false;
+                heldItem = null;
+                showMessage('Item dropped');
+            }
+        }
+        
+        function checkCompletedOrders() {
+            // Check for orders ready to ship at shipping zone
+            const distanceToShipping = Math.sqrt(
+                Math.pow(playerMesh.position.x - gameState.warehouse.shippingZone.position.x, 2) +
+                Math.pow(playerMesh.position.z - gameState.warehouse.shippingZone.position.z, 2)
+            );
+            
+            if (distanceToShipping < 10) {
+                const readyOrders = gameState.currentOrders.filter(o => 
+                    o.status === 'ready_to_ship'
+                );
+                
+                readyOrders.forEach(order => {
+                    shipOrder(order);
+                });
+            }
+        }
+        
+        function shipOrder(order) {
+            order.status = 'shipped';
+            gameState.ordersCompleted++;
+            
+            // Update player stats
+            if (gameState.players[gameState.playerId]) {
+                gameState.players[gameState.playerId].stats.ordersCompleted++;
+            }
+            
+            // Calculate efficiency bonus
+            const orderTime = Date.now() - order.createdAt;
+            if (orderTime < order.timeLimit) {
+                gameState.bonuses.onTime += 10;
+            }
+            
+            // Move to completed orders
+            gameState.completedOrders.push(order);
+            gameState.currentOrders = gameState.currentOrders.filter(o => o.id !== order.id);
+            
+            // Add to score
+            gameState.score += 100 + gameState.bonuses.onTime;
+            
+            showMessage(`Order ${order.id} shipped! +${100 + gameState.bonuses.onTime} points`);
+            updateOrdersDisplay();
+        }
+        
+        function updateShiftTimer() {
+            gameState.shiftTime -= 1/60; // Decrement by 1 second per frame (60 fps)
+            
+            // Calculate efficiency
+            const expectedOrders = gameState.shiftGoal * (1 - gameState.shiftTime / (8 * 60));
+            gameState.efficiency = (gameState.ordersCompleted / expectedOrders) * 100;
+            if (gameState.efficiency > 100) gameState.efficiency = 100;
+        }
+        
+        function updateWarehouseObjects() {
+            // Update visual elements based on game state
+            // This would sync other players' positions, etc.
         }
         
         // ==================== UI FUNCTIONS ====================
         function updateGameUI() {
-            document.getElementById('waveCount').textContent = gameState.wave;
-            document.getElementById('enemiesLeft').textContent = enemyMeshes.length;
-            document.getElementById('timeAlive').textContent = Math.floor(gameState.timeAlive);
-            document.getElementById('cubeHealthText').textContent = Math.max(0, Math.floor(gameState.cubeHealth));
+            // Update stats
+            document.getElementById('ordersCompleted').textContent = gameState.ordersCompleted;
+            document.getElementById('itemsPicked').textContent = gameState.itemsPicked;
             
-            const healthPercent = Math.max(0, gameState.cubeHealth);
-            document.getElementById('cubeHealthBar').style.width = `${healthPercent}%`;
+            // Update time
+            const minutes = Math.floor(gameState.shiftTime);
+            const seconds = Math.floor((gameState.shiftTime % 1) * 60);
+            document.getElementById('timeLeft').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
-            // Update health bar color
-            const healthBar = document.getElementById('cubeHealthBar');
-            if (gameState.cubeHealth > 70) {
-                healthBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
-            } else if (gameState.cubeHealth > 30) {
-                healthBar.style.background = 'linear-gradient(90deg, #f59e0b, #d97706)';
-            } else {
-                healthBar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+            // Update progress
+            const progress = (gameState.ordersCompleted / gameState.shiftGoal) * 100;
+            document.getElementById('shiftProgress').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('shiftGoal').textContent = gameState.shiftGoal;
+            
+            // Update efficiency bonus
+            document.getElementById('efficiencyBonus').textContent = 
+                `${Math.floor(gameState.efficiency)}%`;
+        }
+        
+        function updateOrdersDisplay() {
+            const ordersList = document.getElementById('ordersList');
+            ordersList.innerHTML = '';
+            
+            gameState.currentOrders.slice(0, 5).forEach(order => {
+                const orderItem = document.createElement('div');
+                orderItem.className = 'order-item';
+                
+                const pickedCount = order.items.filter(i => i.picked).length;
+                const packedCount = order.items.filter(i => i.packed).length;
+                const totalItems = order.items.length;
+                
+                orderItem.innerHTML = `
+                    <div class="order-header">
+                        <span>${order.id}</span>
+                        <span style="color: ${order.priority === 'high' ? '#e76f51' : '#2a9d8f'}">
+                            ${order.priority === 'high' ? '🚨 HIGH' : '📦 Normal'}
+                        </span>
+                    </div>
+                    <div>Status: <strong>${order.status.replace('_', ' ').toUpperCase()}</strong></div>
+                    <div>Progress: ${pickedCount}/${packedCount}/${totalItems} items</div>
+                    <div class="order-items">
+                        ${order.items.map(item => `
+                            <span class="order-tag" style="
+                                background: ${item.packed ? '#2a9d8f' : item.picked ? '#e9c46a' : '#457b9d'};
+                                color: ${item.packed || item.picked ? 'white' : '#a8dadc'};
+                            ">
+                                ${item.packed ? '✓' : item.picked ? '→' : '○'} ${item.name}
+                            </span>
+                        `).join('')}
+                    </div>
+                `;
+                
+                ordersList.appendChild(orderItem);
+            });
+        }
+        
+        function selectRole(role) {
+            gameState.playerRole = role;
+            
+            // Update player info
+            if (gameState.players[gameState.playerId]) {
+                gameState.players[gameState.playerId].role = role;
+                gameState.players[gameState.playerId].name = 
+                    role === 'picker' ? 'Picker' : 
+                    role === 'packer' ? 'Packer' : 'Manager';
+                
+                // Update color based on role
+                gameState.players[gameState.playerId].color = 
+                    role === 'picker' ? '#2a9d8f' : 
+                    role === 'packer' ? '#e9c46a' : '#e76f51';
             }
+            
+            // Update UI
+            document.querySelectorAll('.role-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.role-card').classList.add('selected');
+            
+            network.updatePlayerList();
+            showMessage(`Role selected: ${role}`);
         }
         
-        function showUpgrades() {
-            const container = document.getElementById('upgradesContainer');
-            container.innerHTML = `
-                <h3 style="color: #f59e0b; text-align: center;">Wave ${gameState.wave} Complete!</h3>
-                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-                    <button class="btn" onclick="buyUpgrade('blockHealth')" ${gameState.score < Math.floor(gameState.upgrades.blockHealth * 100) ? 'disabled' : ''}>
-                        🧱 Stronger Blocks (+25% health) - $${Math.floor(gameState.upgrades.blockHealth * 100)}
-                    </button>
-                    <button class="btn" onclick="buyUpgrade('fireRate')" ${gameState.score < Math.floor(gameState.upgrades.fireRate * 100) ? 'disabled' : ''}>
-                        ⚡ Faster Shooting (+20% speed) - $${Math.floor(gameState.upgrades.fireRate * 100)}
-                    </button>
-                    <button class="btn" onclick="buyUpgrade('damage')" ${gameState.score < Math.floor(gameState.upgrades.damage * 100) ? 'disabled' : ''}>
-                        💥 More Damage (+25% damage) - $${Math.floor(gameState.upgrades.damage * 100)}
-                    </button>
-                </div>
-                <p style="text-align: center; margin-top: 10px; color: #94a3b8;">Score: $${gameState.score}</p>
-            `;
-            
-            // Auto-hide after 15 seconds
-            setTimeout(() => {
-                if (gameState.gameStarted) {
-                    container.innerHTML = '<p style="color: #94a3b8; text-align: center;">Upgrades unlock between waves</p>';
-                }
-            }, 15000);
-        }
-        
-        function buyUpgrade(type) {
-            const cost = Math.floor(gameState.upgrades[type] * 100);
-            if (gameState.score >= cost) {
-                gameState.score -= cost;
-                gameState.upgrades[type] += type === 'blockHealth' || type === 'damage' ? 0.25 : 0.2;
-                updateGameUI();
-                showMessage(`✅ ${type === 'blockHealth' ? 'Blocks' : type === 'fireRate' ? 'Fire rate' : 'Damage'} upgraded!`);
-                showUpgrades(); // Refresh upgrade display
-            } else {
-                showError('Not enough score!');
-            }
-        }
-        
-        function startGame() {
-            gameState.gameStarted = true;
-            gameState.wave = 1;
-            gameState.timeAlive = 0;
-            gameState.cubeHealth = 100;
-            gameState.score = 0;
-            gameState.enemies = [];
-            gameState.blocks = [];
-            gameState.projectiles = [];
-            
-            // Clear existing meshes
-            enemyMeshes.forEach(e => scene.remove(e.mesh));
-            blockMeshes.forEach(b => scene.remove(b.mesh));
-            projectileMeshes.forEach(p => scene.remove(p.mesh));
-            
-            enemyMeshes = [];
-            blockMeshes = [];
-            projectileMeshes = [];
-            
+        function startShift() {
+            gameState.shiftStarted = true;
             document.getElementById('waitingOverlay').classList.add('hidden');
             
             // Update status
-            document.getElementById('statusMessage').className = 'status-message status-connected';
-            document.getElementById('statusMessage').innerHTML = '🎮 Game Started! Defend the cube!';
+            document.getElementById('statusMessage').className = 'status-message status-working';
+            document.getElementById('statusMessage').innerHTML = '👷 Shift Started! Work together to meet the goal!';
             
-            // Spawn initial enemies
-            spawnEnemies(5);
+            // Hide role selection
+            document.getElementById('roleSelection').classList.add('hidden');
             
-            showMessage('Game started! Defend the central cube together!');
+            showMessage('Shift started! Goal: ' + gameState.shiftGoal + ' orders in 8 minutes.');
             
-            // Sync final game state
+            // Sync game state
             network.syncGameState();
         }
         
-        function endGame() {
-            gameState.gameStarted = false;
+        function endShift() {
+            gameState.shiftStarted = false;
             
-            const score = gameState.score + Math.floor(gameState.timeAlive * 10);
-            const gameOverMsg = `Game Over! You survived ${Math.floor(gameState.timeAlive)} seconds on wave ${gameState.wave} with score: ${score}`;
+            const finalScore = gameState.score + 
+                (gameState.ordersCompleted * 50) + 
+                (gameState.efficiency * 10);
             
-            // Show game over overlay
             const overlay = document.getElementById('waitingOverlay');
             overlay.classList.remove('hidden');
             overlay.innerHTML = `
-                <h2>🎮 Game Over!</h2>
-                <p>You survived ${Math.floor(gameState.timeAlive)} seconds</p>
-                <p>Wave reached: ${gameState.wave}</p>
-                <p>Final Score: ${score}</p>
-                <button class="btn btn-start" onclick="resetToLobby()">🏠 Back to Lobby</button>
+                <h2>📊 Shift Complete!</h2>
+                <p>Orders Completed: <strong>${gameState.ordersCompleted}/${gameState.shiftGoal}</strong></p>
+                <p>Items Picked: <strong>${gameState.itemsPicked}</strong></p>
+                <p>Items Packed: <strong>${gameState.itemsPacked}</strong></p>
+                <p>Efficiency: <strong>${Math.floor(gameState.efficiency)}%</strong></p>
+                <p style="font-size: 2rem; color: #e9c46a;">Final Score: ${finalScore}</p>
+                <div style="display: flex; gap: 15px; margin-top: 20px;">
+                    <button class="btn" onclick="startNewShift()">🔄 New Shift</button>
+                    <button class="btn" onclick="resetToLobby()">🏠 Back to Lobby</button>
+                </div>
             `;
             
-            showMessage(gameOverMsg);
+            showMessage(`Shift ended! Final score: ${finalScore}`);
+        }
+        
+        function startNewShift() {
+            // Reset shift stats but keep team
+            gameState.shiftStarted = false;
+            gameState.shiftTime = 8 * 60;
+            gameState.ordersCompleted = 0;
+            gameState.itemsPicked = 0;
+            gameState.itemsPacked = 0;
+            gameState.efficiency = 100;
+            gameState.currentOrders = [];
+            gameState.completedOrders = [];
+            gameState.score = 0;
+            gameState.bonuses = { onTime: 0, accuracy: 0, teamwork: 0 };
+            
+            // Generate new goal
+            gameState.shiftGoal = 40 + Math.floor(Math.random() * 30);
+            
+            // Clear items and regenerate
+            itemMeshes.forEach(item => scene.remove(item));
+            itemMeshes = [];
+            
+            shelfMeshes.forEach(shelf => {
+                shelf.items = [];
+            });
+            
+            populateShelves();
+            generateOrders(5);
+            
+            // Show waiting overlay
+            document.getElementById('waitingOverlay').classList.add('hidden');
+            
+            // Update UI
+            updateGameUI();
+            updateOrdersDisplay();
+            
+            showMessage('New shift starting! Goal: ' + gameState.shiftGoal + ' orders');
+            
+            // Start after 3 seconds
+            setTimeout(() => {
+                startShift();
+            }, 3000);
         }
         
         function resetToLobby() {
-            gameState.gameStarted = false;
-            gameState.wave = 1;
-            gameState.timeAlive = 0;
-            gameState.cubeHealth = 100;
-            gameState.score = 0;
-            gameState.enemies = [];
-            gameState.blocks = [];
-            gameState.projectiles = [];
-            
-            // Clear meshes
-            enemyMeshes.forEach(e => scene.remove(e.mesh));
-            blockMeshes.forEach(b => scene.remove(b.mesh));
-            projectileMeshes.forEach(p => scene.remove(p.mesh));
-            
-            enemyMeshes = [];
-            blockMeshes = [];
-            projectileMeshes = [];
+            gameState.shiftStarted = false;
+            gameState.playerRole = null;
             
             // Reset player ready status
             if (gameState.players[gameState.playerId]) {
                 gameState.players[gameState.playerId].ready = false;
+                gameState.players[gameState.playerId].role = null;
             }
-            
-            // Show waiting overlay
-            const overlay = document.getElementById('waitingOverlay');
-            overlay.classList.remove('hidden');
-            overlay.innerHTML = `
-                <h2>🎮 Cube Defenders</h2>
-                <p>Create a room or join with a 4-digit code to start playing!</p>
-                <p style="font-size: 1rem; color: #94a3b8;">Make sure all players are on the same WiFi network</p>
-            `;
             
             // Show lobby UI
             document.getElementById('hostSection').classList.add('hidden');
             document.getElementById('joinSection').classList.remove('hidden');
-            document.getElementById('readyBtn').classList.remove('hidden');
+            document.getElementById('roleSelection').classList.add('hidden');
+            document.getElementById('waitingOverlay').classList.remove('hidden');
+            document.getElementById('waitingOverlay').innerHTML = `
+                <h2>🏭 Warehouse Warriors</h2>
+                <p>Create a room or join with a 4-digit code to start working!</p>
+                <p style="font-size: 1.2rem; color: #e9c46a;">Choose your role: Picker, Packer, or Manager</p>
+                <p style="font-size: 1rem; color: #a8dadc;">Real warehouse simulation with shift goals and team coordination</p>
+            `;
             
-            updateGameUI();
             network.updatePlayerList();
-            showMessage('Back to lobby. Create or join a new room!');
+            showMessage('Back to lobby. Create or join a new team!');
         }
         
         function showMessage(text) {
@@ -1677,12 +1755,15 @@
             status.textContent = text;
             status.className = 'status-message status-connected';
             setTimeout(() => {
-                if (!gameState.gameStarted && gameState.roomCode) {
-                    status.innerHTML = `🎮 Room ${gameState.roomCode} - Waiting for players...`;
-                } else if (!gameState.gameStarted) {
-                    status.innerHTML = '🔍 Looking for rooms on your WiFi...';
+                if (gameState.shiftStarted) {
+                    status.className = 'status-message status-working';
+                    status.innerHTML = '👷 Working... ' + gameState.ordersCompleted + '/' + gameState.shiftGoal + ' orders';
+                } else if (gameState.roomCode) {
+                    status.innerHTML = `🏢 Team ${gameState.roomCode} - Choose your role`;
+                } else {
+                    status.innerHTML = '🔍 Looking for available warehouse teams...';
                 }
-            }, 5000);
+            }, 3000);
         }
         
         function showError(text) {
@@ -1691,7 +1772,7 @@
             status.className = 'status-message status-error';
             setTimeout(() => {
                 status.className = 'status-message status-connecting';
-                status.textContent = '🔍 Looking for rooms on your WiFi...';
+                status.textContent = '🔍 Looking for available warehouse teams...';
             }, 3000);
         }
         
@@ -1705,46 +1786,11 @@
                 // Prevent space from scrolling
                 if (key === ' ') {
                     e.preventDefault();
-                    
-                    // Place block (builder only)
-                    if (gameState.gameStarted && gameState.players[gameState.playerId]?.role === 'builder') {
-                        const player = gameState.players[gameState.playerId];
-                        createBlock({ x: player.position.x, z: player.position.z - 3 });
-                    }
-                }
-                
-                // Shoot (shooter only)
-                if (key === 'e' && gameState.gameStarted && gameState.players[gameState.playerId]?.role === 'shooter') {
-                    const player = gameState.players[gameState.playerId];
-                    const direction = {
-                        x: -player.position.x * 0.1,
-                        y: -0.2,
-                        z: -player.position.z * 0.1
-                    };
-                    createProjectile({ x: player.position.x, y: player.position.y + 1, z: player.position.z }, direction);
-                }
-                
-                // Special ability (R key)
-                if (key === 'r' && gameState.gameStarted) {
-                    // Special ability implementation
-                    showMessage('Special ability activated!');
                 }
             });
             
             document.addEventListener('keyup', (e) => {
                 keys[e.key.toLowerCase()] = false;
-            });
-            
-            // Mouse events
-            canvas.addEventListener('mousemove', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
-                mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
-                
-                // Optional: Rotate player based on mouse
-                if (playerMesh) {
-                    playerMesh.rotation.y = mouse.x * Math.PI;
-                }
             });
             
             // Button events
@@ -1753,35 +1799,37 @@
                 document.getElementById('roomCode').textContent = roomCode;
                 document.getElementById('hostSection').classList.remove('hidden');
                 document.getElementById('joinSection').classList.add('hidden');
+                document.getElementById('roleSelection').classList.remove('hidden');
                 document.getElementById('statusMessage').className = 'status-message status-connected';
-                document.getElementById('statusMessage').innerHTML = `🎮 Room created! Code: ${roomCode}`;
+                document.getElementById('statusMessage').innerHTML = `🏢 Team ${roomCode} created!`;
                 document.getElementById('waitingOverlay').classList.add('hidden');
-                showMessage(`Room ${roomCode} created! Share the code with your friend.`);
+                showMessage(`Team ${roomCode} created! Choose your role.`);
             });
             
             document.getElementById('joinBtn').addEventListener('click', () => {
                 const roomCode = document.getElementById('roomInput').value.trim();
                 if (network.joinRoom(roomCode)) {
                     document.getElementById('statusMessage').className = 'status-message status-connected';
-                    document.getElementById('statusMessage').innerHTML = `🎮 Joining room ${roomCode}...`;
+                    document.getElementById('statusMessage').innerHTML = `🎯 Joining team ${roomCode}...`;
                     document.getElementById('waitingOverlay').classList.add('hidden');
-                    showMessage(`Joining room ${roomCode}...`);
+                    document.getElementById('roleSelection').classList.remove('hidden');
+                    showMessage(`Joining team ${roomCode}... Choose your role.`);
                 }
             });
             
             document.getElementById('copyBtn').addEventListener('click', () => {
                 const roomCode = document.getElementById('roomCode').textContent;
                 navigator.clipboard.writeText(roomCode).then(() => {
-                    showMessage(`✅ Room code ${roomCode} copied!`);
+                    showMessage(`✅ Team code ${roomCode} copied!`);
                 }).catch(() => {
-                    // Fallback for older browsers
+                    // Fallback
                     const textArea = document.createElement('textarea');
                     textArea.value = roomCode;
                     document.body.appendChild(textArea);
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    showMessage(`✅ Room code ${roomCode} copied!`);
+                    showMessage(`✅ Team code ${roomCode} copied!`);
                 });
             });
             
@@ -1790,7 +1838,7 @@
                 gameState.roomCode = roomCode;
                 network.currentRoom = roomCode;
                 document.getElementById('roomCode').textContent = roomCode;
-                showMessage(`🔄 New room code: ${roomCode}`);
+                showMessage(`🔄 New team code: ${roomCode}`);
                 network.syncGameState();
             });
             
@@ -1799,12 +1847,12 @@
             });
             
             // Room input formatting
-            document.getElementById('roomInput').addEventListener('input', (e) => {
+            const roomInput = document.getElementById('roomInput');
+            roomInput.addEventListener('input', (e) => {
                 e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
             });
             
-            // Handle Enter key in room input
-            document.getElementById('roomInput').addEventListener('keypress', (e) => {
+            roomInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     document.getElementById('joinBtn').click();
                 }
@@ -1818,27 +1866,21 @@
                     renderer.setSize(canvas.clientWidth, canvas.clientHeight);
                 }
             });
-            
-            // Handle page unload
-            window.addEventListener('beforeunload', () => {
-                if (network.isHost && gameState.roomCode) {
-                    network.closeRoom();
-                }
-            });
         }
         
         // ==================== INITIALIZE ====================
-        // Check if Three.js is loaded
         if (typeof THREE === 'undefined') {
-            document.getElementById('loading').innerHTML = `
-                <div style="text-align: center;">
-                    <h2 style="color: #ef4444;">Error Loading Three.js</h2>
-                    <p>Please check your internet connection and refresh the page.</p>
-                    <button class="btn" onclick="location.reload()">🔄 Refresh Page</button>
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: white;">
+                    <h2 style="color: #e76f51;">Error Loading Game</h2>
+                    <p>Three.js failed to load. Please check your internet connection.</p>
+                    <button onclick="location.reload()" style="
+                        background: #2a9d8f; color: white; border: none; padding: 15px 30px;
+                        border-radius: 10px; font-size: 1.1rem; cursor: pointer; margin-top: 20px;
+                    ">🔄 Refresh Page</button>
                 </div>
             `;
         } else {
-            // Initialize when page loads
             window.addEventListener('load', initGame);
         }
     </script>
