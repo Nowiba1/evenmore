@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cube Defenders - WiFi Co-op Game</title>
+    <title>🎮 Cube Defenders - WiFi Co-op Game</title>
+    <!-- Include Three.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -503,9 +505,52 @@
             background: linear-gradient(90deg, #10b981, #059669);
             transition: width 0.3s ease;
         }
+        
+        .upgrade-item {
+            background: rgba(15, 23, 42, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+        
+        .upgrade-item h4 {
+            color: #f59e0b;
+            margin-bottom: 5px;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #3b82f6;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+    <div class="loading" id="loading">
+        <div class="loader"></div>
+    </div>
+    
     <div class="header">
         <h1>🎮 Cube Defenders</h1>
         <p class="tagline">3D Co-op Tower Defense - Play with friends on the same WiFi!</p>
@@ -599,7 +644,7 @@
                     </div>
                     <div class="control-key">
                         <span class="key">SPACE</span><br>
-                        Place Block (Player 1)
+                        Place Block (Builder)
                     </div>
                     <div class="control-key">
                         <span class="key">MOUSE</span><br>
@@ -607,7 +652,7 @@
                     </div>
                     <div class="control-key">
                         <span class="key">E</span><br>
-                        Shoot (Player 2)
+                        Shoot (Shooter)
                     </div>
                     <div class="control-key">
                         <span class="key">R</span><br>
@@ -621,8 +666,8 @@
                 <div class="instructions">
                     <p><strong>Objective:</strong> Defend the central cube from enemy waves!</p>
                     <ul>
-                        <li><strong>Player 1 (Builder):</strong> Place defensive blocks with SPACE</li>
-                        <li><strong>Player 2 (Shooter):</strong> Shoot enemies with E key</li>
+                        <li><strong>Builder (Player 1):</strong> Place defensive blocks with SPACE</li>
+                        <li><strong>Shooter (Player 2):</strong> Shoot enemies with E key</li>
                         <li><strong>Work together</strong> to survive as many waves as possible</li>
                         <li>Each wave gets harder with more enemies</li>
                         <li>Upgrade your abilities between waves</li>
@@ -645,9 +690,8 @@
     </div>
 
     <script>
-        // ==================== GAME VARIABLES ====================
-        let scene, camera, renderer, canvas;
-        let gameState = {
+        // ==================== GAME STATE ====================
+        const gameState = {
             roomCode: null,
             players: {},
             playerId: null,
@@ -667,57 +711,121 @@
             }
         };
         
-        let playerMesh, enemyMeshes = [], blockMeshes = [], projectileMeshes = [];
+        // ==================== THREE.JS VARIABLES ====================
+        let scene, camera, renderer, canvas;
+        let playerMesh, enemyMeshes = [], blockMeshes = [], projectileMeshes = [], centralCube;
         let keys = {};
         let mouse = { x: 0, y: 0 };
-        let peerConnections = {};
-        let dataChannels = {};
         
         // ==================== NETWORKING SYSTEM ====================
         class GameNetwork {
             constructor() {
                 this.rooms = {};
-                this.peerConnections = {};
-                this.dataChannels = {};
                 this.localId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 this.currentRoom = null;
                 this.isHost = false;
                 
                 // Create BroadcastChannel for local communication
-                this.broadcastChannel = new BroadcastChannel('cube_defenders');
-                this.setupBroadcastChannel();
+                try {
+                    this.broadcastChannel = new BroadcastChannel('cube_defenders');
+                    this.setupBroadcastChannel();
+                    console.log("BroadcastChannel initialized");
+                } catch (e) {
+                    console.warn("BroadcastChannel not supported, using localStorage fallback");
+                    this.broadcastChannel = null;
+                    this.setupLocalStorageFallback();
+                }
             }
             
             setupBroadcastChannel() {
                 this.broadcastChannel.onmessage = (event) => {
-                    const data = event.data;
-                    
-                    switch(data.type) {
-                        case 'roomCreated':
-                            if (!this.isHost && data.roomCode === this.currentRoom) {
-                                this.connectToHost(data.hostId);
-                            }
-                            break;
-                            
-                        case 'joinRequest':
-                            if (this.isHost && data.roomCode === this.currentRoom) {
-                                this.acceptJoinRequest(data.playerId, data.playerInfo);
-                            }
-                            break;
-                            
-                        case 'gameState':
-                            this.handleGameState(data.state);
-                            break;
-                            
-                        case 'playerReady':
-                            this.handlePlayerReady(data.playerId);
-                            break;
-                            
-                        case 'playerAction':
-                            this.handlePlayerAction(data);
-                            break;
-                    }
+                    this.handleMessage(event.data);
                 };
+            }
+            
+            setupLocalStorageFallback() {
+                // Fallback using localStorage and storage events
+                window.addEventListener('storage', (event) => {
+                    if (event.key === 'cube_defenders_msg') {
+                        const data = JSON.parse(event.newValue);
+                        if (data.roomCode === this.currentRoom) {
+                            this.handleMessage(data);
+                        }
+                    }
+                });
+                
+                // Also poll for changes
+                setInterval(() => {
+                    const msg = localStorage.getItem('cube_defenders_msg');
+                    if (msg) {
+                        const data = JSON.parse(msg);
+                        if (data.roomCode === this.currentRoom && data.timestamp > (Date.now() - 1000)) {
+                            this.handleMessage(data);
+                        }
+                    }
+                }, 100);
+            }
+            
+            handleMessage(data) {
+                switch(data.type) {
+                    case 'roomCreated':
+                        if (!this.isHost && data.roomCode === this.currentRoom) {
+                            this.connectToRoom(data);
+                        }
+                        break;
+                        
+                    case 'joinRequest':
+                        if (this.isHost && data.roomCode === this.currentRoom) {
+                            this.acceptJoinRequest(data);
+                        }
+                        break;
+                        
+                    case 'joinAccepted':
+                        if (!this.isHost && data.roomCode === this.currentRoom) {
+                            this.handleJoinAccepted(data);
+                        }
+                        break;
+                        
+                    case 'gameState':
+                        if (data.roomCode === this.currentRoom) {
+                            this.handleGameState(data.state);
+                        }
+                        break;
+                        
+                    case 'playerReady':
+                        if (data.roomCode === this.currentRoom) {
+                            this.handlePlayerReady(data.playerId);
+                        }
+                        break;
+                        
+                    case 'playerAction':
+                        if (data.roomCode === this.currentRoom && data.playerId !== this.localId) {
+                            this.handlePlayerAction(data);
+                        }
+                        break;
+                        
+                    case 'roomClosed':
+                        if (data.roomCode === this.currentRoom) {
+                            this.handleRoomClosed();
+                        }
+                        break;
+                }
+            }
+            
+            sendMessage(data) {
+                data.roomCode = this.currentRoom;
+                data.timestamp = Date.now();
+                
+                if (this.broadcastChannel) {
+                    this.broadcastChannel.postMessage(data);
+                } else {
+                    // localStorage fallback
+                    localStorage.setItem('cube_defenders_msg', JSON.stringify(data));
+                    // Remove old message after 1 second
+                    setTimeout(() => {
+                        localStorage.removeItem('cube_defenders_msg');
+                    }, 1000);
+                }
             }
             
             createRoom() {
@@ -728,19 +836,22 @@
                 gameState.playerId = this.localId;
                 gameState.isHost = true;
                 
+                // Clear any existing players
+                gameState.players = {};
+                
                 // Add host to players
                 gameState.players[this.localId] = {
                     id: this.localId,
-                    name: 'Player 1 (Host)',
+                    name: 'Player 1',
                     role: 'builder',
                     color: '#3b82f6',
-                    ready: true,
-                    position: { x: 0, y: 1, z: 0 },
+                    ready: false,
+                    position: { x: 5, y: 1, z: 5 },
                     stats: { kills: 0, blocks: 0, damage: 0 }
                 };
                 
                 // Broadcast room creation
-                this.broadcastChannel.postMessage({
+                this.sendMessage({
                     type: 'roomCreated',
                     roomCode: roomCode,
                     hostId: this.localId
@@ -762,6 +873,9 @@
                 gameState.playerId = this.localId;
                 gameState.isHost = false;
                 
+                // Clear any existing players
+                gameState.players = {};
+                
                 // Add player to game state
                 gameState.players[this.localId] = {
                     id: this.localId,
@@ -769,12 +883,12 @@
                     role: 'shooter',
                     color: '#8b5cf6',
                     ready: false,
-                    position: { x: 5, y: 1, z: 5 },
+                    position: { x: -5, y: 1, z: -5 },
                     stats: { kills: 0, blocks: 0, damage: 0 }
                 };
                 
                 // Request to join
-                this.broadcastChannel.postMessage({
+                this.sendMessage({
                     type: 'joinRequest',
                     roomCode: roomCode,
                     playerId: this.localId,
@@ -785,14 +899,17 @@
                 return true;
             }
             
-            acceptJoinRequest(playerId, playerInfo) {
-                if (!this.isHost) return;
-                
+            connectToRoom(data) {
+                // Player connecting to existing room
+                showMessage(`Connecting to room ${data.roomCode}...`);
+            }
+            
+            acceptJoinRequest(data) {
                 // Add player to game state
-                gameState.players[playerId] = playerInfo;
+                gameState.players[data.playerId] = data.playerInfo;
                 
-                // Notify the joining player
-                this.broadcastChannel.postMessage({
+                // Send current game state to new player
+                this.sendMessage({
                     type: 'joinAccepted',
                     roomCode: this.currentRoom,
                     hostId: this.localId,
@@ -801,42 +918,52 @@
                 
                 this.updatePlayerList();
                 this.syncGameState();
+                showMessage(`${data.playerInfo.name} joined the room!`);
+            }
+            
+            handleJoinAccepted(data) {
+                // Update with host's game state
+                Object.assign(gameState, data.gameState);
+                updateGameUI();
+                showMessage(`Joined room ${data.roomCode}! Waiting for host to start...`);
             }
             
             syncGameState() {
-                this.broadcastChannel.postMessage({
+                this.sendMessage({
                     type: 'gameState',
                     state: gameState
                 });
             }
             
             sendPlayerAction(action, data) {
-                this.broadcastChannel.postMessage({
+                this.sendMessage({
                     type: 'playerAction',
                     playerId: this.localId,
                     action: action,
-                    data: data,
-                    roomCode: this.currentRoom
+                    data: data
                 });
             }
             
             sendPlayerReady() {
                 if (gameState.players[this.localId]) {
                     gameState.players[this.localId].ready = true;
-                    this.broadcastChannel.postMessage({
+                    this.sendMessage({
                         type: 'playerReady',
-                        playerId: this.localId,
-                        roomCode: this.currentRoom
+                        playerId: this.localId
                     });
                     this.updatePlayerList();
+                    this.syncGameState();
                 }
             }
             
             handleGameState(state) {
-                // Merge received state
+                // Merge received state (except local player position)
+                const localPlayer = gameState.players[gameState.playerId];
                 Object.assign(gameState, state);
+                if (localPlayer) {
+                    gameState.players[gameState.playerId] = localPlayer;
+                }
                 updateGameUI();
-                updateGameObjects();
             }
             
             handlePlayerReady(playerId) {
@@ -845,15 +972,15 @@
                     this.updatePlayerList();
                     
                     // Check if all players are ready
-                    const allReady = Object.values(gameState.players).every(p => p.ready);
-                    if (allReady && this.isHost && Object.keys(gameState.players).length >= 2) {
+                    const players = Object.values(gameState.players);
+                    const allReady = players.length >= 2 && players.every(p => p.ready);
+                    if (allReady && this.isHost) {
                         startGame();
                     }
                 }
             }
             
             handlePlayerAction(data) {
-                // Handle actions from other players
                 switch(data.action) {
                     case 'move':
                         if (gameState.players[data.playerId]) {
@@ -868,6 +995,20 @@
                     case 'shoot':
                         createProjectile(data.data.position, data.data.direction);
                         break;
+                }
+            }
+            
+            handleRoomClosed() {
+                showError('Room was closed by host!');
+                resetToLobby();
+            }
+            
+            closeRoom() {
+                if (this.isHost) {
+                    this.sendMessage({
+                        type: 'roomClosed',
+                        roomCode: this.currentRoom
+                    });
                 }
             }
             
@@ -910,7 +1051,7 @@
                 
                 // Update ready button
                 const readyBtn = document.getElementById('readyBtn');
-                if (Object.keys(gameState.players).length >= 2) {
+                if (Object.keys(gameState.players).length >= 1) {
                     readyBtn.disabled = false;
                     readyBtn.className = 'btn btn-start';
                     readyBtn.innerHTML = gameState.players[gameState.playerId]?.ready ? '✅ Ready!' : '🎮 Ready Up';
@@ -926,8 +1067,18 @@
         
         // ==================== GAME INITIALIZATION ====================
         function initGame() {
+            // Hide loading screen
+            document.getElementById('loading').classList.add('hidden');
+            
             // Create Three.js scene
             canvas = document.getElementById('gameCanvas');
+            
+            // Check if Three.js is loaded
+            if (typeof THREE === 'undefined') {
+                showError('Three.js failed to load. Please refresh the page.');
+                return;
+            }
+            
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0f172a);
             scene.fog = new THREE.Fog(0x0f172a, 20, 100);
@@ -954,6 +1105,8 @@
             
             // Setup event listeners
             setupEventListeners();
+            
+            showMessage('Welcome to Cube Defenders! Create or join a room to start playing.');
         }
         
         function setupScene() {
@@ -981,7 +1134,7 @@
                 transparent: true,
                 opacity: 0.9
             });
-            const centralCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            centralCube = new THREE.Mesh(cubeGeometry, cubeMaterial);
             centralCube.position.set(0, 2.5, 0);
             centralCube.castShadow = true;
             centralCube.receiveShadow = true;
@@ -1073,7 +1226,16 @@
         }
         
         function createBlock(position, color = 0x3b82f6) {
+            if (!gameState.gameStarted) return;
             if (gameState.players[gameState.playerId]?.role !== 'builder') return;
+            
+            // Check block limit
+            const playerBlocks = blockMeshes.filter(b => 
+                Math.abs(b.mesh.position.x - position.x) < 0.1 && 
+                Math.abs(b.mesh.position.z - position.z) < 0.1
+            ).length;
+            
+            if (playerBlocks > 0) return;
             
             const blockGeometry = new THREE.BoxGeometry(2, 2, 2);
             const blockMaterial = new THREE.MeshPhongMaterial({ 
@@ -1115,6 +1277,9 @@
         }
         
         function createProjectile(position, direction) {
+            if (!gameState.gameStarted) return;
+            if (gameState.players[gameState.playerId]?.role !== 'shooter') return;
+            
             const projectileGeometry = new THREE.SphereGeometry(0.3, 8, 8);
             const projectileMaterial = new THREE.MeshPhongMaterial({ 
                 color: 0xf59e0b,
@@ -1122,7 +1287,7 @@
                 emissiveIntensity: 0.5
             });
             const projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
-            projectile.position.copy(position);
+            projectile.position.set(position.x, position.y, position.z);
             projectile.castShadow = true;
             
             const projectileData = {
@@ -1156,13 +1321,6 @@
                 // Send position update
                 network.sendPlayerAction('move', player.position);
             }
-            
-            // Update other players
-            Object.values(gameState.players).forEach(p => {
-                if (p.id !== gameState.playerId) {
-                    // In a real implementation, you'd have meshes for other players
-                }
-            });
         }
         
         function gameLoop() {
@@ -1196,6 +1354,11 @@
                 if (gameState.cubeHealth <= 0) {
                     endGame();
                 }
+                
+                // Sync game state periodically
+                if (Math.floor(gameState.timeAlive * 60) % 30 === 0) {
+                    network.syncGameState();
+                }
             }
             
             // Camera follows player
@@ -1207,8 +1370,16 @@
                 camera.lookAt(player.position.x, player.position.y + 5, player.position.z);
             }
             
+            // Animate central cube
+            if (centralCube) {
+                centralCube.rotation.x += 0.01;
+                centralCube.rotation.y += 0.01;
+            }
+            
             // Render
-            renderer.render(scene, camera);
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
             
             requestAnimationFrame(gameLoop);
         }
@@ -1258,6 +1429,8 @@
                     scene.remove(enemy.mesh);
                     enemyMeshes.splice(i, 1);
                     gameState.enemies.splice(i, 1);
+                    
+                    showMessage('Cube hit! Health: ' + Math.floor(gameState.cubeHealth));
                 }
                 
                 // Bobbing animation
@@ -1297,6 +1470,7 @@
                         if (gameState.players[gameState.playerId]) {
                             gameState.players[gameState.playerId].stats.kills++;
                             gameState.players[gameState.playerId].stats.damage += projectile.damage;
+                            network.updatePlayerList();
                         }
                         
                         break;
@@ -1326,6 +1500,9 @@
                     if (distance < 2) {
                         block.health -= 1;
                         gameState.blocks[i].health = block.health;
+                        
+                        // Visual feedback
+                        block.mesh.material.opacity = 0.5 + (block.health / (50 * gameState.upgrades.blockHealth)) * 0.3;
                         
                         if (block.health <= 0) {
                             scene.remove(block.mesh);
@@ -1362,18 +1539,27 @@
         function showUpgrades() {
             const container = document.getElementById('upgradesContainer');
             container.innerHTML = `
-                <h3>Wave ${gameState.wave} Complete!</h3>
+                <h3 style="color: #f59e0b; text-align: center;">Wave ${gameState.wave} Complete!</h3>
                 <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
-                    <button class="btn" onclick="buyUpgrade('blockHealth')">🧱 Stronger Blocks (+25% health) - $${Math.floor(gameState.upgrades.blockHealth * 100)}</button>
-                    <button class="btn" onclick="buyUpgrade('fireRate')">⚡ Faster Shooting (+20% speed) - $${Math.floor(gameState.upgrades.fireRate * 100)}</button>
-                    <button class="btn" onclick="buyUpgrade('damage')">💥 More Damage (+25% damage) - $${Math.floor(gameState.upgrades.damage * 100)}</button>
+                    <button class="btn" onclick="buyUpgrade('blockHealth')" ${gameState.score < Math.floor(gameState.upgrades.blockHealth * 100) ? 'disabled' : ''}>
+                        🧱 Stronger Blocks (+25% health) - $${Math.floor(gameState.upgrades.blockHealth * 100)}
+                    </button>
+                    <button class="btn" onclick="buyUpgrade('fireRate')" ${gameState.score < Math.floor(gameState.upgrades.fireRate * 100) ? 'disabled' : ''}>
+                        ⚡ Faster Shooting (+20% speed) - $${Math.floor(gameState.upgrades.fireRate * 100)}
+                    </button>
+                    <button class="btn" onclick="buyUpgrade('damage')" ${gameState.score < Math.floor(gameState.upgrades.damage * 100) ? 'disabled' : ''}>
+                        💥 More Damage (+25% damage) - $${Math.floor(gameState.upgrades.damage * 100)}
+                    </button>
                 </div>
+                <p style="text-align: center; margin-top: 10px; color: #94a3b8;">Score: $${gameState.score}</p>
             `;
             
-            // Auto-hide after 10 seconds
+            // Auto-hide after 15 seconds
             setTimeout(() => {
-                container.innerHTML = '<p style="color: #94a3b8; text-align: center;">Upgrades unlock between waves</p>';
-            }, 10000);
+                if (gameState.gameStarted) {
+                    container.innerHTML = '<p style="color: #94a3b8; text-align: center;">Upgrades unlock between waves</p>';
+                }
+            }, 15000);
         }
         
         function buyUpgrade(type) {
@@ -1383,6 +1569,7 @@
                 gameState.upgrades[type] += type === 'blockHealth' || type === 'damage' ? 0.25 : 0.2;
                 updateGameUI();
                 showMessage(`✅ ${type === 'blockHealth' ? 'Blocks' : type === 'fireRate' ? 'Fire rate' : 'Damage'} upgraded!`);
+                showUpgrades(); // Refresh upgrade display
             } else {
                 showError('Not enough score!');
             }
@@ -1390,48 +1577,99 @@
         
         function startGame() {
             gameState.gameStarted = true;
-            document.getElementById('waitingOverlay').classList.add('hidden');
-            document.getElementById('readyBtn').classList.add('hidden');
+            gameState.wave = 1;
+            gameState.timeAlive = 0;
+            gameState.cubeHealth = 100;
+            gameState.score = 0;
+            gameState.enemies = [];
+            gameState.blocks = [];
+            gameState.projectiles = [];
             
-            // Spawn initial enemies
-            spawnEnemies(5);
+            // Clear existing meshes
+            enemyMeshes.forEach(e => scene.remove(e.mesh));
+            blockMeshes.forEach(b => scene.remove(b.mesh));
+            projectileMeshes.forEach(p => scene.remove(p.mesh));
+            
+            enemyMeshes = [];
+            blockMeshes = [];
+            projectileMeshes = [];
+            
+            document.getElementById('waitingOverlay').classList.add('hidden');
             
             // Update status
             document.getElementById('statusMessage').className = 'status-message status-connected';
             document.getElementById('statusMessage').innerHTML = '🎮 Game Started! Defend the cube!';
             
+            // Spawn initial enemies
+            spawnEnemies(5);
+            
             showMessage('Game started! Defend the central cube together!');
+            
+            // Sync final game state
+            network.syncGameState();
         }
         
         function endGame() {
             gameState.gameStarted = false;
             
             const score = gameState.score + Math.floor(gameState.timeAlive * 10);
-            showMessage(`Game Over! You survived ${Math.floor(gameState.timeAlive)} seconds with score: ${score}`);
+            const gameOverMsg = `Game Over! You survived ${Math.floor(gameState.timeAlive)} seconds on wave ${gameState.wave} with score: ${score}`;
             
-            // Reset for next game
-            setTimeout(() => {
-                gameState.wave = 1;
-                gameState.timeAlive = 0;
-                gameState.cubeHealth = 100;
-                gameState.score = 0;
-                gameState.enemies = [];
-                gameState.blocks = [];
-                gameState.projectiles = [];
-                
-                // Clear meshes
-                enemyMeshes.forEach(e => scene.remove(e.mesh));
-                blockMeshes.forEach(b => scene.remove(b.mesh));
-                projectileMeshes.forEach(p => scene.remove(p.mesh));
-                
-                enemyMeshes = [];
-                blockMeshes = [];
-                projectileMeshes = [];
-                
-                updateGameUI();
-                document.getElementById('waitingOverlay').classList.remove('hidden');
-                document.getElementById('readyBtn').classList.remove('hidden');
-            }, 3000);
+            // Show game over overlay
+            const overlay = document.getElementById('waitingOverlay');
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <h2>🎮 Game Over!</h2>
+                <p>You survived ${Math.floor(gameState.timeAlive)} seconds</p>
+                <p>Wave reached: ${gameState.wave}</p>
+                <p>Final Score: ${score}</p>
+                <button class="btn btn-start" onclick="resetToLobby()">🏠 Back to Lobby</button>
+            `;
+            
+            showMessage(gameOverMsg);
+        }
+        
+        function resetToLobby() {
+            gameState.gameStarted = false;
+            gameState.wave = 1;
+            gameState.timeAlive = 0;
+            gameState.cubeHealth = 100;
+            gameState.score = 0;
+            gameState.enemies = [];
+            gameState.blocks = [];
+            gameState.projectiles = [];
+            
+            // Clear meshes
+            enemyMeshes.forEach(e => scene.remove(e.mesh));
+            blockMeshes.forEach(b => scene.remove(b.mesh));
+            projectileMeshes.forEach(p => scene.remove(p.mesh));
+            
+            enemyMeshes = [];
+            blockMeshes = [];
+            projectileMeshes = [];
+            
+            // Reset player ready status
+            if (gameState.players[gameState.playerId]) {
+                gameState.players[gameState.playerId].ready = false;
+            }
+            
+            // Show waiting overlay
+            const overlay = document.getElementById('waitingOverlay');
+            overlay.classList.remove('hidden');
+            overlay.innerHTML = `
+                <h2>🎮 Cube Defenders</h2>
+                <p>Create a room or join with a 4-digit code to start playing!</p>
+                <p style="font-size: 1rem; color: #94a3b8;">Make sure all players are on the same WiFi network</p>
+            `;
+            
+            // Show lobby UI
+            document.getElementById('hostSection').classList.add('hidden');
+            document.getElementById('joinSection').classList.remove('hidden');
+            document.getElementById('readyBtn').classList.remove('hidden');
+            
+            updateGameUI();
+            network.updatePlayerList();
+            showMessage('Back to lobby. Create or join a new room!');
         }
         
         function showMessage(text) {
@@ -1439,10 +1677,12 @@
             status.textContent = text;
             status.className = 'status-message status-connected';
             setTimeout(() => {
-                if (gameState.gameStarted) {
-                    status.innerHTML = '🎮 Game Started! Defend the cube!';
+                if (!gameState.gameStarted && gameState.roomCode) {
+                    status.innerHTML = `🎮 Room ${gameState.roomCode} - Waiting for players...`;
+                } else if (!gameState.gameStarted) {
+                    status.innerHTML = '🔍 Looking for rooms on your WiFi...';
                 }
-            }, 3000);
+            }, 5000);
         }
         
         function showError(text) {
@@ -1481,7 +1721,13 @@
                         y: -0.2,
                         z: -player.position.z * 0.1
                     };
-                    createProjectile(player.position, direction);
+                    createProjectile({ x: player.position.x, y: player.position.y + 1, z: player.position.z }, direction);
+                }
+                
+                // Special ability (R key)
+                if (key === 'r' && gameState.gameStarted) {
+                    // Special ability implementation
+                    showMessage('Special ability activated!');
                 }
             });
             
@@ -1494,6 +1740,11 @@
                 const rect = canvas.getBoundingClientRect();
                 mouse.x = ((e.clientX - rect.left) / canvas.clientWidth) * 2 - 1;
                 mouse.y = -((e.clientY - rect.top) / canvas.clientHeight) * 2 + 1;
+                
+                // Optional: Rotate player based on mouse
+                if (playerMesh) {
+                    playerMesh.rotation.y = mouse.x * Math.PI;
+                }
             });
             
             // Button events
@@ -1505,14 +1756,16 @@
                 document.getElementById('statusMessage').className = 'status-message status-connected';
                 document.getElementById('statusMessage').innerHTML = `🎮 Room created! Code: ${roomCode}`;
                 document.getElementById('waitingOverlay').classList.add('hidden');
+                showMessage(`Room ${roomCode} created! Share the code with your friend.`);
             });
             
             document.getElementById('joinBtn').addEventListener('click', () => {
-                const roomCode = document.getElementById('roomInput').value;
+                const roomCode = document.getElementById('roomInput').value.trim();
                 if (network.joinRoom(roomCode)) {
                     document.getElementById('statusMessage').className = 'status-message status-connected';
                     document.getElementById('statusMessage').innerHTML = `🎮 Joining room ${roomCode}...`;
                     document.getElementById('waitingOverlay').classList.add('hidden');
+                    showMessage(`Joining room ${roomCode}...`);
                 }
             });
             
@@ -1520,14 +1773,25 @@
                 const roomCode = document.getElementById('roomCode').textContent;
                 navigator.clipboard.writeText(roomCode).then(() => {
                     showMessage(`✅ Room code ${roomCode} copied!`);
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = roomCode;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showMessage(`✅ Room code ${roomCode} copied!`);
                 });
             });
             
             document.getElementById('newCodeBtn').addEventListener('click', () => {
                 const roomCode = network.generateRoomCode();
                 gameState.roomCode = roomCode;
+                network.currentRoom = roomCode;
                 document.getElementById('roomCode').textContent = roomCode;
                 showMessage(`🔄 New room code: ${roomCode}`);
+                network.syncGameState();
             });
             
             document.getElementById('readyBtn').addEventListener('click', () => {
@@ -1539,19 +1803,44 @@
                 e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
             });
             
+            // Handle Enter key in room input
+            document.getElementById('roomInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('joinBtn').click();
+                }
+            });
+            
             // Window resize
             window.addEventListener('resize', () => {
-                camera.aspect = canvas.clientWidth / canvas.clientHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                if (camera && canvas) {
+                    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                }
+            });
+            
+            // Handle page unload
+            window.addEventListener('beforeunload', () => {
+                if (network.isHost && gameState.roomCode) {
+                    network.closeRoom();
+                }
             });
         }
         
         // ==================== INITIALIZE ====================
-        window.onload = () => {
-            initGame();
-            showMessage('Welcome to Cube Defenders! Create or join a room to start playing.');
-        };
+        // Check if Three.js is loaded
+        if (typeof THREE === 'undefined') {
+            document.getElementById('loading').innerHTML = `
+                <div style="text-align: center;">
+                    <h2 style="color: #ef4444;">Error Loading Three.js</h2>
+                    <p>Please check your internet connection and refresh the page.</p>
+                    <button class="btn" onclick="location.reload()">🔄 Refresh Page</button>
+                </div>
+            `;
+        } else {
+            // Initialize when page loads
+            window.addEventListener('load', initGame);
+        }
     </script>
 </body>
 </html>
