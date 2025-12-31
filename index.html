@@ -1197,7 +1197,7 @@
     <!-- Notification System -->
     <div class="notification-area" id="notificationArea"></div>
 
-    <!-- Three.js - Updated to latest version for better features -->
+    <!-- Three.js - Updated to include CapsuleGeometry support -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
@@ -1289,7 +1289,8 @@
             
             // Physics
             playerOnGround: true,
-            playerVelocityY: 0
+            playerVelocityY: 0,
+            pointerLocked: false
         };
 
         // ======================
@@ -2037,7 +2038,6 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.outputEncoding = THREE.sRGBEncoding;
             
             // Add lighting
             const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
@@ -2218,8 +2218,8 @@
         function createPlayers() {
             const playerColors = [0x4361ee, 0xf72585, 0x4ade80, 0xf59e0b];
             
-            // Create current player
-            const playerGeometry = new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.5, 2, 4, 8) : new THREE.CylinderGeometry(0.5, 0.5, 2, 8);
+            // Create current player - FIXED: Using BoxGeometry instead of CapsuleGeometry
+            const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
             const playerMaterial = new THREE.MeshStandardMaterial({ 
                 color: playerColors[0],
                 emissive: playerColors[0],
@@ -2417,7 +2417,7 @@
         }
 
         function updatePlayerMovement(deltaTime) {
-            if (!playerObjects[gameState.playerId] || gameState.gamePaused) return;
+            if (!playerObjects[gameState.playerId] || gameState.gamePaused || !gameState.pointerLocked) return;
             
             const player = playerObjects[gameState.playerId];
             const speed = gameState.keys.shift ? CONFIG.PLAYER_RUN_SPEED : CONFIG.PLAYER_SPEED;
