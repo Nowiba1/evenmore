@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Character Loader | GitHub Pages</title>
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <title>Mission Extraction - Local Network Multiplayer</title>
     <style>
         * {
             margin: 0;
@@ -15,81 +13,367 @@
         }
         
         body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            color: #fff;
-            overflow: hidden;
-            height: 100vh;
+            background: linear-gradient(135deg, #0c0c1d 0%, #1a1a2e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Screens */
+        .screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            transition: opacity 0.5s;
+        }
+        
+        .screen.active {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
-        header {
-            padding: 15px;
+        /* Main Menu */
+        .title {
+            font-size: 3.5rem;
+            font-weight: 800;
             text-align: center;
-            background: rgba(0, 0, 0, 0.8);
-            border-bottom: 2px solid #00b4d8;
-        }
-        
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-            background: linear-gradient(to right, #00b4d8, #90e0ef);
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            text-shadow: 0 0 20px rgba(76, 201, 240, 0.3);
+            letter-spacing: 2px;
         }
         
         .subtitle {
-            color: #90e0ef;
-            font-size: 0.9rem;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            text-align: center;
+            color: #a0a0ff;
+            max-width: 600px;
         }
         
-        .container {
+        /* Room Controls */
+        .room-controls {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4cc9f0;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(10, 10, 25, 0.8);
+            border: 1px solid #4361ee;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            background: linear-gradient(90deg, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(90deg, #f72585, #b5179e);
+        }
+        
+        .btn-success {
+            background: linear-gradient(90deg, #4ade80, #16a34a);
+        }
+        
+        /* Waiting Room */
+        .players-list {
             display: flex;
-            flex: 1;
-            overflow: hidden;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
         }
         
-        #renderCanvas {
+        .player-card {
+            background: rgba(30, 30, 60, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .player-card.ready {
+            border-color: #4ade80;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+        }
+        
+        .player-card.host {
+            border-color: #4cc9f0;
+        }
+        
+        .player-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e0e0ff;
+        }
+        
+        .player-status {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .status-ready {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+        
+        .status-waiting {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        /* Game Screen */
+        #gameCanvas {
             width: 100%;
             height: 100%;
-            outline: none;
-            touch-action: none;
+            display: block;
         }
         
-        .controls-panel {
-            width: 380px;
-            background: rgba(10, 10, 15, 0.95);
-            padding: 20px;
-            border-left: 1px solid rgba(0, 180, 216, 0.3);
-            overflow-y: auto;
-        }
-        
-        .loader {
+        .game-ui {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 30px;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .ui-panel {
+            background: rgba(20, 20, 40, 0.8);
             border-radius: 10px;
-            border: 1px solid #00b4d8;
+            padding: 15px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            min-width: 200px;
+            backdrop-filter: blur(5px);
+            pointer-events: auto;
         }
         
-        .loader.hidden {
-            display: none;
+        .mission-list {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            width: 300px;
+            backdrop-filter: blur(5px);
         }
         
-        .spinner {
-            border: 4px solid rgba(0, 180, 216, 0.3);
+        .mission-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .mission-item.completed {
+            color: #4ade80;
+        }
+        
+        .mission-checkbox {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            border-top: 4px solid #00b4d8;
-            width: 40px;
-            height: 40px;
+            border: 2px solid #4361ee;
+            display: inline-block;
+        }
+        
+        .mission-item.completed .mission-checkbox {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+        
+        .extraction-timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 10px;
+            padding: 15px 25px;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #4cc9f0;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 20, 40, 0.95);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 5px solid #4361ee;
+            max-width: 350px;
+            transform: translateX(400px);
+            transition: transform 0.5s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #4cc9f0;
+        }
+        
+        /* Code Display */
+        .code-display {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 10px;
+            text-align: center;
+            background: rgba(10, 10, 25, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #4ade80;
+            border: 2px solid #4361ee;
+        }
+        
+        /* Instructions */
+        .instructions {
+            background: rgba(20, 20, 40, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+        }
+        
+        .instructions h3 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .room-controls {
+                padding: 20px;
+            }
+            
+            .ui-panel, .mission-list {
+                transform: scale(0.9);
+                transform-origin: top left;
+            }
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Loading */
+        .loader {
+            border: 5px solid rgba(67, 97, 238, 0.3);
+            border-top: 5px solid #4361ee;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto;
+            margin: 20px auto;
         }
         
         @keyframes spin {
@@ -97,725 +381,1006 @@
             100% { transform: rotate(360deg); }
         }
         
-        .control-group {
-            margin-bottom: 20px;
-            background: rgba(20, 20, 30, 0.7);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(0, 180, 216, 0.2);
-        }
-        
-        .control-group h3 {
-            color: #00b4d8;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            border-bottom: 1px solid rgba(0, 180, 216, 0.3);
-            padding-bottom: 8px;
-        }
-        
-        .control-item {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #caf0f8;
-            font-size: 0.9rem;
-        }
-        
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            background: rgba(30, 30, 40, 0.8);
-            border: 1px solid rgba(0, 180, 216, 0.3);
-            color: white;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-        }
-        
-        button {
-            background: linear-gradient(to right, #0077b6, #0096c7);
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-        
-        button:hover {
-            background: linear-gradient(to right, #0096c7, #00b4d8);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
-        }
-        
-        .github-info {
-            background: rgba(0, 20, 40, 0.6);
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
-            border-left: 3px solid #0077b6;
-            font-size: 0.85rem;
-        }
-        
-        .github-info h4 {
-            color: #90e0ef;
-            margin-bottom: 8px;
-        }
-        
-        .github-info code {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-            color: #00b4d8;
-            display: block;
-            margin: 5px 0;
-            word-break: break-all;
-        }
-        
-        .instructions {
-            color: #caf0f8;
-            font-size: 0.85rem;
-            margin-top: 5px;
-            line-height: 1.4;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-            margin-top: 5px;
-        }
-        
-        .instructions li {
-            margin-bottom: 5px;
-        }
-        
-        .character-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 10px;
-        }
-        
-        .character-info div {
-            text-align: center;
-        }
-        
-        .character-info .value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #00b4d8;
-        }
-        
-        .character-info .label {
-            color: #90e0ef;
-            margin-top: 3px;
-            font-size: 0.75rem;
-        }
-        
-        .animation-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .animation-btn {
-            padding: 8px;
-            font-size: 0.85rem;
-        }
-        
-        .animation-btn.active {
-            background: linear-gradient(to right, #00b4d8, #90e0ef);
-            color: #0a0a0a;
-            font-weight: bold;
-        }
-        
-        .file-example {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 8px;
-            border-radius: 4px;
-            margin-top: 8px;
-            font-size: 0.8rem;
-            color: #90e0ef;
-            border: 1px dashed rgba(0, 180, 216, 0.3);
-        }
-        
-        @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .controls-panel {
-                width: 100%;
-                height: 400px;
-                border-left: none;
-                border-top: 1px solid rgba(0, 180, 216, 0.3);
-            }
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>GitHub 3D Character Loader</h1>
-        <p class="subtitle">Load GLB/GLTF models from your GitHub repository</p>
-    </header>
-    
-    <div class="loader" id="loader">
-        <div class="spinner"></div>
-        <p id="loaderText">Initializing 3D Engine...</p>
+    <!-- Main Menu Screen -->
+    <div id="mainMenu" class="screen active">
+        <h1 class="title">MISSION EXTRACTION</h1>
+        <p class="subtitle">Local Network Co-op Tactical Operations</p>
+        
+        <div class="room-controls">
+            <div class="input-group">
+                <label for="playerName">Your Call Sign</label>
+                <input type="text" id="playerName" placeholder="Enter your name" value="Operator" maxlength="12">
+            </div>
+            
+            <button id="createRoomBtn" class="btn">CREATE ROOM</button>
+            <button id="joinRoomBtn" class="btn btn-secondary">JOIN ROOM</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+                <li>One player creates a room and shares the 4-digit code</li>
+                <li>Other players join using the code on the same local network</li>
+                <li>Complete missions: eliminate enemies, secure objectives</li>
+                <li>Meet your partner at the extraction point after 2 minutes</li>
+                <li>Both players must be at extraction to win</li>
+            </ul>
+        </div>
     </div>
     
-    <div class="container">
-        <canvas id="renderCanvas"></canvas>
+    <!-- Room Creation Screen -->
+    <div id="createRoomScreen" class="screen">
+        <h1 class="title">ROOM CREATED</h1>
+        <p class="subtitle">Share this code with other players on your local network</p>
         
-        <div class="controls-panel">
-            <div class="control-group">
-                <h3>📁 Load from GitHub</h3>
-                
-                <div class="github-info">
-                    <h4>GitHub Repository Structure:</h4>
-                    <code>nowiba1.github.io/</code>
-                    <code>├── index.html (this file)</code>
-                    <code>│   ├── glb.glb</code>
-                    <code>│   └── texture.png</code>
-                </div>
-                
-                <div class="control-item">
-                    <label for="modelPath">Model File Path (relative):</label>
-                    <input type="text" id="modelPath" 
-                           placeholder="models/character.glb" 
-                           value="models/character.glb">
-                    <div class="instructions">
-                        Relative path from your index.html file
-                    </div>
-                </div>
-                
-                <div class="control-item">
-                    <label>Or use pre-configured models:</label>
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button onclick="loadModel('models/robot.glb')">🤖 Robot</button>
-                        <button onclick="loadModel('models/knight.glb')">⚔️ Knight</button>
-                        <button onclick="loadModel('models/player.glb')">🧍 Player</button>
-                    </div>
-                </div>
-                
-                <button onclick="loadFromPath()" style="margin-top: 10px;">Load 3D Model</button>
-                
-                <div class="file-example">
-                    <strong>Example file structure:</strong><br>
-                    • models/character.glb<br>
-                    • assets/player.glb<br>
-                    • 3d/avatar.glb
-                </div>
+        <div class="code-display" id="roomCode">----</div>
+        
+        <div class="room-controls">
+            <p>Waiting for players to join...</p>
+            <div class="loader"></div>
+            <button id="startWaitingRoomBtn" class="btn btn-success hidden">GO TO WAITING ROOM</button>
+        </div>
+    </div>
+    
+    <!-- Join Room Screen -->
+    <div id="joinRoomScreen" class="screen">
+        <h1 class="title">JOIN ROOM</h1>
+        <p class="subtitle">Enter the 4-digit room code provided by the host</p>
+        
+        <div class="room-controls">
+            <div class="input-group">
+                <label for="joinCodeInput">Room Code</label>
+                <input type="text" id="joinCodeInput" placeholder="Enter 4-digit code" maxlength="4" pattern="\d{4}">
             </div>
             
-            <div class="control-group">
-                <h3>🎮 Controls</h3>
-                <div class="instructions">
-                    <ul>
-                        <li><strong>Move:</strong> W A S D or Arrow Keys</li>
-                        <li><strong>Run:</strong> Hold Shift while moving</li>
-                        <li><strong>Jump:</strong> Spacebar</li>
-                        <li><strong>Camera:</strong> Right-click + Drag to orbit</li>
-                        <li><strong>Zoom:</strong> Mouse Wheel</li>
-                    </ul>
-                </div>
-                
-                <div class="character-info">
-                    <div>
-                        <div class="value" id="positionX">0.0</div>
-                        <div class="label">Position X</div>
-                    </div>
-                    <div>
-                        <div class="value" id="positionZ">0.0</div>
-                        <div class="label">Position Z</div>
-                    </div>
-                    <div>
-                        <div class="value" id="fps">60</div>
-                        <div class="label">FPS</div>
-                    </div>
-                    <div>
-                        <div class="value" id="animCount">0</div>
-                        <div class="label">Animations</div>
-                    </div>
-                </div>
+            <button id="joinWithCodeBtn" class="btn">JOIN</button>
+            <button id="backToMainBtn" class="btn btn-secondary">BACK</button>
+        </div>
+    </div>
+    
+    <!-- Waiting Room Screen -->
+    <div id="waitingRoomScreen" class="screen">
+        <h1 class="title">WAITING ROOM</h1>
+        <p class="subtitle" id="roomCodeDisplay">Room Code: ----</p>
+        
+        <div class="players-list" id="playersList">
+            <!-- Player cards will be inserted here -->
+        </div>
+        
+        <div class="room-controls">
+            <div id="playerStatus">
+                <button id="readyBtn" class="btn">READY</button>
+                <p id="hostMessage" class="hidden">All players ready. You can start the mission.</p>
+                <button id="startMissionBtn" class="btn btn-success hidden">LAUNCH MISSION</button>
+            </div>
+            <button id="leaveWaitingRoomBtn" class="btn btn-secondary">LEAVE ROOM</button>
+        </div>
+    </div>
+    
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Game UI Overlay -->
+        <div class="game-ui">
+            <div class="ui-panel">
+                <h3>OPERATOR STATUS</h3>
+                <p>Player: <span id="uiPlayerName">---</span></p>
+                <p>Health: <span id="uiHealth">100</span></p>
+                <p>Enemies Eliminated: <span id="uiKills">0</span>/10</p>
+                <p>Objectives: <span id="uiObjectives">0</span>/3</p>
             </div>
             
-            <div class="control-group">
-                <h3>🎬 Animations</h3>
-                <div id="animationButtons" class="animation-buttons">
-                    <!-- Animation buttons will appear here -->
-                </div>
-                
-                <div class="control-item">
-                    <label>Animation Speed:</label>
-                    <input type="range" id="animSpeed" min="0.1" max="3.0" step="0.1" value="1.0">
-                    <div style="text-align: center; color: #00b4d8; font-size: 0.9rem;">
-                        Speed: <span id="speedValue">1.0</span>x
-                    </div>
-                </div>
-            </div>
-            
-            <div class="control-group">
-                <h3>⚙️ Settings</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <button onclick="resetPosition()">Reset Position</button>
-                    <button onclick="resetCamera()">Reset Camera</button>
-                    <button onclick="toggleGrid()">Toggle Grid</button>
-                    <button onclick="toggleShadows()">Toggle Shadows</button>
-                </div>
-                
-                <div class="control-item">
-                    <label>Movement Speed:</label>
-                    <input type="range" id="moveSpeed" min="0.01" max="0.3" step="0.01" value="0.1">
-                </div>
-            </div>
-            
-            <div class="control-group">
-                <h3>📋 Instructions</h3>
-                <div class="instructions">
-                    <ol>
-                        <li>Upload your GLB/GLTF file to your GitHub repository</li>
-                        <li>Enter the relative path above (e.g., "models/character.glb")</li>
-                        <li>Click "Load 3D Model"</li>
-                        <li>Use WASD keys to move the character</li>
-                        <li>Click animation buttons to play different animations</li>
-                    </ol>
-                    <p style="margin-top: 10px; color: #00b4d8;">
-                        <strong>Tip:</strong> GitHub Pages automatically serves files from your repo root
-                    </p>
+            <div class="ui-panel">
+                <h3>TEAM STATUS</h3>
+                <div id="teamStatus">
+                    <!-- Team member status will be inserted here -->
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
-        // Global variables
-        let scene, engine, character, characterRoot;
-        let animations = [];
-        let currentAnimation = "idle";
-        let isMoving = false;
-        let isRunning = false;
-        let isJumping = false;
-        const keys = {};
         
-        // Initialize the 3D scene
-        async function initScene() {
-            const canvas = document.getElementById('renderCanvas');
-            const loader = document.getElementById('loader');
-            const loaderText = document.getElementById('loaderText');
+        <div class="extraction-timer">
+            Extraction Available In: <span id="extractionTimer">02:00</span>
+        </div>
+        
+        <div class="mission-list">
+            <h3>ACTIVE MISSIONS</h3>
+            <div class="mission-item" id="mission1">
+                <div class="mission-checkbox"></div>
+                <span>Eliminate 10 enemies (0/10)</span>
+            </div>
+            <div class="mission-item" id="mission2">
+                <div class="mission-checkbox"></div>
+                <span>Secure server room</span>
+            </div>
+            <div class="mission-item" id="mission3">
+                <div class="mission-checkbox"></div>
+                <span>Download intel data</span>
+            </div>
+            <div class="mission-item" id="mission4">
+                <div class="mission-checkbox"></div>
+                <span>Extract with partner</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification System -->
+    <div id="notificationArea"></div>
+
+    <!-- Three.js and Game Logic -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    
+    <script>
+        // Game State and Configuration
+        const CONFIG = {
+            ROOM_CODE_LENGTH: 4,
+            MAX_PLAYERS: 4,
+            EXTRACTION_TIME_MINUTES: 2,
+            LOCAL_STORAGE_KEY: 'mission_extraction_rooms'
+        };
+
+        // Game State
+        let gameState = {
+            currentScreen: 'mainMenu',
+            playerId: null,
+            playerName: 'Operator',
+            roomCode: null,
+            isHost: false,
+            isReady: false,
+            peerConnections: {},
+            dataChannels: {},
+            players: {},
+            gameStarted: false,
+            missions: {
+                enemiesKilled: 0,
+                serverSecured: false,
+                intelDownloaded: false,
+                extractionReady: false
+            },
+            extractionTimer: CONFIG.EXTRACTION_TIME_MINUTES * 60, // in seconds
+            extractionAvailable: false,
+            gameTime: 0
+        };
+
+        // Three.js variables
+        let scene, camera, renderer, controls;
+        let mapModel, player1Model, player2Model, enemyModel;
+        let playerObjects = {};
+        let enemyObjects = [];
+        let extractionZone = null;
+
+        // DOM Elements
+        const screens = {
+            mainMenu: document.getElementById('mainMenu'),
+            createRoomScreen: document.getElementById('createRoomScreen'),
+            joinRoomScreen: document.getElementById('joinRoomScreen'),
+            waitingRoomScreen: document.getElementById('waitingRoomScreen'),
+            gameScreen: document.getElementById('gameScreen')
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            initEventListeners();
+            generatePlayerId();
+            loadPlayerName();
+        });
+
+        function initEventListeners() {
+            // Main Menu
+            document.getElementById('createRoomBtn').addEventListener('click', createRoom);
+            document.getElementById('joinRoomBtn').addEventListener('click', showJoinScreen);
             
-            // Create Babylon.js engine
-            engine = new BABYLON.Engine(canvas, true);
+            // Join Room Screen
+            document.getElementById('joinWithCodeBtn').addEventListener('click', joinRoom);
+            document.getElementById('backToMainBtn').addEventListener('click', showMainMenu);
+            document.getElementById('joinCodeInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') joinRoom();
+            });
             
+            // Waiting Room
+            document.getElementById('readyBtn').addEventListener('click', toggleReady);
+            document.getElementById('startMissionBtn').addEventListener('click', startGame);
+            document.getElementById('leaveWaitingRoomBtn').addEventListener('click', leaveWaitingRoom);
+            
+            // Player name input
+            document.getElementById('playerName').addEventListener('input', (e) => {
+                gameState.playerName = e.target.value || 'Operator';
+                localStorage.setItem('playerName', gameState.playerName);
+            });
+        }
+
+        function generatePlayerId() {
+            // Generate a unique player ID
+            gameState.playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function loadPlayerName() {
+            const savedName = localStorage.getItem('playerName');
+            if (savedName) {
+                gameState.playerName = savedName;
+                document.getElementById('playerName').value = savedName;
+            }
+        }
+
+        function showScreen(screenName) {
+            // Hide all screens
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show the requested screen
+            screens[screenName].classList.add('active');
+            gameState.currentScreen = screenName;
+        }
+
+        function createRoom() {
+            // Generate a 4-digit room code
+            gameState.roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            gameState.isHost = true;
+            
+            // Initialize room in localStorage (for local network discovery)
+            const roomData = {
+                code: gameState.roomCode,
+                hostId: gameState.playerId,
+                hostName: gameState.playerName,
+                players: [{
+                    id: gameState.playerId,
+                    name: gameState.playerName,
+                    isReady: false,
+                    isHost: true
+                }],
+                gameStarted: false,
+                lastUpdated: Date.now()
+            };
+            
+            saveRoomData(roomData);
+            
+            // Update UI
+            document.getElementById('roomCode').textContent = gameState.roomCode;
+            showScreen('createRoomScreen');
+            
+            // Start checking for players
+            checkForPlayers();
+        }
+
+        function showJoinScreen() {
+            showScreen('joinRoomScreen');
+        }
+
+        function showMainMenu() {
+            showScreen('mainMenu');
+        }
+
+        function joinRoom() {
+            const codeInput = document.getElementById('joinCodeInput');
+            const code = codeInput.value.trim();
+            
+            if (code.length !== CONFIG.ROOM_CODE_LENGTH || !/^\d+$/.test(code)) {
+                showNotification('Invalid Code', 'Please enter a valid 4-digit room code.');
+                return;
+            }
+            
+            gameState.roomCode = code;
+            
+            // Check if room exists
+            const roomData = getRoomData(code);
+            
+            if (!roomData) {
+                showNotification('Room Not Found', 'No room found with that code. Make sure the host has created the room.');
+                return;
+            }
+            
+            if (roomData.gameStarted) {
+                showNotification('Game In Progress', 'This game has already started. Please wait for the next round.');
+                return;
+            }
+            
+            // Add player to room
+            const playerData = {
+                id: gameState.playerId,
+                name: gameState.playerName,
+                isReady: false,
+                isHost: false
+            };
+            
+            roomData.players.push(playerData);
+            roomData.lastUpdated = Date.now();
+            
+            saveRoomData(roomData);
+            
+            // Update game state
+            gameState.isHost = false;
+            gameState.players = roomData.players.reduce((acc, player) => {
+                acc[player.id] = player;
+                return acc;
+            }, {});
+            
+            // Show waiting room
+            document.getElementById('roomCodeDisplay').textContent = `Room Code: ${gameState.roomCode}`;
+            updatePlayersList();
+            showScreen('waitingRoomScreen');
+            
+            // Start polling for room updates
+            pollRoomUpdates();
+        }
+
+        function checkForPlayers() {
+            // Host periodically checks for new players and updates
+            const interval = setInterval(() => {
+                const roomData = getRoomData(gameState.roomCode);
+                
+                if (!roomData) {
+                    clearInterval(interval);
+                    return;
+                }
+                
+                // Update players list
+                gameState.players = roomData.players.reduce((acc, player) => {
+                    acc[player.id] = player;
+                    return acc;
+                }, {});
+                
+                // If there are at least 2 players, show waiting room button
+                if (roomData.players.length >= 2) {
+                    document.getElementById('startWaitingRoomBtn').classList.remove('hidden');
+                }
+                
+                // If game started by host, move to waiting room
+                if (roomData.gameStarted) {
+                    clearInterval(interval);
+                    document.getElementById('roomCodeDisplay').textContent = `Room Code: ${gameState.roomCode}`;
+                    updatePlayersList();
+                    showScreen('waitingRoomScreen');
+                    pollRoomUpdates();
+                }
+            }, 1000);
+        }
+
+        function goToWaitingRoom() {
+            showScreen('waitingRoomScreen');
+            pollRoomUpdates();
+        }
+
+        function pollRoomUpdates() {
+            // Players periodically check for room updates
+            const interval = setInterval(() => {
+                const roomData = getRoomData(gameState.roomCode);
+                
+                if (!roomData) {
+                    clearInterval(interval);
+                    showNotification('Room Closed', 'The host has closed the room.');
+                    showMainMenu();
+                    return;
+                }
+                
+                // Update players
+                gameState.players = roomData.players.reduce((acc, player) => {
+                    acc[player.id] = player;
+                    return acc;
+                }, {});
+                
+                // Update UI
+                updatePlayersList();
+                
+                // Check if all players are ready
+                const allReady = roomData.players.every(player => player.isReady);
+                const hostElement = document.getElementById('hostMessage');
+                const startBtn = document.getElementById('startMissionBtn');
+                
+                if (gameState.isHost && allReady && roomData.players.length >= 2) {
+                    hostElement.classList.remove('hidden');
+                    startBtn.classList.remove('hidden');
+                } else {
+                    hostElement.classList.add('hidden');
+                    startBtn.classList.add('hidden');
+                }
+                
+                // If game started, initialize game
+                if (roomData.gameStarted && !gameState.gameStarted) {
+                    clearInterval(interval);
+                    gameState.gameStarted = true;
+                    initializeGame();
+                }
+            }, 1000);
+        }
+
+        function toggleReady() {
+            const roomData = getRoomData(gameState.roomCode);
+            if (!roomData) return;
+            
+            // Find current player and toggle ready status
+            const playerIndex = roomData.players.findIndex(p => p.id === gameState.playerId);
+            if (playerIndex !== -1) {
+                roomData.players[playerIndex].isReady = !roomData.players[playerIndex].isReady;
+                gameState.isReady = roomData.players[playerIndex].isReady;
+                roomData.lastUpdated = Date.now();
+                
+                saveRoomData(roomData);
+                updatePlayersList();
+                
+                // Update button text
+                const readyBtn = document.getElementById('readyBtn');
+                readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
+                readyBtn.classList.toggle('btn-secondary', gameState.isReady);
+            }
+        }
+
+        function updatePlayersList() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            Object.values(gameState.players).forEach(player => {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                if (player.isReady) playerCard.classList.add('ready');
+                if (player.isHost) playerCard.classList.add('host');
+                
+                playerCard.innerHTML = `
+                    <div class="player-avatar">${player.name.charAt(0).toUpperCase()}</div>
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-status ${player.isReady ? 'status-ready' : 'status-waiting'}">
+                        ${player.isHost ? 'HOST' : ''} ${player.isReady ? 'READY' : 'WAITING'}
+                    </div>
+                `;
+                
+                playersList.appendChild(playerCard);
+            });
+        }
+
+        function startGame() {
+            const roomData = getRoomData(gameState.roomCode);
+            if (!roomData || !gameState.isHost) return;
+            
+            roomData.gameStarted = true;
+            roomData.lastUpdated = Date.now();
+            saveRoomData(roomData);
+            
+            // Initialize game
+            initializeGame();
+        }
+
+        function leaveWaitingRoom() {
+            const roomData = getRoomData(gameState.roomCode);
+            if (roomData) {
+                // Remove player from room
+                roomData.players = roomData.players.filter(p => p.id !== gameState.playerId);
+                
+                // If host leaves or room is empty, delete the room
+                if (roomData.players.length === 0 || (gameState.isHost && roomData.players.length > 0)) {
+                    deleteRoomData(gameState.roomCode);
+                } else {
+                    saveRoomData(roomData);
+                }
+            }
+            
+            // Reset state
+            gameState.roomCode = null;
+            gameState.isHost = false;
+            gameState.isReady = false;
+            gameState.players = {};
+            
+            showMainMenu();
+        }
+
+        // Local Storage Room Management
+        function saveRoomData(roomData) {
+            const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
+            rooms[roomData.code] = roomData;
+            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(rooms));
+        }
+
+        function getRoomData(code) {
+            const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
+            return rooms[code];
+        }
+
+        function deleteRoomData(code) {
+            const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
+            delete rooms[code];
+            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(rooms));
+        }
+
+        // Game Initialization
+        function initializeGame() {
+            showScreen('gameScreen');
+            
+            // Update UI elements
+            document.getElementById('uiPlayerName').textContent = gameState.playerName;
+            
+            // Update team status
+            updateTeamStatus();
+            
+            // Start the game loop
+            initThreeJS();
+            startGameLoop();
+            
+            // Start extraction timer
+            startExtractionTimer();
+            
+            // Initialize missions
+            initializeMissions();
+        }
+
+        function initThreeJS() {
             // Create scene
-            scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.15, 1.0);
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050510);
             
             // Create camera
-            const camera = new BABYLON.ArcRotateCamera("camera", 
-                -Math.PI / 2, Math.PI / 3, 10, 
-                BABYLON.Vector3.Zero(), scene);
-            camera.attachControl(canvas, true);
-            camera.lowerRadiusLimit = 2;
-            camera.upperRadiusLimit = 30;
-            camera.wheelDeltaPercentage = 0.01;
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10, 20);
             
-            // Create lighting
-            const hemisphericLight = new BABYLON.HemisphericLight("hemiLight", 
-                new BABYLON.Vector3(0, 1, 0), scene);
-            hemisphericLight.intensity = 0.7;
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             
-            const directionalLight = new BABYLON.DirectionalLight("dirLight", 
-                new BABYLON.Vector3(-1, -2, -1), scene);
-            directionalLight.intensity = 0.8;
-            directionalLight.position = new BABYLON.Vector3(10, 20, 10);
+            // Add lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
             
-            // Create ground
-            const ground = BABYLON.MeshBuilder.CreateGround("ground", 
-                { width: 100, height: 100 }, scene);
-            const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-            groundMat.diffuseColor = new BABYLON.Color3(0.2, 0.3, 0.2);
-            ground.material = groundMat;
-            ground.receiveShadows = true;
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.left = -20;
+            directionalLight.shadow.camera.right = 20;
+            directionalLight.shadow.camera.top = 20;
+            directionalLight.shadow.camera.bottom = -20;
+            scene.add(directionalLight);
             
-            // Create grid
-            const grid = BABYLON.MeshBuilder.CreateGround("grid", 
-                { width: 100, height: 100, subdivisions: 100 }, scene);
-            const gridMat = new BABYLON.GridMaterial("gridMat", scene);
-            gridMat.mainColor = new BABYLON.Color3(0.2, 0.2, 0.3);
-            gridMat.lineColor = new BABYLON.Color3(0.3, 0.3, 0.4);
-            gridMat.opacity = 0.2;
-            grid.material = gridMat;
-            grid.position.y = 0.01;
+            // Create simple map (since we don't have the actual GLB file)
+            createMap();
             
-            // Hide loader when scene is ready
-            scene.executeWhenReady(() => {
-                setTimeout(() => {
-                    loader.classList.add('hidden');
-                    // Try to load default model
-                    loadFromPath();
-                }, 500);
-            });
+            // Create player and enemy models
+            createPlayerModels();
+            createEnemies();
+            createExtractionZone();
             
-            // Keyboard controls
-            window.addEventListener("keydown", (e) => {
-                const key = e.key.toLowerCase();
-                keys[key] = true;
-                
-                if (key === " " && !isJumping && character) {
-                    playAnimation("jump");
-                    isJumping = true;
-                    setTimeout(() => {
-                        isJumping = false;
-                        if (isMoving) {
-                            playAnimation(isRunning ? "run" : "walk");
-                        } else {
-                            playAnimation("idle");
-                        }
-                    }, 1000);
-                }
-                
-                if (key === "shift") {
-                    isRunning = true;
-                    if (isMoving && !isJumping) {
-                        playAnimation("run");
-                    }
-                }
-            });
-            
-            window.addEventListener("keyup", (e) => {
-                const key = e.key.toLowerCase();
-                keys[key] = false;
-                
-                if (key === "shift") {
-                    isRunning = false;
-                    if (isMoving && !isJumping) {
-                        playAnimation("walk");
-                    }
-                }
-            });
-            
-            // Animation loop
-            scene.onBeforeRenderObservable.add(() => {
-                updateCharacterMovement();
-                updateUI();
-            });
-            
-            // Handle resize
-            window.addEventListener("resize", () => {
-                engine.resize();
-            });
-            
-            // Start render loop
-            engine.runRenderLoop(() => {
-                scene.render();
-            });
-            
-            return { scene, engine, camera };
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
         }
-        
-        // Load model from path
-        async function loadFromPath() {
-            const loader = document.getElementById('loader');
-            const loaderText = document.getElementById('loaderText');
-            const modelPath = document.getElementById('modelPath').value.trim();
+
+        function createMap() {
+            // Create a simple ground plane
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
+            const groundMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x2a2a4a,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
             
-            if (!modelPath) {
-                alert("Please enter a model path");
-                return;
-            }
+            // Add some buildings/obstacles
+            const buildingGeometry = new THREE.BoxGeometry(8, 6, 8);
+            const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0x3a3a6a });
             
-            loader.classList.remove('hidden');
-            loaderText.textContent = `Loading ${modelPath}...`;
+            // Create several buildings
+            const buildingPositions = [
+                { x: -20, z: -15 },
+                { x: 15, z: -20 },
+                { x: -10, z: 10 },
+                { x: 20, z: 15 },
+                { x: 0, z: -25 }
+            ];
             
-            try {
-                await loadModel(modelPath);
-            } catch (error) {
-                console.error("Error loading model:", error);
-                loaderText.textContent = `Failed to load ${modelPath}`;
-                setTimeout(() => loader.classList.add('hidden'), 2000);
-                alert(`Failed to load model: ${modelPath}\n\nMake sure the file exists in your GitHub repository.`);
-            }
-        }
-        
-        // Load model function
-        async function loadModel(path) {
-            const loader = document.getElementById('loader');
-            const loaderText = document.getElementById('loaderText');
-            
-            // Clean up previous character
-            if (character) {
-                character.dispose();
-                character = null;
-            }
-            if (characterRoot) {
-                characterRoot.dispose();
-                characterRoot = null;
-            }
-            animations = [];
-            
-            try {
-                loaderText.textContent = `Loading: ${path}`;
+            buildingPositions.forEach(pos => {
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                building.position.set(pos.x, 3, pos.z);
+                building.castShadow = true;
+                building.receiveShadow = true;
+                scene.add(building);
                 
-                // Load the GLB/GLTF file
-                const result = await BABYLON.SceneLoader.ImportMeshAsync(
-                    "",
-                    "",
-                    path,
-                    scene,
-                    null,
-                    ".glb"
-                );
-                
-                if (!result.meshes || result.meshes.length === 0) {
-                    throw new Error("No meshes found in the model file");
-                }
-                
-                // Get the loaded character
-                character = result.meshes[0];
-                character.name = "character";
-                
-                // Create root node for movement
-                characterRoot = new BABYLON.TransformNode("characterRoot");
-                character.parent = characterRoot;
-                characterRoot.position = new BABYLON.Vector3(0, 0, 0);
-                
-                // Get animations
-                if (result.animationGroups && result.animationGroups.length > 0) {
-                    animations = result.animationGroups;
-                    console.log(`Found ${animations.length} animations:`, 
-                        animations.map(a => a.name));
-                    
-                    // Stop all animations initially
-                    animations.forEach(anim => anim.stop());
-                }
-                
-                // Set up animation buttons
-                createAnimationButtons();
-                
-                // Play idle animation
-                playAnimation("idle");
-                
-                loaderText.textContent = "Model loaded successfully!";
-                setTimeout(() => {
-                    loader.classList.add('hidden');
-                }, 1000);
-                
-                // Update animation count in UI
-                document.getElementById('animCount').textContent = animations.length;
-                
-            } catch (error) {
-                console.error("Model loading error:", error);
-                throw error;
-            }
-        }
-        
-        // Create animation buttons
-        function createAnimationButtons() {
-            const container = document.getElementById('animationButtons');
-            container.innerHTML = '';
-            
-            if (animations.length === 0) {
-                container.innerHTML = '<div style="color: #90e0ef; text-align: center;">No animations found</div>';
-                return;
-            }
-            
-            // Common animation names to look for
-            const commonAnims = ["idle", "walk", "run", "jump", "attack", "dance"];
-            
-            commonAnims.forEach(animName => {
-                // Try to find matching animation
-                const matchingAnim = animations.find(a => 
-                    a.name.toLowerCase().includes(animName) || 
-                    animName.includes(a.name.toLowerCase())
-                );
-                
-                if (matchingAnim) {
-                    const button = document.createElement('button');
-                    button.className = 'animation-btn';
-                    button.textContent = animName.charAt(0).toUpperCase() + animName.slice(1);
-                    button.onclick = () => playAnimation(animName);
-                    container.appendChild(button);
-                }
+                // Add a roof
+                const roofGeometry = new THREE.CylinderGeometry(5, 5, 1, 8);
+                const roofMaterial = new THREE.MeshStandardMaterial({ color: 0x5a5a8a });
+                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+                roof.position.set(pos.x, 7, pos.z);
+                roof.castShadow = true;
+                scene.add(roof);
             });
             
-            // If we didn't find common animations, show all animations
-            if (container.children.length === 0) {
-                animations.forEach((anim, index) => {
-                    const button = document.createElement('button');
-                    button.className = 'animation-btn';
-                    button.textContent = anim.name || `Anim ${index + 1}`;
-                    button.onclick = () => {
-                        playAnimation(anim.name || `anim${index}`);
-                    };
-                    container.appendChild(button);
+            // Add server room (mission objective)
+            const serverRoomGeometry = new THREE.BoxGeometry(12, 8, 12);
+            const serverRoomMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a6a3a,
+                emissive: 0x0a3a1a,
+                emissiveIntensity: 0.2
+            });
+            const serverRoom = new THREE.Mesh(serverRoomGeometry, serverRoomMaterial);
+            serverRoom.position.set(-25, 4, 20);
+            serverRoom.castShadow = true;
+            serverRoom.receiveShadow = true;
+            scene.add(serverRoom);
+            
+            // Add intel data building
+            const intelGeometry = new THREE.CylinderGeometry(5, 5, 10, 6);
+            const intelMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x6a3a1a,
+                emissive: 0x3a1a0a,
+                emissiveIntensity: 0.2
+            });
+            const intelBuilding = new THREE.Mesh(intelGeometry, intelMaterial);
+            intelBuilding.position.set(25, 5, -20);
+            intelBuilding.castShadow = true;
+            scene.add(intelBuilding);
+        }
+
+        function createPlayerModels() {
+            // Create simple player models (since we don't have actual GLB files)
+            const playerColors = [0x4361ee, 0xf72585]; // Blue and Pink
+            
+            // Create current player
+            const playerGeometry = new THREE.CapsuleGeometry(0.5, 2, 4, 8);
+            const playerMaterial = new THREE.MeshStandardMaterial({ 
+                color: playerColors[0],
+                emissive: playerColors[0],
+                emissiveIntensity: 0.1
+            });
+            const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+            playerMesh.position.set(0, 1, 0);
+            playerMesh.castShadow = true;
+            scene.add(playerMesh);
+            
+            // Store player object
+            playerObjects[gameState.playerId] = {
+                mesh: playerMesh,
+                name: gameState.playerName,
+                health: 100,
+                position: { x: 0, y: 1, z: 0 }
+            };
+            
+            // Create other players
+            const otherPlayers = Object.values(gameState.players).filter(p => p.id !== gameState.playerId);
+            otherPlayers.forEach((player, index) => {
+                const otherPlayerGeometry = new THREE.CapsuleGeometry(0.5, 2, 4, 8);
+                const otherPlayerMaterial = new THREE.MeshStandardMaterial({ 
+                    color: playerColors[(index + 1) % playerColors.length],
+                    emissive: playerColors[(index + 1) % playerColors.length],
+                    emissiveIntensity: 0.1
+                });
+                const otherPlayerMesh = new THREE.Mesh(otherPlayerGeometry, otherPlayerMaterial);
+                
+                // Position other players in different locations
+                const positions = [
+                    { x: 10, z: 10 },
+                    { x: -10, z: -10 },
+                    { x: 10, z: -10 }
+                ];
+                const pos = positions[index] || { x: 0, z: 0 };
+                
+                otherPlayerMesh.position.set(pos.x, 1, pos.z);
+                otherPlayerMesh.castShadow = true;
+                scene.add(otherPlayerMesh);
+                
+                playerObjects[player.id] = {
+                    mesh: otherPlayerMesh,
+                    name: player.name,
+                    health: 100,
+                    position: { x: pos.x, y: 1, z: pos.z }
+                };
+            });
+            
+            // Add player name labels
+            addPlayerLabels();
+        }
+
+        function addPlayerLabels() {
+            Object.values(playerObjects).forEach(playerObj => {
+                // Create a label for the player
+                const labelCanvas = document.createElement('canvas');
+                const context = labelCanvas.getContext('2d');
+                labelCanvas.width = 256;
+                labelCanvas.height = 128;
+                
+                // Draw label background
+                context.fillStyle = 'rgba(20, 20, 40, 0.8)';
+                context.fillRect(0, 0, labelCanvas.width, labelCanvas.height);
+                
+                // Draw player name
+                context.font = 'bold 24px Arial';
+                context.fillStyle = '#e0e0ff';
+                context.textAlign = 'center';
+                context.fillText(playerObj.name, labelCanvas.width/2, labelCanvas.height/2);
+                
+                // Create texture from canvas
+                const texture = new THREE.CanvasTexture(labelCanvas);
+                const labelMaterial = new THREE.SpriteMaterial({ map: texture });
+                const labelSprite = new THREE.Sprite(labelMaterial);
+                labelSprite.position.set(0, 3, 0);
+                labelSprite.scale.set(5, 2.5, 1);
+                
+                // Attach label to player mesh
+                playerObj.mesh.add(labelSprite);
+                playerObj.label = labelSprite;
+            });
+        }
+
+        function createEnemies() {
+            // Create enemy models (simple placeholder)
+            const enemyGeometry = new THREE.ConeGeometry(0.6, 2, 8);
+            const enemyMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xaa3333,
+                emissive: 0xaa3333,
+                emissiveIntensity: 0.1
+            });
+            
+            // Create 12 enemies at various positions
+            for (let i = 0; i < 12; i++) {
+                const enemyMesh = new THREE.Mesh(enemyGeometry, enemyMaterial);
+                
+                // Distribute enemies around the map
+                const angle = (i / 12) * Math.PI * 2;
+                const radius = 20 + Math.random() * 20;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+                
+                enemyMesh.position.set(x, 1, z);
+                enemyMesh.castShadow = true;
+                scene.add(enemyMesh);
+                
+                enemyObjects.push({
+                    mesh: enemyMesh,
+                    health: 100,
+                    position: { x, y: 1, z },
+                    alive: true
                 });
             }
         }
-        
-        // Play animation
-        function playAnimation(animName) {
-            if (!animations || animations.length === 0) return;
+
+        function createExtractionZone() {
+            // Create extraction zone (circular area)
+            const extractionGeometry = new THREE.CylinderGeometry(5, 5, 0.2, 32);
+            const extractionMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x4ade80,
+                emissive: 0x4ade80,
+                emissiveIntensity: 0.3,
+                transparent: true,
+                opacity: 0.5
+            });
             
-            // Stop current animation
-            animations.forEach(anim => anim.stop());
+            extractionZone = new THREE.Mesh(extractionGeometry, extractionMaterial);
+            extractionZone.position.set(0, 0.1, 30); // Position at far end of map
+            scene.add(extractionZone);
             
-            // Find the animation
-            let animToPlay = animations.find(a => 
-                a.name.toLowerCase().includes(animName) || 
-                animName.includes(a.name.toLowerCase())
-            );
-            
-            // If not found, use first animation
-            if (!animToPlay) {
-                animToPlay = animations[0];
-            }
-            
-            if (animToPlay) {
-                const speed = parseFloat(document.getElementById('animSpeed').value);
-                animToPlay.start(true, speed);
-                animToPlay.speedRatio = speed;
-                currentAnimation = animName;
-                
-                // Update button states
-                updateAnimationButtons(animName);
-            }
+            // Add pulsing effect
+            extractionZone.userData.pulseDirection = 1;
+            extractionZone.userData.originalOpacity = 0.5;
         }
-        
-        // Update animation button states
-        function updateAnimationButtons(activeAnim) {
-            const buttons = document.querySelectorAll('.animation-btn');
-            buttons.forEach(button => {
-                const buttonText = button.textContent.toLowerCase();
-                if (buttonText === activeAnim || activeAnim.includes(buttonText)) {
-                    button.classList.add('active');
+
+        function initializeMissions() {
+            // Mission completion callbacks
+            window.checkEnemyKill = function() {
+                gameState.missions.enemiesKilled++;
+                document.getElementById('uiKills').textContent = gameState.missions.enemiesKilled;
+                
+                // Update mission UI
+                const missionElement = document.getElementById('mission1');
+                missionElement.querySelector('span').textContent = `Eliminate 10 enemies (${gameState.missions.enemiesKilled}/10)`;
+                
+                if (gameState.missions.enemiesKilled >= 10) {
+                    missionElement.classList.add('completed');
+                    showNotification('Mission Complete', 'Enemy elimination objective completed!');
+                }
+            };
+            
+            window.secureServerRoom = function() {
+                if (!gameState.missions.serverSecured) {
+                    gameState.missions.serverSecured = true;
+                    document.getElementById('mission2').classList.add('completed');
+                    document.getElementById('uiObjectives').textContent = 
+                        (gameState.missions.serverSecured ? 1 : 0) + 
+                        (gameState.missions.intelDownloaded ? 1 : 0);
+                    
+                    showNotification('Server Secured', 'Server room has been secured!');
+                }
+            };
+            
+            window.downloadIntel = function() {
+                if (!gameState.missions.intelDownloaded) {
+                    gameState.missions.intelDownloaded = true;
+                    document.getElementById('mission3').classList.add('completed');
+                    document.getElementById('uiObjectives').textContent = 
+                        (gameState.missions.serverSecured ? 1 : 0) + 
+                        (gameState.missions.intelDownloaded ? 1 : 0);
+                    
+                    showNotification('Intel Downloaded', 'Critical intelligence data acquired!');
+                }
+            };
+            
+            // Add click handlers for mission objects
+            setTimeout(() => {
+                // Simulate mission completion (in real game, these would be triggered by player actions)
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === '1') window.checkEnemyKill();
+                    if (e.key === '2') window.secureServerRoom();
+                    if (e.key === '3') window.downloadIntel();
+                });
+                
+                // Add mission instructions to UI
+                showNotification('Missions Active', 'Use keys 1-3 to simulate mission progress during demo');
+            }, 2000);
+        }
+
+        function startExtractionTimer() {
+            const timerElement = document.getElementById('extractionTimer');
+            
+            const timerInterval = setInterval(() => {
+                gameState.extractionTimer--;
+                
+                const minutes = Math.floor(gameState.extractionTimer / 60);
+                const seconds = gameState.extractionTimer % 60;
+                
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Pulse when extraction is available
+                if (gameState.extractionTimer <= 30) {
+                    timerElement.classList.add('pulse');
+                }
+                
+                // Extraction available
+                if (gameState.extractionTimer <= 0) {
+                    clearInterval(timerInterval);
+                    gameState.extractionAvailable = true;
+                    timerElement.textContent = 'EXTRACTION READY';
+                    showNotification('Extraction Available', 'Meet your partner at the extraction zone!');
+                    
+                    // Show extraction mission
+                    document.getElementById('mission4').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function updateTeamStatus() {
+            const teamStatus = document.getElementById('teamStatus');
+            teamStatus.innerHTML = '';
+            
+            Object.values(playerObjects).forEach(player => {
+                const playerStatus = document.createElement('div');
+                playerStatus.className = 'team-member';
+                playerStatus.innerHTML = `
+                    <strong>${player.name}</strong><br>
+                    Health: ${player.health}<br>
+                    Status: ${player.health > 0 ? 'ACTIVE' : 'DOWN'}
+                `;
+                teamStatus.appendChild(playerStatus);
+            });
+        }
+
+        function startGameLoop() {
+            // Game loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Update game time
+                gameState.gameTime += 0.016; // ~60fps
+                
+                // Update extraction zone pulse
+                if (extractionZone) {
+                    extractionZone.material.opacity += 0.02 * extractionZone.userData.pulseDirection;
+                    if (extractionZone.material.opacity >= 0.7 || extractionZone.material.opacity <= 0.3) {
+                        extractionZone.userData.pulseDirection *= -1;
+                    }
+                }
+                
+                // Rotate enemies slightly (for visual effect)
+                enemyObjects.forEach(enemy => {
+                    if (enemy.alive) {
+                        enemy.mesh.rotation.y += 0.01;
+                    }
+                });
+                
+                // Rotate players slightly
+                Object.values(playerObjects).forEach(player => {
+                    player.mesh.rotation.y += 0.005;
+                });
+                
+                // Render scene
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // UI Helper Functions
+        function showNotification(title, message, duration = 5000) {
+            const notificationArea = document.getElementById('notificationArea');
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+            `;
+            
+            notificationArea.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            // Remove after duration
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 500);
+            }, duration);
+        }
+
+        // Simulate game events for demo purposes
+        function simulateGameEvents() {
+            // Simulate enemy kills
+            let killCount = 0;
+            const killInterval = setInterval(() => {
+                if (killCount < 10 && gameState.gameStarted) {
+                    window.checkEnemyKill();
+                    killCount++;
+                    
+                    // Update player health randomly
+                    Object.values(playerObjects).forEach(player => {
+                        if (Math.random() > 0.7 && player.health > 0) {
+                            player.health -= 10;
+                            document.getElementById('uiHealth').textContent = player.health;
+                            updateTeamStatus();
+                        }
+                    });
                 } else {
-                    button.classList.remove('active');
+                    clearInterval(killInterval);
                 }
-            });
-        }
-        
-        // Update character movement
-        function updateCharacterMovement() {
-            if (!characterRoot || isJumping) return;
+            }, 3000);
             
-            let movement = new BABYLON.Vector3(0, 0, 0);
-            isMoving = false;
-            
-            // Check movement keys
-            if (keys['w'] || keys['arrowup']) {
-                movement.z += 1;
-                isMoving = true;
-            }
-            if (keys['s'] || keys['arrowdown']) {
-                movement.z -= 1;
-                isMoving = true;
-            }
-            if (keys['a'] || keys['arrowleft']) {
-                movement.x -= 1;
-                isMoving = true;
-            }
-            if (keys['d'] || keys['arrowright']) {
-                movement.x += 1;
-                isMoving = true;
-            }
-            
-            // Normalize movement
-            if (movement.length() > 0) {
-                movement.normalize();
-                
-                // Update animation
-                if (!isJumping) {
-                    playAnimation(isRunning ? "run" : "walk");
+            // Simulate mission completions
+            setTimeout(() => {
+                if (gameState.gameStarted) {
+                    window.secureServerRoom();
                 }
-                
-                // Calculate speed
-                const speed = parseFloat(document.getElementById('moveSpeed').value);
-                const moveSpeed = isRunning ? speed * 2 : speed;
-                
-                // Apply movement
-                characterRoot.position.x += movement.x * moveSpeed;
-                characterRoot.position.z += movement.z * moveSpeed;
-                
-                // Rotate character
-                const targetRotation = Math.atan2(movement.x, movement.z);
-                characterRoot.rotation.y = BABYLON.Scalar.Lerp(
-                    characterRoot.rotation.y,
-                    targetRotation,
-                    0.2
-                );
-            } else if (!isJumping && isMoving) {
-                // Stopped moving
-                playAnimation("idle");
-                isMoving = false;
+            }, 8000);
+            
+            setTimeout(() => {
+                if (gameState.gameStarted) {
+                    window.downloadIntel();
+                }
+            }, 15000);
+            
+            // Simulate extraction
+            setTimeout(() => {
+                if (gameState.gameStarted && gameState.extractionAvailable) {
+                    document.getElementById('mission4').classList.add('completed');
+                    showNotification('Mission Success', 'Extraction complete! Operation successful.');
+                    
+                    // Show victory message
+                    setTimeout(() => {
+                        showNotification('Victory', 'All missions completed! Well done, operators.');
+                    }, 2000);
+                }
+            }, 180000); // 3 minutes
+        }
+
+        // Start simulation after game starts
+        setTimeout(() => {
+            if (gameState.gameStarted) {
+                simulateGameEvents();
             }
-            
-            // Keep in bounds
-            const bounds = 45;
-            characterRoot.position.x = Math.max(-bounds, Math.min(bounds, characterRoot.position.x));
-            characterRoot.position.z = Math.max(-bounds, Math.min(bounds, characterRoot.position.z));
-        }
-        
-        // Update UI
-        function updateUI() {
-            if (!characterRoot) return;
-            
-            // Update position
-            document.getElementById('positionX').textContent = characterRoot.position.x.toFixed(1);
-            document.getElementById('positionZ').textContent = characterRoot.position.z.toFixed(1);
-            
-            // Update FPS
-            const fps = engine.getFps().toFixed(0);
-            document.getElementById('fps').textContent = fps;
-            
-            // Update animation speed display
-            const speedValue = document.getElementById('animSpeed').value;
-            document.getElementById('speedValue').textContent = parseFloat(speedValue).toFixed(1);
-        }
-        
-        // Utility functions
-        function resetPosition() {
-            if (characterRoot) {
-                characterRoot.position = new BABYLON.Vector3(0, 0, 0);
-                characterRoot.rotation = new BABYLON.Vector3(0, 0, 0);
-                playAnimation("idle");
-            }
-        }
-        
-        function resetCamera() {
-            scene.activeCamera.alpha = -Math.PI / 2;
-            scene.activeCamera.beta = Math.PI / 3;
-            scene.activeCamera.radius = 10;
-        }
-        
-        let gridVisible = true;
-        function toggleGrid() {
-            const grid = scene.getMeshByName("grid");
-            if (grid) {
-                grid.setEnabled(!gridVisible);
-                gridVisible = !gridVisible;
-            }
-        }
-        
-        let shadowsEnabled = true;
-        function toggleShadows() {
-            // This is a simple toggle - in a real app, you'd manage shadows properly
-            shadowsEnabled = !shadowsEnabled;
-            scene.meshes.forEach(mesh => {
-                mesh.receiveShadows = shadowsEnabled;
-            });
-        }
-        
-        // Load pre-configured models
-        window.loadModel = loadModel;
-        
-        // Initialize everything when page loads
-        window.addEventListener('DOMContentLoaded', initScene);
+        }, 5000);
     </script>
 </body>
 </html>
