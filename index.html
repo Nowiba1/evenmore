@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional 3D Character with GLB Animations | Babylon.js</title>
+    <title>3D Character Loader | GitHub Pages</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
-    <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -30,7 +28,6 @@
             text-align: center;
             background: rgba(0, 0, 0, 0.8);
             border-bottom: 2px solid #00b4d8;
-            z-index: 10;
         }
         
         h1 {
@@ -45,7 +42,6 @@
         .subtitle {
             color: #90e0ef;
             font-size: 0.9rem;
-            opacity: 0.8;
         }
         
         .container {
@@ -62,12 +58,11 @@
         }
         
         .controls-panel {
-            width: 350px;
+            width: 380px;
             background: rgba(10, 10, 15, 0.95);
             padding: 20px;
             border-left: 1px solid rgba(0, 180, 216, 0.3);
             overflow-y: auto;
-            backdrop-filter: blur(10px);
         }
         
         .loader {
@@ -81,11 +76,6 @@
             padding: 30px;
             border-radius: 10px;
             border: 1px solid #00b4d8;
-        }
-        
-        .loader p {
-            margin-top: 15px;
-            color: #90e0ef;
         }
         
         .loader.hidden {
@@ -108,7 +98,7 @@
         }
         
         .control-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             background: rgba(20, 20, 30, 0.7);
             padding: 15px;
             border-radius: 8px;
@@ -134,21 +124,23 @@
             font-size: 0.9rem;
         }
         
-        select, button, input {
+        input, select, button {
             width: 100%;
             padding: 10px;
             background: rgba(30, 30, 40, 0.8);
             border: 1px solid rgba(0, 180, 216, 0.3);
             color: white;
             border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
             font-size: 0.9rem;
+            margin-bottom: 8px;
         }
         
         button {
             background: linear-gradient(to right, #0077b6, #0096c7);
             font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
         }
         
         button:hover {
@@ -157,42 +149,45 @@
             box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
         }
         
-        .slider-container {
-            display: flex;
-            align-items: center;
-        }
-        
-        .slider-container input {
-            flex: 1;
-            margin-right: 10px;
-            height: 6px;
-            background: rgba(0, 180, 216, 0.2);
-        }
-        
-        .slider-value {
-            min-width: 40px;
-            text-align: right;
-            color: #00b4d8;
-            font-weight: bold;
-        }
-        
-        .animation-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .animation-btn {
-            padding: 10px;
+        .github-info {
+            background: rgba(0, 20, 40, 0.6);
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 3px solid #0077b6;
             font-size: 0.85rem;
-            background: rgba(0, 119, 182, 0.7);
         }
         
-        .animation-btn.active {
-            background: linear-gradient(to right, #00b4d8, #90e0ef);
-            color: #0a0a0a;
-            font-weight: bold;
+        .github-info h4 {
+            color: #90e0ef;
+            margin-bottom: 8px;
+        }
+        
+        .github-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #00b4d8;
+            display: block;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+        
+        .instructions {
+            color: #caf0f8;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
         }
         
         .character-info {
@@ -221,134 +216,57 @@
             font-size: 0.75rem;
         }
         
-        .instructions {
-            background: rgba(0, 20, 40, 0.6);
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
-            border-left: 3px solid #0077b6;
+        .animation-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .animation-btn {
+            padding: 8px;
             font-size: 0.85rem;
         }
         
-        .instructions h4 {
-            color: #90e0ef;
-            margin-bottom: 8px;
+        .animation-btn.active {
+            background: linear-gradient(to right, #00b4d8, #90e0ef);
+            color: #0a0a0a;
+            font-weight: bold;
         }
         
-        .instructions ul {
-            padding-left: 20px;
-            color: #caf0f8;
-        }
-        
-        .instructions li {
-            margin-bottom: 6px;
-        }
-        
-        .key {
-            display: inline-block;
-            background: rgba(0, 180, 216, 0.2);
-            padding: 2px 8px;
-            border-radius: 3px;
-            border: 1px solid rgba(0, 180, 216, 0.4);
-            font-family: monospace;
-            margin: 0 2px;
-            font-size: 0.85rem;
-        }
-        
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 5px 10px;
+        .file-example {
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            font-size: 0.85rem;
+            padding: 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #90e0ef;
+            border: 1px dashed rgba(0, 180, 216, 0.3);
         }
         
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-idle { background-color: #4CAF50; }
-        .status-walk { background-color: #2196F3; }
-        .status-run { background-color: #FF9800; }
-        .status-jump { background-color: #F44336; }
-        .status-action { background-color: #9C27B0; }
-        
-        @media (max-width: 1100px) {
+        @media (max-width: 900px) {
             .container {
                 flex-direction: column;
             }
             
             .controls-panel {
                 width: 100%;
-                height: 350px;
+                height: 400px;
                 border-left: none;
                 border-top: 1px solid rgba(0, 180, 216, 0.3);
             }
-        }
-        
-        .debug-info {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            color: #90e0ef;
-            max-width: 300px;
-        }
-        
-        .model-selector {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .model-option {
-            padding: 12px;
-            background: rgba(30, 30, 40, 0.8);
-            border: 1px solid rgba(0, 180, 216, 0.3);
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .model-option:hover {
-            background: rgba(0, 180, 216, 0.1);
-            border-color: #00b4d8;
-        }
-        
-        .model-option.active {
-            background: rgba(0, 180, 216, 0.2);
-            border-color: #00b4d8;
-        }
-        
-        .model-option h4 {
-            color: #00b4d8;
-            margin-bottom: 5px;
-        }
-        
-        .model-option p {
-            color: #caf0f8;
-            font-size: 0.85rem;
-            opacity: 0.8;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Professional 3D Character with GLB Animations</h1>
-        <p class="subtitle">Load external GLB/GLTF models with full animation support</p>
+        <h1>GitHub 3D Character Loader</h1>
+        <p class="subtitle">Load GLB/GLTF models from your GitHub repository</p>
     </header>
     
     <div class="loader" id="loader">
         <div class="spinner"></div>
-        <p id="loaderText">Loading 3D Character Model...</p>
+        <p id="loaderText">Initializing 3D Engine...</p>
     </div>
     
     <div class="container">
@@ -356,19 +274,54 @@
         
         <div class="controls-panel">
             <div class="control-group">
-                <div class="status-indicator">
-                    <div class="status-dot status-idle" id="statusDot"></div>
-                    <span id="statusText">Idle</span>
+                <h3>📁 Load from GitHub</h3>
+                
+                <div class="github-info">
+                    <h4>GitHub Repository Structure:</h4>
+                    <code>nowiba1.github.io/</code>
+                    <code>├── index.html (this file)</code>
+                    <code>│   ├── glb.glb</code>
+                    <code>│   └── texture.png</code>
                 </div>
                 
+                <div class="control-item">
+                    <label for="modelPath">Model File Path (relative):</label>
+                    <input type="text" id="modelPath" 
+                           placeholder="models/character.glb" 
+                           value="models/character.glb">
+                    <div class="instructions">
+                        Relative path from your index.html file
+                    </div>
+                </div>
+                
+                <div class="control-item">
+                    <label>Or use pre-configured models:</label>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button onclick="loadModel('models/robot.glb')">🤖 Robot</button>
+                        <button onclick="loadModel('models/knight.glb')">⚔️ Knight</button>
+                        <button onclick="loadModel('models/player.glb')">🧍 Player</button>
+                    </div>
+                </div>
+                
+                <button onclick="loadFromPath()" style="margin-top: 10px;">Load 3D Model</button>
+                
+                <div class="file-example">
+                    <strong>Example file structure:</strong><br>
+                    • models/character.glb<br>
+                    • assets/player.glb<br>
+                    • 3d/avatar.glb
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>🎮 Controls</h3>
                 <div class="instructions">
-                    <h4>Controls</h4>
                     <ul>
-                        <li>Move: <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></li>
-                        <li>Run: Hold <span class="key">Shift</span></li>
-                        <li>Jump: <span class="key">Space</span></li>
-                        <li>Camera: Hold <span class="key">Right Click</span> + Drag</li>
-                        <li>Reset Camera: <span class="key">R</span></li>
+                        <li><strong>Move:</strong> W A S D or Arrow Keys</li>
+                        <li><strong>Run:</strong> Hold Shift while moving</li>
+                        <li><strong>Jump:</strong> Spacebar</li>
+                        <li><strong>Camera:</strong> Right-click + Drag to orbit</li>
+                        <li><strong>Zoom:</strong> Mouse Wheel</li>
                     </ul>
                 </div>
                 
@@ -386,137 +339,82 @@
                         <div class="label">FPS</div>
                     </div>
                     <div>
-                        <div class="value" id="polyCount">0</div>
-                        <div class="label">Polygons</div>
+                        <div class="value" id="animCount">0</div>
+                        <div class="label">Animations</div>
                     </div>
                 </div>
             </div>
             
             <div class="control-group">
-                <h3>Character Model</h3>
-                <div class="model-selector">
-                    <div class="model-option active" data-model="robot">
-                        <h4>🤖 Robot Character</h4>
-                        <p>Low-poly robot with 8 animations</p>
-                    </div>
-                    <div class="model-option" data-model="ybot">
-                        <h4>🧍‍♂️ Human Character</h4>
-                        <p>Mixamo Y-Bot with 5 animations</p>
-                    </div>
-                    <div class="model-option" data-model="soldier">
-                        <h4>🎯 Soldier Character</h4>
-                        <p>Animated soldier with weapons</p>
-                    </div>
-                </div>
-                
-                <div class="control-item" style="margin-top: 15px;">
-                    <label for="modelUrl">Or Load Custom Model (GLB/GLTF URL):</label>
-                    <input type="text" id="modelUrl" placeholder="https://example.com/model.glb">
-                    <button id="loadCustomModel" style="margin-top: 8px;">Load Custom Model</button>
-                </div>
-            </div>
-            
-            <div class="control-group">
-                <h3>Animations</h3>
-                <div class="animation-buttons" id="animationButtons">
-                    <!-- Animation buttons will be generated here -->
+                <h3>🎬 Animations</h3>
+                <div id="animationButtons" class="animation-buttons">
+                    <!-- Animation buttons will appear here -->
                 </div>
                 
                 <div class="control-item">
-                    <label>Animation Speed <span class="slider-value" id="animSpeedValue">1.0</span></label>
-                    <div class="slider-container">
-                        <input type="range" id="animSpeed" min="0.1" max="3.0" step="0.1" value="1.0">
-                    </div>
-                </div>
-                
-                <div class="control-item">
-                    <label>Blend Speed <span class="slider-value" id="blendSpeedValue">0.1</span></label>
-                    <div class="slider-container">
-                        <input type="range" id="blendSpeed" min="0.01" max="0.5" step="0.01" value="0.1">
+                    <label>Animation Speed:</label>
+                    <input type="range" id="animSpeed" min="0.1" max="3.0" step="0.1" value="1.0">
+                    <div style="text-align: center; color: #00b4d8; font-size: 0.9rem;">
+                        Speed: <span id="speedValue">1.0</span>x
                     </div>
                 </div>
             </div>
             
             <div class="control-group">
-                <h3>Camera & Movement</h3>
-                
-                <div class="control-item">
-                    <label for="cameraMode">Camera Mode</label>
-                    <select id="cameraMode">
-                        <option value="follow">Follow Character</option>
-                        <option value="orbit">Orbit Around</option>
-                        <option value="fixed">Fixed Position</option>
-                    </select>
+                <h3>⚙️ Settings</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button onclick="resetPosition()">Reset Position</button>
+                    <button onclick="resetCamera()">Reset Camera</button>
+                    <button onclick="toggleGrid()">Toggle Grid</button>
+                    <button onclick="toggleShadows()">Toggle Shadows</button>
                 </div>
                 
                 <div class="control-item">
-                    <label>Movement Speed <span class="slider-value" id="moveSpeedValue">0.1</span></label>
-                    <div class="slider-container">
-                        <input type="range" id="moveSpeed" min="0.01" max="0.3" step="0.01" value="0.1">
-                    </div>
+                    <label>Movement Speed:</label>
+                    <input type="range" id="moveSpeed" min="0.01" max="0.3" step="0.01" value="0.1">
                 </div>
-                
-                <button id="resetPosition">Reset Character Position</button>
-                <button id="toggleWireframe" style="margin-top: 8px;">Toggle Wireframe: OFF</button>
             </div>
             
             <div class="control-group">
-                <h3>Environment</h3>
-                
-                <div class="control-item">
-                    <label for="environment">Environment</label>
-                    <select id="environment">
-                        <option value="studio">Studio</option>
-                        <option value="field">Grassy Field</option>
-                        <option value="dungeon">Dungeon</option>
-                        <option value="none">None</option>
-                    </select>
+                <h3>📋 Instructions</h3>
+                <div class="instructions">
+                    <ol>
+                        <li>Upload your GLB/GLTF file to your GitHub repository</li>
+                        <li>Enter the relative path above (e.g., "models/character.glb")</li>
+                        <li>Click "Load 3D Model"</li>
+                        <li>Use WASD keys to move the character</li>
+                        <li>Click animation buttons to play different animations</li>
+                    </ol>
+                    <p style="margin-top: 10px; color: #00b4d8;">
+                        <strong>Tip:</strong> GitHub Pages automatically serves files from your repo root
+                    </p>
                 </div>
-                
-                <button id="toggleShadows">Toggle Shadows: ON</button>
-                <button id="toggleGrid" style="margin-top: 8px;">Toggle Grid: ON</button>
-            </div>
-            
-            <div class="instructions">
-                <h4>Tips for GLB/GLTF Models</h4>
-                <ul>
-                    <li>Models must include armature/skeleton for animations</li>
-                    <li>GLB format recommended for single file loading</li>
-                    <li>Mixamo.com provides free animated characters</li>
-                    <li>For custom models, ensure animations are embedded</li>
-                </ul>
             </div>
         </div>
     </div>
-    
-    <div class="debug-info" id="debugInfo">
-        Model: Loading...<br>
-        Animations: 0<br>
-        Vertices: 0
-    </div>
 
     <script>
-        // Main Babylon.js scene setup
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Get DOM elements
+        // Global variables
+        let scene, engine, character, characterRoot;
+        let animations = [];
+        let currentAnimation = "idle";
+        let isMoving = false;
+        let isRunning = false;
+        let isJumping = false;
+        const keys = {};
+        
+        // Initialize the 3D scene
+        async function initScene() {
             const canvas = document.getElementById('renderCanvas');
             const loader = document.getElementById('loader');
             const loaderText = document.getElementById('loaderText');
-            const debugInfo = document.getElementById('debugInfo');
             
-            // Create the Babylon.js engine
-            const engine = new BABYLON.Engine(canvas, true, {
-                preserveDrawingBuffer: true,
-                stencil: true,
-                antialias: true
-            });
+            // Create Babylon.js engine
+            engine = new BABYLON.Engine(canvas, true);
             
-            // Create the scene
-            const scene = new BABYLON.Scene(engine);
+            // Create scene
+            scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.15, 1.0);
-            
-            // Show loader
-            loader.classList.remove('hidden');
             
             // Create camera
             const camera = new BABYLON.ArcRotateCamera("camera", 
@@ -526,7 +424,6 @@
             camera.lowerRadiusLimit = 2;
             camera.upperRadiusLimit = 30;
             camera.wheelDeltaPercentage = 0.01;
-            camera.panningSensibility = 1000;
             
             // Create lighting
             const hemisphericLight = new BABYLON.HemisphericLight("hemiLight", 
@@ -538,627 +435,41 @@
             directionalLight.intensity = 0.8;
             directionalLight.position = new BABYLON.Vector3(10, 20, 10);
             
-            // Create shadow generator
-            const shadowGenerator = new BABYLON.ShadowGenerator(1024, directionalLight);
-            shadowGenerator.useBlurExponentialShadowMap = true;
-            shadowGenerator.blurScale = 2;
-            
-            // Character variables
-            let character = null;
-            let characterRoot = null;
-            let characterMesh = null;
-            let animations = [];
-            let skeleton = null;
-            
-            // Animation state
-            let currentAnimation = "idle";
-            let isMoving = false;
-            let isRunning = false;
-            let isJumping = false;
-            let movementDirection = new BABYLON.Vector3(0, 0, 0);
-            let characterSpeed = 0.1;
-            
-            // Animation blending
-            let animationBlendSpeed = 0.1;
-            let animationSpeed = 1.0;
-            
-            // Available character models with animations
-            const characterModels = {
-                robot: {
-                    url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/AnimatedCube/glTF/AnimatedCube.gltf",
-                    // Fallback to a simpler model if above fails
-                    fallback: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoxAnimated/glTF/BoxAnimated.gltf",
-                    animations: ["idle", "walk", "run", "jump", "attack", "dance", "wave", "defeat"],
-                    scale: 1.0,
-                    offsetY: 0
-                },
-                ybot: {
-                    url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Xbot.glb",
-                    // Fallback to a simpler model
-                    fallback: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb",
-                    animations: ["idle", "walk", "run", "jump", "punch"],
-                    scale: 0.01,
-                    offsetY: 0
-                },
-                soldier: {
-                    url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb",
-                    animations: ["idle", "walk", "run", "aim", "shoot"],
-                    scale: 0.01,
-                    offsetY: 0
-                }
-            };
-            
-            // Animation mappings for different models
-            const animationMappings = {
-                robot: {
-                    idle: 0,
-                    walk: 1,
-                    run: 2,
-                    jump: 3,
-                    attack: 4,
-                    dance: 5,
-                    wave: 6,
-                    defeat: 7
-                },
-                ybot: {
-                    idle: "Idle",
-                    walk: "Walking",
-                    run: "Running",
-                    jump: "Jump",
-                    punch: "Punch"
-                },
-                soldier: {
-                    idle: "Idle",
-                    walk: "Walk",
-                    run: "Run",
-                    aim: "Aim",
-                    shoot: "Shoot"
-                }
-            };
-            
             // Create ground
-            function createGround() {
-                const ground = BABYLON.MeshBuilder.CreateGround("ground", 
-                    { width: 100, height: 100, subdivisions: 2 }, scene);
-                
-                const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-                groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.4, 0.2);
-                groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-                ground.material = groundMaterial;
-                ground.receiveShadows = true;
-                
-                return ground;
-            }
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", 
+                { width: 100, height: 100 }, scene);
+            const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
+            groundMat.diffuseColor = new BABYLON.Color3(0.2, 0.3, 0.2);
+            ground.material = groundMat;
+            ground.receiveShadows = true;
             
-            // Create environment
-            function createEnvironment(type) {
-                // Clear previous environment
-                scene.meshes.forEach(mesh => {
-                    if (mesh.name.includes("env_")) {
-                        mesh.dispose();
-                    }
-                });
-                
-                if (type === "none") return;
-                
-                if (type === "studio") {
-                    // Create a simple studio environment
-                    const studioGround = BABYLON.MeshBuilder.CreateGround("env_ground", 
-                        { width: 50, height: 50 }, scene);
-                    studioGround.position.y = -0.1;
-                    
-                    const studioMat = new BABYLON.StandardMaterial("env_mat", scene);
-                    studioMat.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.25);
-                    studioMat.specularColor = new BABYLON.Color3(0, 0, 0);
-                    studioGround.material = studioMat;
-                    studioGround.receiveShadows = true;
-                    
-                    // Create backdrop
-                    const backdrop = BABYLON.MeshBuilder.CreateBox("env_backdrop", 
-                        { width: 50, height: 30, depth: 1 }, scene);
-                    backdrop.position = new BABYLON.Vector3(0, 15, -25);
-                    backdrop.material = studioMat;
-                    
-                } else if (type === "field") {
-                    // Create grassy field
-                    const field = createGround();
-                    field.name = "env_field";
-                    
-                    // Add some trees
-                    for (let i = 0; i < 20; i++) {
-                        createTree(
-                            Math.random() * 80 - 40,
-                            0,
-                            Math.random() * 80 - 40
-                        );
-                    }
-                    
-                } else if (type === "dungeon") {
-                    // Create dungeon floor
-                    const dungeonFloor = BABYLON.MeshBuilder.CreateGround("env_dungeonFloor", 
-                        { width: 40, height: 40 }, scene);
-                    
-                    const dungeonMat = new BABYLON.StandardMaterial("env_dungeonMat", scene);
-                    dungeonMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-                    dungeonFloor.material = dungeonMat;
-                    dungeonFloor.receiveShadows = true;
-                    
-                    // Create dungeon walls
-                    const wallPositions = [
-                        {x: -20, z: 0, width: 2, height: 10, depth: 40},
-                        {x: 20, z: 0, width: 2, height: 10, depth: 40},
-                        {x: 0, z: -20, width: 40, height: 10, depth: 2},
-                        {x: 0, z: 20, width: 40, height: 10, depth: 2}
-                    ];
-                    
-                    wallPositions.forEach((pos, i) => {
-                        const wall = BABYLON.MeshBuilder.CreateBox(`env_wall${i}`, 
-                            {width: pos.width, height: pos.height, depth: pos.depth}, scene);
-                        wall.position = new BABYLON.Vector3(pos.x, pos.height/2, pos.z);
-                        wall.material = dungeonMat;
-                        wall.receiveShadows = true;
-                    });
-                }
-            }
+            // Create grid
+            const grid = BABYLON.MeshBuilder.CreateGround("grid", 
+                { width: 100, height: 100, subdivisions: 100 }, scene);
+            const gridMat = new BABYLON.GridMaterial("gridMat", scene);
+            gridMat.mainColor = new BABYLON.Color3(0.2, 0.2, 0.3);
+            gridMat.lineColor = new BABYLON.Color3(0.3, 0.3, 0.4);
+            gridMat.opacity = 0.2;
+            grid.material = gridMat;
+            grid.position.y = 0.01;
             
-            // Create a tree
-            function createTree(x, y, z) {
-                const tree = new BABYLON.Mesh("env_tree", scene);
-                
-                const trunk = BABYLON.MeshBuilder.CreateCylinder("env_trunk", 
-                    {height: 2, diameter: 0.5}, scene);
-                trunk.position.y = 1;
-                
-                const leaves = BABYLON.MeshBuilder.CreateSphere("env_leaves", 
-                    {diameter: 3}, scene);
-                leaves.position.y = 3;
-                
-                const trunkMat = new BABYLON.StandardMaterial("env_trunkMat", scene);
-                trunkMat.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
-                trunk.material = trunkMat;
-                
-                const leavesMat = new BABYLON.StandardMaterial("env_leavesMat", scene);
-                leavesMat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.2);
-                leaves.material = leavesMat;
-                
-                trunk.parent = tree;
-                leaves.parent = tree;
-                tree.position = new BABYLON.Vector3(x, y, z);
-                
-                shadowGenerator.addShadowCaster(tree);
-                
-                return tree;
-            }
-            
-            // Create grid helper
-            function createGrid() {
-                const grid = BABYLON.MeshBuilder.CreateGround("grid", 
-                    { width: 100, height: 100, subdivisions: 100 }, scene);
-                
-                const gridMaterial = new BABYLON.GridMaterial("gridMaterial", scene);
-                gridMaterial.mainColor = new BABYLON.Color3(0.2, 0.2, 0.3);
-                gridMaterial.lineColor = new BABYLON.Color3(0.3, 0.3, 0.4);
-                gridMaterial.gridRatio = 1;
-                gridMaterial.opacity = 0.2;
-                grid.material = gridMaterial;
-                grid.position.y = 0.01; // Slightly above ground
-                
-                return grid;
-            }
-            
-            // Load character model
-            async function loadCharacterModel(modelKey, customUrl = null) {
-                // Show loader
-                loader.classList.remove('hidden');
-                loaderText.textContent = `Loading ${modelKey} model...`;
-                
-                // Clean up previous character
-                if (character) {
-                    character.dispose();
-                    character = null;
-                    characterMesh = null;
-                    skeleton = null;
-                    animations = [];
-                }
-                
-                // Get model config
-                let modelConfig = characterModels[modelKey];
-                let modelUrl = customUrl || modelConfig.url;
-                
-                try {
-                    // Try to load the model
-                    const result = await BABYLON.SceneLoader.ImportMeshAsync(
-                        "", 
-                        modelUrl, 
-                        "", 
-                        scene,
-                        null, 
-                        ".glb"
-                    );
-                    
-                    // If loading fails, try fallback URL
-                    if (!result.meshes || result.meshes.length === 0) {
-                        if (modelConfig.fallback && !customUrl) {
-                            console.log("Using fallback model...");
-                            return loadCharacterModel(modelKey, modelConfig.fallback);
-                        }
-                        throw new Error("Failed to load model");
-                    }
-                    
-                    // Process loaded model
-                    processLoadedModel(result, modelConfig, modelKey);
-                    
-                } catch (error) {
-                    console.error("Error loading model:", error);
-                    loaderText.textContent = "Error loading model. Using fallback...";
-                    
-                    // Load a simple cube as fallback with animations
-                    createFallbackCharacter(modelKey);
-                }
-            }
-            
-            // Process loaded model
-            function processLoadedModel(result, modelConfig, modelKey) {
-                const { meshes, skeletons, animationGroups } = result;
-                
-                // Find the root mesh (usually the first one or one with no parent)
-                character = meshes[0];
-                character.name = "character";
-                
-                // Scale and position character
-                character.scaling.scaleInPlace(modelConfig.scale);
-                character.position.y = modelConfig.offsetY;
-                
-                // Set character root for movement
-                characterRoot = new BABYLON.TransformNode("characterRoot");
-                character.parent = characterRoot;
-                characterRoot.position = new BABYLON.Vector3(0, 0, 0);
-                
-                // Get skeleton for animations
-                if (skeletons && skeletons.length > 0) {
-                    skeleton = skeletons[0];
-                    console.log("Skeleton loaded with", skeleton.bones.length, "bones");
-                }
-                
-                // Get animation groups
-                if (animationGroups && animationGroups.length > 0) {
-                    animations = animationGroups;
-                    console.log("Loaded", animations.length, "animations");
-                    
-                    // Stop all animations initially
-                    animations.forEach(anim => anim.stop());
-                } else {
-                    console.log("No animation groups found, checking for embedded animations...");
-                    
-                    // Check for embedded animations
-                    if (scene.animationGroups && scene.animationGroups.length > 0) {
-                        animations = scene.animationGroups;
-                        console.log("Found", animations.length, "embedded animations");
-                    }
-                }
-                
-                // If no animations found, create some basic ones
-                if (animations.length === 0) {
-                    createBasicAnimations(character);
-                }
-                
-                // Set up animations for this model
-                setupAnimations(modelKey);
-                
-                // Add character to shadow generator
-                shadowGenerator.addShadowCaster(character);
-                
-                // Update camera target
-                camera.target = characterRoot.position;
-                
-                // Hide loader
+            // Hide loader when scene is ready
+            scene.executeWhenReady(() => {
                 setTimeout(() => {
                     loader.classList.add('hidden');
+                    // Try to load default model
+                    loadFromPath();
                 }, 500);
-                
-                // Update debug info
-                updateDebugInfo(modelKey);
-                
-                // Create animation buttons
-                createAnimationButtons(modelKey);
-                
-                // Play idle animation
-                playAnimation("idle");
-            }
-            
-            // Create fallback character (simple cube with animations)
-            function createFallbackCharacter(modelKey) {
-                console.log("Creating fallback character...");
-                
-                // Create a simple character
-                characterRoot = new BABYLON.TransformNode("characterRoot");
-                
-                // Create body parts
-                const body = BABYLON.MeshBuilder.CreateBox("body", 
-                    {width: 1, height: 2, depth: 0.5}, scene);
-                body.parent = characterRoot;
-                body.position.y = 1;
-                
-                // Create head
-                const head = BABYLON.MeshBuilder.CreateSphere("head", 
-                    {diameter: 0.8}, scene);
-                head.parent = characterRoot;
-                head.position.y = 2.5;
-                
-                // Create limbs for animation
-                const leftArm = BABYLON.MeshBuilder.CreateBox("leftArm", 
-                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
-                leftArm.parent = characterRoot;
-                leftArm.position = new BABYLON.Vector3(-0.7, 1.5, 0);
-                
-                const rightArm = BABYLON.MeshBuilder.CreateBox("rightArm", 
-                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
-                rightArm.parent = characterRoot;
-                rightArm.position = new BABYLON.Vector3(0.7, 1.5, 0);
-                
-                const leftLeg = BABYLON.MeshBuilder.CreateBox("leftLeg", 
-                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
-                leftLeg.parent = characterRoot;
-                leftLeg.position = new BABYLON.Vector3(-0.3, 0, 0);
-                
-                const rightLeg = BABYLON.MeshBuilder.CreateBox("rightLeg", 
-                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
-                rightLeg.parent = characterRoot;
-                rightLeg.position = new BABYLON.Vector3(0.3, 0, 0);
-                
-                // Create material
-                const material = new BABYLON.StandardMaterial("charMat", scene);
-                material.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.8);
-                [body, head, leftArm, rightArm, leftLeg, rightLeg].forEach(mesh => {
-                    mesh.material = material;
-                });
-                
-                character = body; // Use body as main character reference
-                characterMesh = character;
-                
-                // Create basic animations
-                createBasicAnimations(characterRoot);
-                
-                // Set up animations
-                setupAnimations(modelKey);
-                
-                // Hide loader
-                setTimeout(() => {
-                    loader.classList.add('hidden');
-                }, 500);
-                
-                // Update debug info
-                updateDebugInfo("fallback");
-                
-                // Create animation buttons
-                createAnimationButtons(modelKey);
-                
-                // Play idle animation
-                playAnimation("idle");
-            }
-            
-            // Create basic animations for fallback character
-            function createBasicAnimations(characterNode) {
-                // Create idle animation (subtle breathing)
-                const idleAnim = new BABYLON.Animation(
-                    "idle",
-                    "position.y",
-                    30,
-                    BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-                    BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
-                );
-                
-                const idleKeys = [];
-                idleKeys.push({ frame: 0, value: 0 });
-                idleKeys.push({ frame: 15, value: 0.05 });
-                idleKeys.push({ frame: 30, value: 0 });
-                idleAnim.setKeys(idleKeys);
-                
-                characterNode.animations = [idleAnim];
-                
-                // Create walk animation
-                const walkAnim = new BABYLON.AnimationGroup("walk", true);
-                
-                // We'll create proper animations in setupAnimations
-                animations = [
-                    { name: "idle", animationGroup: null },
-                    { name: "walk", animationGroup: null },
-                    { name: "run", animationGroup: null },
-                    { name: "jump", animationGroup: null }
-                ];
-            }
-            
-            // Set up animations for the model
-            function setupAnimations(modelKey) {
-                const mapping = animationMappings[modelKey];
-                
-                // Map animation names to actual animation groups
-                if (animations && animations.length > 0) {
-                    console.log("Available animations:", animations.map(a => a.name || a));
-                    
-                    // For models with animation groups
-                    if (animations[0] && animations[0].name) {
-                        // Animation groups are already loaded
-                        console.log("Using animation groups");
-                    }
-                }
-                
-                // Update status
-                updateStatus("idle");
-            }
-            
-            // Play animation
-            function playAnimation(animationName, loop = true) {
-                // Stop current animation
-                if (currentAnimation && animations) {
-                    const currentAnim = animations.find(a => 
-                        (a.name && a.name.toLowerCase().includes(currentAnimation)) ||
-                        (a.toString().toLowerCase().includes(currentAnimation))
-                    );
-                    if (currentAnim && currentAnim.stop) {
-                        currentAnim.stop();
-                    }
-                }
-                
-                // Find and play new animation
-                if (animations && animations.length > 0) {
-                    let animToPlay = null;
-                    
-                    // Try to find exact match
-                    animToPlay = animations.find(a => 
-                        (a.name && a.name.toLowerCase() === animationName.toLowerCase()) ||
-                        (a.toString().toLowerCase() === animationName.toLowerCase())
-                    );
-                    
-                    // If not found, try partial match
-                    if (!animToPlay) {
-                        animToPlay = animations.find(a => 
-                            (a.name && a.name.toLowerCase().includes(animationName.toLowerCase())) ||
-                            (a.toString().toLowerCase().includes(animationName.toLowerCase()))
-                        );
-                    }
-                    
-                    // If still not found, use first animation
-                    if (!animToPlay && animations.length > 0) {
-                        animToPlay = animations[0];
-                    }
-                    
-                    if (animToPlay) {
-                        if (animToPlay.start) {
-                            animToPlay.start(loop, animationSpeed);
-                            animToPlay.speedRatio = animationSpeed;
-                        }
-                        currentAnimation = animationName;
-                        updateStatus(animationName);
-                        console.log("Playing animation:", animationName);
-                    }
-                } else {
-                    // For fallback character, use simple animation
-                    if (characterRoot && characterRoot.animations) {
-                        scene.beginAnimation(characterRoot, 0, 30, loop, animationSpeed);
-                        currentAnimation = animationName;
-                        updateStatus(animationName);
-                    }
-                }
-                
-                // Update animation buttons
-                updateAnimationButtons(animationName);
-            }
-            
-            // Create animation buttons
-            function createAnimationButtons(modelKey) {
-                const container = document.getElementById("animationButtons");
-                container.innerHTML = "";
-                
-                const animationList = characterModels[modelKey]?.animations || 
-                                    ["idle", "walk", "run", "jump", "attack", "dance"];
-                
-                animationList.forEach(animName => {
-                    const button = document.createElement("button");
-                    button.className = "animation-btn";
-                    button.textContent = animName.charAt(0).toUpperCase() + animName.slice(1);
-                    button.dataset.animation = animName;
-                    
-                    button.addEventListener("click", () => {
-                        playAnimation(animName);
-                    });
-                    
-                    container.appendChild(button);
-                });
-            }
-            
-            // Update animation buttons state
-            function updateAnimationButtons(activeAnimation) {
-                const buttons = document.querySelectorAll(".animation-btn");
-                buttons.forEach(button => {
-                    if (button.dataset.animation === activeAnimation) {
-                        button.classList.add("active");
-                    } else {
-                        button.classList.remove("active");
-                    }
-                });
-            }
-            
-            // Update character status
-            function updateStatus(status) {
-                const statusDot = document.getElementById("statusDot");
-                const statusText = document.getElementById("statusText");
-                
-                statusDot.className = "status-dot";
-                
-                switch(status) {
-                    case "idle":
-                        statusDot.classList.add("status-idle");
-                        statusText.textContent = "Idle";
-                        break;
-                    case "walk":
-                    case "walking":
-                        statusDot.classList.add("status-walk");
-                        statusText.textContent = "Walking";
-                        break;
-                    case "run":
-                    case "running":
-                        statusDot.classList.add("status-run");
-                        statusText.textContent = "Running";
-                        break;
-                    case "jump":
-                    case "jumping":
-                        statusDot.classList.add("status-jump");
-                        statusText.textContent = "Jumping";
-                        break;
-                    default:
-                        statusDot.classList.add("status-action");
-                        statusText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-                        break;
-                }
-            }
-            
-            // Update debug info
-            function updateDebugInfo(modelName) {
-                if (!character) return;
-                
-                let vertexCount = 0;
-                let triangleCount = 0;
-                
-                // Calculate polygon count
-                const countGeometry = (mesh) => {
-                    if (mesh.getTotalVertices) {
-                        vertexCount += mesh.getTotalVertices();
-                    }
-                    if (mesh.getTotalIndices) {
-                        triangleCount += mesh.getTotalIndices() / 3;
-                    }
-                    
-                    // Check children
-                    if (mesh.getChildMeshes) {
-                        mesh.getChildMeshes().forEach(child => countGeometry(child));
-                    }
-                };
-                
-                countGeometry(character);
-                
-                debugInfo.innerHTML = `
-                    Model: ${modelName}<br>
-                    Animations: ${animations.length}<br>
-                    Vertices: ${vertexCount}<br>
-                    Triangles: ${triangleCount}<br>
-                    Bones: ${skeleton ? skeleton.bones.length : 0}
-                `;
-            }
+            });
             
             // Keyboard controls
-            const keys = {};
-            
             window.addEventListener("keydown", (e) => {
                 const key = e.key.toLowerCase();
                 keys[key] = true;
                 
-                // Space for jump
-                if (key === " " && !isJumping) {
-                    isJumping = true;
+                if (key === " " && !isJumping && character) {
                     playAnimation("jump");
-                    
-                    // Reset jump after delay
+                    isJumping = true;
                     setTimeout(() => {
                         isJumping = false;
                         if (isMoving) {
@@ -1169,14 +480,6 @@
                     }, 1000);
                 }
                 
-                // R to reset camera
-                if (key === "r") {
-                    camera.alpha = -Math.PI / 2;
-                    camera.beta = Math.PI / 3;
-                    camera.radius = 10;
-                }
-                
-                // Shift for running
                 if (key === "shift") {
                     isRunning = true;
                     if (isMoving && !isJumping) {
@@ -1197,274 +500,322 @@
                 }
             });
             
-            // Update character movement
-            function updateCharacterMovement() {
-                if (!characterRoot || isJumping) return;
-                
-                movementDirection.set(0, 0, 0);
-                isMoving = false;
-                
-                // Check movement keys
-                if (keys["w"] || keys["arrowup"]) {
-                    movementDirection.z += 1;
-                    isMoving = true;
-                }
-                if (keys["s"] || keys["arrowdown"]) {
-                    movementDirection.z -= 1;
-                    isMoving = true;
-                }
-                if (keys["a"] || keys["arrowleft"]) {
-                    movementDirection.x -= 1;
-                    isMoving = true;
-                }
-                if (keys["d"] || keys["arrowright"]) {
-                    movementDirection.x += 1;
-                    isMoving = true;
-                }
-                
-                // Normalize movement direction
-                if (movementDirection.length() > 0) {
-                    movementDirection.normalize();
-                    
-                    // Update animation based on movement
-                    if (!isJumping) {
-                        playAnimation(isRunning ? "run" : "walk");
-                    }
-                } else if (!isJumping) {
-                    // Not moving, play idle
-                    playAnimation("idle");
-                    isMoving = false;
-                }
-                
-                // Calculate speed
-                const speed = isRunning ? characterSpeed * 2 : characterSpeed;
-                
-                // Update position
-                characterRoot.position.x += movementDirection.x * speed;
-                characterRoot.position.z += movementDirection.z * speed;
-                
-                // Rotate character to face movement direction
-                if (isMoving) {
-                    const targetRotation = Math.atan2(movementDirection.x, movementDirection.z);
-                    characterRoot.rotation.y = BABYLON.Scalar.Lerp(
-                        characterRoot.rotation.y,
-                        targetRotation,
-                        0.2
-                    );
-                }
-                
-                // Keep character within bounds
-                const bounds = 45;
-                characterRoot.position.x = Math.max(-bounds, Math.min(bounds, characterRoot.position.x));
-                characterRoot.position.z = Math.max(-bounds, Math.min(bounds, characterRoot.position.z));
-                
-                // Update camera based on mode
-                updateCamera();
-                
-                // Update UI
-                updateCharacterInfo();
-            }
-            
-            // Update camera
-            function updateCamera() {
-                if (!characterRoot) return;
-                
-                const cameraMode = document.getElementById("cameraMode").value;
-                
-                if (cameraMode === "follow") {
-                    // Camera follows character from behind
-                    const characterForward = new BABYLON.Vector3(
-                        Math.sin(characterRoot.rotation.y),
-                        0,
-                        Math.cos(characterRoot.rotation.y)
-                    );
-                    
-                    const targetPosition = characterRoot.position
-                        .subtract(characterForward.scale(8))
-                        .add(new BABYLON.Vector3(0, 4, 0));
-                    
-                    camera.position = BABYLON.Vector3.Lerp(
-                        camera.position,
-                        targetPosition,
-                        0.1
-                    );
-                    
-                    camera.target = characterRoot.position.add(new BABYLON.Vector3(0, 2, 0));
-                    
-                } else if (cameraMode === "orbit") {
-                    // Camera orbits around character
-                    camera.target = characterRoot.position.add(new BABYLON.Vector3(0, 2, 0));
-                    
-                } else if (cameraMode === "fixed") {
-                    // Fixed camera position
-                    camera.target = characterRoot.position.add(new BABYLON.Vector3(0, 2, 0));
-                }
-            }
-            
-            // Update character info UI
-            function updateCharacterInfo() {
-                if (!characterRoot) return;
-                
-                document.getElementById("positionX").textContent = characterRoot.position.x.toFixed(1);
-                document.getElementById("positionZ").textContent = characterRoot.position.z.toFixed(1);
-                
-                // Update FPS counter
-                const fps = engine.getFps().toFixed(0);
-                document.getElementById("fps").textContent = fps;
-            }
-            
-            // Initialize environment
-            createGround();
-            createEnvironment("studio");
-            let grid = createGrid();
-            
-            // Load initial character
-            loadCharacterModel("robot");
-            
-            // UI Event Listeners
-            // Model selection
-            document.querySelectorAll(".model-option").forEach(option => {
-                option.addEventListener("click", function() {
-                    const modelKey = this.dataset.model;
-                    
-                    // Update active state
-                    document.querySelectorAll(".model-option").forEach(opt => {
-                        opt.classList.remove("active");
-                    });
-                    this.classList.add("active");
-                    
-                    // Load model
-                    loadCharacterModel(modelKey);
-                });
-            });
-            
-            // Load custom model
-            document.getElementById("loadCustomModel").addEventListener("click", function() {
-                const url = document.getElementById("modelUrl").value.trim();
-                if (url) {
-                    loadCharacterModel("custom", url);
-                } else {
-                    alert("Please enter a valid GLB/GLTF URL");
-                }
-            });
-            
-            // Animation speed slider
-            document.getElementById("animSpeed").addEventListener("input", function() {
-                animationSpeed = parseFloat(this.value);
-                document.getElementById("animSpeedValue").textContent = animationSpeed.toFixed(1);
-                
-                // Update current animation speed
-                if (animations && currentAnimation) {
-                    const currentAnim = animations.find(a => 
-                        (a.name && a.name.toLowerCase().includes(currentAnimation)) ||
-                        (a.toString().toLowerCase().includes(currentAnimation))
-                    );
-                    if (currentAnim && currentAnim.speedRatio !== undefined) {
-                        currentAnim.speedRatio = animationSpeed;
-                    }
-                }
-            });
-            
-            // Blend speed slider
-            document.getElementById("blendSpeed").addEventListener("input", function() {
-                animationBlendSpeed = parseFloat(this.value);
-                document.getElementById("blendSpeedValue").textContent = animationBlendSpeed.toFixed(2);
-            });
-            
-            // Movement speed slider
-            document.getElementById("moveSpeed").addEventListener("input", function() {
-                characterSpeed = parseFloat(this.value);
-                document.getElementById("moveSpeedValue").textContent = characterSpeed.toFixed(2);
-            });
-            
-            // Reset position
-            document.getElementById("resetPosition").addEventListener("click", function() {
-                if (characterRoot) {
-                    characterRoot.position = new BABYLON.Vector3(0, 0, 0);
-                    characterRoot.rotation = new BABYLON.Vector3(0, 0, 0);
-                    playAnimation("idle");
-                }
-            });
-            
-            // Toggle wireframe
-            let wireframe = false;
-            document.getElementById("toggleWireframe").addEventListener("click", function() {
-                wireframe = !wireframe;
-                this.textContent = wireframe ? "Toggle Wireframe: ON" : "Toggle Wireframe: OFF";
-                
-                if (character) {
-                    character.getChildMeshes().forEach(mesh => {
-                        if (mesh.material) {
-                            mesh.material.wireframe = wireframe;
-                        }
-                    });
-                }
-            });
-            
-            // Environment selector
-            document.getElementById("environment").addEventListener("change", function() {
-                createEnvironment(this.value);
-            });
-            
-            // Toggle shadows
-            let shadows = true;
-            document.getElementById("toggleShadows").addEventListener("click", function() {
-                shadows = !shadows;
-                this.textContent = shadows ? "Toggle Shadows: ON" : "Toggle Shadows: OFF";
-                
-                shadowGenerator.getShadowMap().renderList.forEach(mesh => {
-                    mesh.receiveShadows = shadows;
-                });
-            });
-            
-            // Toggle grid
-            let gridVisible = true;
-            document.getElementById("toggleGrid").addEventListener("click", function() {
-                gridVisible = !gridVisible;
-                this.textContent = gridVisible ? "Toggle Grid: ON" : "Toggle Grid: OFF";
-                
-                if (grid) {
-                    grid.setEnabled(gridVisible);
-                }
-            });
-            
-            // Camera mode
-            document.getElementById("cameraMode").addEventListener("change", updateCamera);
-            
             // Animation loop
             scene.onBeforeRenderObservable.add(() => {
                 updateCharacterMovement();
+                updateUI();
             });
             
-            // Handle window resize
+            // Handle resize
             window.addEventListener("resize", () => {
                 engine.resize();
             });
             
-            // Hide loader when scene is ready
-            scene.executeWhenReady(() => {
-                setTimeout(() => {
-                    loader.classList.add('hidden');
-                }, 1000);
-            });
-            
-            // Run render loop
+            // Start render loop
             engine.runRenderLoop(() => {
                 scene.render();
             });
             
-            // Handle window focus loss
-            window.addEventListener("blur", () => {
-                Object.keys(keys).forEach(key => {
-                    keys[key] = false;
-                });
-                isMoving = false;
-                isRunning = false;
-                if (!isJumping) {
-                    playAnimation("idle");
+            return { scene, engine, camera };
+        }
+        
+        // Load model from path
+        async function loadFromPath() {
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            const modelPath = document.getElementById('modelPath').value.trim();
+            
+            if (!modelPath) {
+                alert("Please enter a model path");
+                return;
+            }
+            
+            loader.classList.remove('hidden');
+            loaderText.textContent = `Loading ${modelPath}...`;
+            
+            try {
+                await loadModel(modelPath);
+            } catch (error) {
+                console.error("Error loading model:", error);
+                loaderText.textContent = `Failed to load ${modelPath}`;
+                setTimeout(() => loader.classList.add('hidden'), 2000);
+                alert(`Failed to load model: ${modelPath}\n\nMake sure the file exists in your GitHub repository.`);
+            }
+        }
+        
+        // Load model function
+        async function loadModel(path) {
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            
+            // Clean up previous character
+            if (character) {
+                character.dispose();
+                character = null;
+            }
+            if (characterRoot) {
+                characterRoot.dispose();
+                characterRoot = null;
+            }
+            animations = [];
+            
+            try {
+                loaderText.textContent = `Loading: ${path}`;
+                
+                // Load the GLB/GLTF file
+                const result = await BABYLON.SceneLoader.ImportMeshAsync(
+                    "",
+                    "",
+                    path,
+                    scene,
+                    null,
+                    ".glb"
+                );
+                
+                if (!result.meshes || result.meshes.length === 0) {
+                    throw new Error("No meshes found in the model file");
+                }
+                
+                // Get the loaded character
+                character = result.meshes[0];
+                character.name = "character";
+                
+                // Create root node for movement
+                characterRoot = new BABYLON.TransformNode("characterRoot");
+                character.parent = characterRoot;
+                characterRoot.position = new BABYLON.Vector3(0, 0, 0);
+                
+                // Get animations
+                if (result.animationGroups && result.animationGroups.length > 0) {
+                    animations = result.animationGroups;
+                    console.log(`Found ${animations.length} animations:`, 
+                        animations.map(a => a.name));
+                    
+                    // Stop all animations initially
+                    animations.forEach(anim => anim.stop());
+                }
+                
+                // Set up animation buttons
+                createAnimationButtons();
+                
+                // Play idle animation
+                playAnimation("idle");
+                
+                loaderText.textContent = "Model loaded successfully!";
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                }, 1000);
+                
+                // Update animation count in UI
+                document.getElementById('animCount').textContent = animations.length;
+                
+            } catch (error) {
+                console.error("Model loading error:", error);
+                throw error;
+            }
+        }
+        
+        // Create animation buttons
+        function createAnimationButtons() {
+            const container = document.getElementById('animationButtons');
+            container.innerHTML = '';
+            
+            if (animations.length === 0) {
+                container.innerHTML = '<div style="color: #90e0ef; text-align: center;">No animations found</div>';
+                return;
+            }
+            
+            // Common animation names to look for
+            const commonAnims = ["idle", "walk", "run", "jump", "attack", "dance"];
+            
+            commonAnims.forEach(animName => {
+                // Try to find matching animation
+                const matchingAnim = animations.find(a => 
+                    a.name.toLowerCase().includes(animName) || 
+                    animName.includes(a.name.toLowerCase())
+                );
+                
+                if (matchingAnim) {
+                    const button = document.createElement('button');
+                    button.className = 'animation-btn';
+                    button.textContent = animName.charAt(0).toUpperCase() + animName.slice(1);
+                    button.onclick = () => playAnimation(animName);
+                    container.appendChild(button);
                 }
             });
-        });
+            
+            // If we didn't find common animations, show all animations
+            if (container.children.length === 0) {
+                animations.forEach((anim, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'animation-btn';
+                    button.textContent = anim.name || `Anim ${index + 1}`;
+                    button.onclick = () => {
+                        playAnimation(anim.name || `anim${index}`);
+                    };
+                    container.appendChild(button);
+                });
+            }
+        }
+        
+        // Play animation
+        function playAnimation(animName) {
+            if (!animations || animations.length === 0) return;
+            
+            // Stop current animation
+            animations.forEach(anim => anim.stop());
+            
+            // Find the animation
+            let animToPlay = animations.find(a => 
+                a.name.toLowerCase().includes(animName) || 
+                animName.includes(a.name.toLowerCase())
+            );
+            
+            // If not found, use first animation
+            if (!animToPlay) {
+                animToPlay = animations[0];
+            }
+            
+            if (animToPlay) {
+                const speed = parseFloat(document.getElementById('animSpeed').value);
+                animToPlay.start(true, speed);
+                animToPlay.speedRatio = speed;
+                currentAnimation = animName;
+                
+                // Update button states
+                updateAnimationButtons(animName);
+            }
+        }
+        
+        // Update animation button states
+        function updateAnimationButtons(activeAnim) {
+            const buttons = document.querySelectorAll('.animation-btn');
+            buttons.forEach(button => {
+                const buttonText = button.textContent.toLowerCase();
+                if (buttonText === activeAnim || activeAnim.includes(buttonText)) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+        
+        // Update character movement
+        function updateCharacterMovement() {
+            if (!characterRoot || isJumping) return;
+            
+            let movement = new BABYLON.Vector3(0, 0, 0);
+            isMoving = false;
+            
+            // Check movement keys
+            if (keys['w'] || keys['arrowup']) {
+                movement.z += 1;
+                isMoving = true;
+            }
+            if (keys['s'] || keys['arrowdown']) {
+                movement.z -= 1;
+                isMoving = true;
+            }
+            if (keys['a'] || keys['arrowleft']) {
+                movement.x -= 1;
+                isMoving = true;
+            }
+            if (keys['d'] || keys['arrowright']) {
+                movement.x += 1;
+                isMoving = true;
+            }
+            
+            // Normalize movement
+            if (movement.length() > 0) {
+                movement.normalize();
+                
+                // Update animation
+                if (!isJumping) {
+                    playAnimation(isRunning ? "run" : "walk");
+                }
+                
+                // Calculate speed
+                const speed = parseFloat(document.getElementById('moveSpeed').value);
+                const moveSpeed = isRunning ? speed * 2 : speed;
+                
+                // Apply movement
+                characterRoot.position.x += movement.x * moveSpeed;
+                characterRoot.position.z += movement.z * moveSpeed;
+                
+                // Rotate character
+                const targetRotation = Math.atan2(movement.x, movement.z);
+                characterRoot.rotation.y = BABYLON.Scalar.Lerp(
+                    characterRoot.rotation.y,
+                    targetRotation,
+                    0.2
+                );
+            } else if (!isJumping && isMoving) {
+                // Stopped moving
+                playAnimation("idle");
+                isMoving = false;
+            }
+            
+            // Keep in bounds
+            const bounds = 45;
+            characterRoot.position.x = Math.max(-bounds, Math.min(bounds, characterRoot.position.x));
+            characterRoot.position.z = Math.max(-bounds, Math.min(bounds, characterRoot.position.z));
+        }
+        
+        // Update UI
+        function updateUI() {
+            if (!characterRoot) return;
+            
+            // Update position
+            document.getElementById('positionX').textContent = characterRoot.position.x.toFixed(1);
+            document.getElementById('positionZ').textContent = characterRoot.position.z.toFixed(1);
+            
+            // Update FPS
+            const fps = engine.getFps().toFixed(0);
+            document.getElementById('fps').textContent = fps;
+            
+            // Update animation speed display
+            const speedValue = document.getElementById('animSpeed').value;
+            document.getElementById('speedValue').textContent = parseFloat(speedValue).toFixed(1);
+        }
+        
+        // Utility functions
+        function resetPosition() {
+            if (characterRoot) {
+                characterRoot.position = new BABYLON.Vector3(0, 0, 0);
+                characterRoot.rotation = new BABYLON.Vector3(0, 0, 0);
+                playAnimation("idle");
+            }
+        }
+        
+        function resetCamera() {
+            scene.activeCamera.alpha = -Math.PI / 2;
+            scene.activeCamera.beta = Math.PI / 3;
+            scene.activeCamera.radius = 10;
+        }
+        
+        let gridVisible = true;
+        function toggleGrid() {
+            const grid = scene.getMeshByName("grid");
+            if (grid) {
+                grid.setEnabled(!gridVisible);
+                gridVisible = !gridVisible;
+            }
+        }
+        
+        let shadowsEnabled = true;
+        function toggleShadows() {
+            // This is a simple toggle - in a real app, you'd manage shadows properly
+            shadowsEnabled = !shadowsEnabled;
+            scene.meshes.forEach(mesh => {
+                mesh.receiveShadows = shadowsEnabled;
+            });
+        }
+        
+        // Load pre-configured models
+        window.loadModel = loadModel;
+        
+        // Initialize everything when page loads
+        window.addEventListener('DOMContentLoaded', initScene);
     </script>
 </body>
 </html>
