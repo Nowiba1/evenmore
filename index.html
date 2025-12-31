@@ -1127,7 +1127,7 @@
     <!-- Notification System -->
     <div class="notification-area" id="notificationArea"></div>
 
-    <!-- Three.js and Game Logic -->
+    <!-- Three.js - Version updated to avoid CapsuleGeometry issue -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
@@ -1170,6 +1170,7 @@
             gameStarted: false,
             gameTime: 0,
             frameCount: 0,
+            gameLoopRunning: false,
             
             // Assets
             assetFiles: {},
@@ -1195,8 +1196,14 @@
         // ======================
         // THREE.JS VARIABLES
         // ======================
-        let scene, camera, renderer, controls;
-        let mapModel, player1Model, player2Model, enemyModel;
+        let scene = null;
+        let camera = null;
+        let renderer = null;
+        let controls = null;
+        let mapModel = null;
+        let player1Model = null;
+        let player2Model = null;
+        let enemyModel = null;
         let playerObjects = {};
         let enemyObjects = [];
         let extractionZone = null;
@@ -1221,14 +1228,14 @@
         document.addEventListener('DOMContentLoaded', initGame);
 
         function initGame() {
-            if (CONFIG.DEBUG) console.log('Initializing game...');
+            console.log('Initializing game...');
             
             initEventListeners();
             generatePlayerId();
             loadPlayerName();
             setupPerformanceMonitoring();
             
-            if (CONFIG.DEBUG) console.log('Game initialized');
+            console.log('Game initialized');
         }
 
         function initEventListeners() {
@@ -1324,7 +1331,7 @@
         // ======================
         function generatePlayerId() {
             gameState.playerId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            if (CONFIG.DEBUG) console.log('Player ID generated:', gameState.playerId);
+            console.log('Player ID generated:', gameState.playerId);
         }
 
         function loadPlayerName() {
@@ -1339,7 +1346,7 @@
         // SCREEN MANAGEMENT
         // ======================
         function showScreen(screenName) {
-            if (CONFIG.DEBUG) console.log('Showing screen:', screenName);
+            console.log('Showing screen:', screenName);
             
             // Hide all screens
             Object.values(screens).forEach(screen => {
@@ -1350,16 +1357,6 @@
             if (screens[screenName]) {
                 screens[screenName].classList.add('active');
                 gameState.currentScreen = screenName;
-            }
-            
-            // Screen-specific setup
-            switch(screenName) {
-                case 'mainMenu':
-                    updateBackgroundAnimation();
-                    break;
-                case 'gameScreen':
-                    startGameLoop();
-                    break;
             }
         }
 
@@ -1376,6 +1373,7 @@
             gameState.assetFiles = {};
             gameState.receivedAssets = {};
             gameState.gameStarted = false;
+            gameState.gameLoopRunning = false;
         }
 
         // ======================
@@ -1385,7 +1383,7 @@
             const files = Array.from(event.target.files);
             let allRequiredFound = true;
             
-            if (CONFIG.DEBUG) console.log('Files selected:', files.length);
+            console.log('Files selected:', files.length);
             
             files.forEach(file => {
                 const fileName = file.name.toLowerCase();
@@ -1460,7 +1458,7 @@
             gameState.roomCode = Math.floor(1000 + Math.random() * 9000).toString();
             gameState.isHost = true;
             
-            if (CONFIG.DEBUG) console.log('Creating room:', gameState.roomCode);
+            console.log('Creating room:', gameState.roomCode);
             
             // Create room data
             const roomData = {
@@ -1936,19 +1934,27 @@
         }
 
         function initThreeJS() {
+            console.log('Initializing Three.js...');
+            
             // Create scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x050510);
-            scene.fog = new THREE.Fog(0x050510, 10, 200);
             
             // Create camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 15, 30);
             camera.lookAt(0, 0, 0);
             
+            // Get canvas element
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) {
+                console.error('Canvas element not found!');
+                return;
+            }
+            
             // Create renderer
             renderer = new THREE.WebGLRenderer({ 
-                canvas: document.getElementById('gameCanvas'),
+                canvas: canvas,
                 antialias: true,
                 alpha: false,
                 powerPreference: "high-performance"
@@ -1957,9 +1963,6 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.outputEncoding = THREE.sRGBEncoding;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1;
             
             // Add lighting
             const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
@@ -1979,11 +1982,13 @@
             // Add hemisphere light for better ambient
             const hemisphereLight = new THREE.HemisphereLight(0x4361ee, 0x0c0c1d, 0.3);
             scene.add(hemisphereLight);
+            
+            console.log('Three.js initialized successfully');
         }
 
         function initGameWorld() {
             // Ground
-            const groundGeometry = new THREE.PlaneGeometry(200, 200, 50, 50);
+            const groundGeometry = new THREE.PlaneGeometry(200, 200);
             const groundMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0x1a1a2e,
                 roughness: 0.8,
@@ -1995,13 +2000,6 @@
             ground.position.y = -0.5;
             ground.receiveShadow = true;
             scene.add(ground);
-            
-            // Add grid helper for debugging
-            if (CONFIG.DEBUG) {
-                const gridHelper = new THREE.GridHelper(200, 50, 0x4361ee, 0x1a1a2e);
-                gridHelper.position.y = 0.1;
-                scene.add(gridHelper);
-            }
             
             // Create buildings
             createBuildings();
@@ -2113,7 +2111,8 @@
         }
 
         function initPlayers() {
-            const playerGeometry = new THREE.CapsuleGeometry(0.5, 2, 4, 8);
+            // Use CylinderGeometry instead of CapsuleGeometry (which doesn't exist in r128)
+            const playerGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 8);
             const playerColors = [0x4361ee, 0xf72585, 0x4ade80, 0xf59e0b];
             
             // Create current player
@@ -2341,11 +2340,20 @@
         // GAME LOOP
         // ======================
         function startGameLoop() {
-            if (gameState.gameLoopRunning) return;
+            if (gameState.gameLoopRunning) {
+                console.log('Game loop already running');
+                return;
+            }
+            
             gameState.gameLoopRunning = true;
+            console.log('Starting game loop...');
             
             function animate() {
-                if (!gameState.gameStarted) return;
+                if (!gameState.gameStarted || !renderer || !scene || !camera) {
+                    console.log('Game not ready for rendering');
+                    requestAnimationFrame(animate);
+                    return;
+                }
                 
                 requestAnimationFrame(animate);
                 
@@ -2354,24 +2362,23 @@
                 gameState.gameTime += deltaTime;
                 gameState.frameCount++;
                 
-                // Update performance metrics
-                updatePerformanceMetrics();
-                
                 // Update game systems
                 updateExtractionZone();
                 updateEnemies();
                 updatePlayers();
                 
                 // Render scene
-                renderer.render(scene, camera);
-                
-                // Update game state every 60 frames
-                if (gameState.frameCount % 60 === 0) {
-                    saveGameState();
+                try {
+                    renderer.render(scene, camera);
+                } catch (error) {
+                    console.error('Error rendering scene:', error);
+                    gameState.gameLoopRunning = false;
                 }
             }
             
+            // Start the animation loop
             animate();
+            console.log('Game loop started successfully');
         }
 
         function updateExtractionZone() {
@@ -2448,7 +2455,9 @@
                 if (remainingTime <= 0) {
                     clearInterval(timerInterval);
                     gameState.extractionAvailable = true;
-                    extractionZone.userData.active = true;
+                    if (extractionZone && extractionZone.userData) {
+                        extractionZone.userData.active = true;
+                    }
                     timerElement.textContent = 'EXTRACTION READY';
                     showNotification('Extraction Available!', 'Meet at the extraction zone!', 10000);
                     document.getElementById('mission4').classList.remove('hidden');
@@ -2607,39 +2616,6 @@
                 }
             }, 1000);
         }
-
-        function updatePerformanceMetrics() {
-            // Update FPS counter if debugging
-            if (CONFIG.DEBUG) {
-                const now = performance.now();
-                if (!gameState.lastFpsUpdate) gameState.lastFpsUpdate = now;
-                
-                const elapsed = now - gameState.lastFpsUpdate;
-                if (elapsed >= 1000) {
-                    gameState.fps = Math.round((gameState.frameCount * 1000) / elapsed);
-                    gameState.lastFpsUpdate = now;
-                    gameState.frameCount = 0;
-                }
-            }
-        }
-
-        function updateBackgroundAnimation() {
-            // Simple background animation for main menu
-            const colors = ['#0c0c1d', '#1a1a2e', '#2a2a4a'];
-            let currentIndex = 0;
-            
-            setInterval(() => {
-                if (gameState.currentScreen !== 'mainMenu') return;
-                
-                currentIndex = (currentIndex + 1) % colors.length;
-                document.body.style.background = `linear-gradient(135deg, ${colors[currentIndex]} 0%, ${colors[(currentIndex + 1) % colors.length]} 100%)`;
-            }, 5000);
-        }
-
-        // ======================
-        // INITIALIZE GAME
-        // ======================
-        // Game is already initialized by DOMContentLoaded event
     </script>
 </body>
 </html>
