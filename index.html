@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Character with Movement | Babylon.js</title>
+    <title>Advanced 3D Character with Camera Following | Babylon.js</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
     <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
     <style>
         * {
@@ -16,7 +17,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             color: #fff;
             overflow: hidden;
             height: 100vh;
@@ -25,24 +26,26 @@
         }
         
         header {
-            padding: 20px;
+            padding: 15px;
             text-align: center;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
         }
         
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin-bottom: 5px;
-            background: linear-gradient(to right, #4cc9f0, #4361ee);
+            background: linear-gradient(to right, #00dbde, #fc00ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .subtitle {
             color: #a5b4fc;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         
         .container {
@@ -59,27 +62,41 @@
         }
         
         .controls-panel {
-            width: 300px;
-            background: rgba(0, 0, 0, 0.7);
+            width: 320px;
+            background: rgba(0, 0, 0, 0.75);
             padding: 20px;
             border-left: 1px solid rgba(255, 255, 255, 0.1);
             overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
         }
         
         .controls-panel h2 {
-            color: #4cc9f0;
+            color: #00dbde;
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.5rem;
         }
         
         .control-group {
             margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .control-group h3 {
             color: #a5b4fc;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .control-group h3 i {
+            margin-right: 10px;
             font-size: 1.1rem;
         }
         
@@ -89,35 +106,38 @@
         
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #ccc;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #ddd;
+            font-size: 0.95rem;
         }
         
         select, button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 0.95rem;
         }
         
         select:hover, button:hover {
             background: rgba(255, 255, 255, 0.15);
-            border-color: #4cc9f0;
+            border-color: #00dbde;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 219, 222, 0.2);
         }
         
         button {
-            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
             font-weight: bold;
             margin-top: 5px;
         }
         
         button:hover {
-            background: linear-gradient(to right, #4cc9f0, #4361ee);
+            background: linear-gradient(to right, #764ba2 0%, #667eea 100%);
         }
         
         .slider-container {
@@ -128,12 +148,27 @@
         .slider-container input {
             flex: 1;
             margin-right: 10px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider-container input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00dbde;
+            cursor: pointer;
         }
         
         .slider-value {
             min-width: 40px;
             text-align: right;
-            color: #4cc9f0;
+            color: #00dbde;
+            font-weight: bold;
         }
         
         .instructions {
@@ -141,11 +176,11 @@
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
-            border-left: 4px solid #4361ee;
+            border-left: 4px solid #667eea;
         }
         
         .instructions h3 {
-            color: #4cc9f0;
+            color: #00dbde;
             margin-bottom: 10px;
         }
         
@@ -162,18 +197,20 @@
         .key {
             display: inline-block;
             background: rgba(255, 255, 255, 0.1);
-            padding: 2px 8px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 5px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             font-family: monospace;
-            margin: 0 2px;
+            margin: 0 3px;
+            font-size: 0.9rem;
         }
         
         .character-info {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             background: rgba(0, 0, 0, 0.5);
-            padding: 10px 15px;
+            padding: 15px;
             border-radius: 8px;
             margin-top: 10px;
             font-size: 0.9rem;
@@ -184,29 +221,113 @@
         }
         
         .character-info .value {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
-            color: #4cc9f0;
+            color: #00dbde;
+            text-shadow: 0 0 5px rgba(0, 219, 222, 0.5);
         }
         
-        @media (max-width: 900px) {
+        .character-info .label {
+            color: #a5b4fc;
+            margin-top: 3px;
+            font-size: 0.8rem;
+        }
+        
+        .camera-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .camera-btn {
+            width: 48%;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .animation-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .animation-btn {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: #4CAF50;
+        }
+        
+        .status-idle {
+            background-color: #4CAF50;
+        }
+        
+        .status-walking {
+            background-color: #2196F3;
+        }
+        
+        .status-running {
+            background-color: #FF9800;
+        }
+        
+        .status-jumping {
+            background-color: #F44336;
+        }
+        
+        .status-dancing {
+            background-color: #9C27B0;
+        }
+        
+        .camera-status {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            color: #a5b4fc;
+        }
+        
+        @media (max-width: 1000px) {
             .container {
                 flex-direction: column;
             }
             
             .controls-panel {
                 width: 100%;
-                height: 300px;
+                height: 350px;
                 border-left: none;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
+            
+            .character-info {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Animation keyframes for UI */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>3D Character with Movement</h1>
-        <p class="subtitle">Interactive 3D character using Babylon.js engine</p>
+        <h1>Advanced 3D Character with Camera Following</h1>
+        <p class="subtitle">Realistic character animations with automatic camera tracking</p>
     </header>
     
     <div class="container">
@@ -216,13 +337,15 @@
             <h2>Character Controls</h2>
             
             <div class="control-group">
-                <h3>Movement</h3>
+                <h3><span class="status-indicator status-idle" id="statusIndicator"></span>Movement & Actions</h3>
                 <div class="instructions">
                     <h3>Controls</h3>
                     <ul>
-                        <li>Move: <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> or <span class="key">↑</span> <span class="key">←</span> <span class="key">↓</span> <span class="key">→</span></li>
-                        <li>Jump: <span class="key">Space</span></li>
+                        <li>Move: <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></li>
                         <li>Run: Hold <span class="key">Shift</span></li>
+                        <li>Jump: <span class="key">Space</span></li>
+                        <li>Dance: <span class="key">E</span></li>
+                        <li>Attack: <span class="key">F</span></li>
                         <li>Look: Mouse drag or touch</li>
                     </ul>
                 </div>
@@ -230,40 +353,48 @@
                 <div class="character-info">
                     <div>
                         <div class="value" id="positionX">0.0</div>
-                        <div>Position X</div>
+                        <div class="label">Position X</div>
                     </div>
                     <div>
                         <div class="value" id="positionZ">0.0</div>
-                        <div>Position Z</div>
+                        <div class="label">Position Z</div>
                     </div>
                     <div>
                         <div class="value" id="speed">0.0</div>
-                        <div>Speed</div>
+                        <div class="label">Speed</div>
                     </div>
+                </div>
+                
+                <div class="animation-controls">
+                    <button class="animation-btn" id="danceBtn">Dance <span class="key">E</span></button>
+                    <button class="animation-btn" id="attackBtn">Attack <span class="key">F</span></button>
+                    <button class="animation-btn" id="waveBtn">Wave</button>
+                    <button class="animation-btn" id="tauntBtn">Taunt</button>
                 </div>
             </div>
             
             <div class="control-group">
-                <h3>Character Customization</h3>
+                <h3><i>👤</i> Character Customization</h3>
                 
                 <div class="control-item">
                     <label for="characterType">Character Type</label>
                     <select id="characterType">
-                        <option value="robot">Robot</option>
-                        <option value="knight">Knight</option>
+                        <option value="warrior">Warrior</option>
+                        <option value="archer">Archer</option>
                         <option value="mage">Mage</option>
+                        <option value="rogue">Rogue</option>
                     </select>
                 </div>
                 
                 <div class="control-item">
-                    <label for="colorPicker">Character Color</label>
-                    <input type="color" id="colorPicker" value="#4cc9f0">
+                    <label for="colorPicker">Armor Color</label>
+                    <input type="color" id="colorPicker" value="#3498db">
                 </div>
                 
                 <div class="control-item">
                     <label>Animation Speed <span class="slider-value" id="animSpeedValue">1.0</span></label>
                     <div class="slider-container">
-                        <input type="range" id="animSpeed" min="0.1" max="2.0" step="0.1" value="1.0">
+                        <input type="range" id="animSpeed" min="0.5" max="2.0" step="0.1" value="1.0">
                     </div>
                 </div>
                 
@@ -271,31 +402,57 @@
             </div>
             
             <div class="control-group">
-                <h3>Environment</h3>
+                <h3><i>🎥</i> Camera System</h3>
+                
+                <div class="control-item">
+                    <label for="cameraMode">Camera Mode</label>
+                    <select id="cameraMode">
+                        <option value="follow">Follow (Automatic)</option>
+                        <option value="orbit">Orbit (Manual)</option>
+                        <option value="firstPerson">First Person</option>
+                        <option value="topDown">Top Down</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label>Follow Distance <span class="slider-value" id="followDistValue">10</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="followDist" min="5" max="20" step="1" value="10">
+                    </div>
+                </div>
+                
+                <div class="control-item">
+                    <label>Camera Height <span class="slider-value" id="cameraHeightValue">5</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="cameraHeight" min="2" max="10" step="0.5" value="5">
+                    </div>
+                </div>
+                
+                <div class="camera-controls">
+                    <button class="camera-btn" id="toggleCameraLock">Camera Lock: ON</button>
+                    <button class="camera-btn" id="resetCamera">Reset Camera</button>
+                </div>
+                
+                <div class="camera-status" id="cameraStatus">
+                    Camera: Following Character
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3><i>🌍</i> Environment</h3>
                 
                 <div class="control-item">
                     <label for="lighting">Lighting</label>
                     <select id="lighting">
                         <option value="day">Day</option>
-                        <option value="night">Night</option>
                         <option value="sunset">Sunset</option>
-                        <option value="dungeon">Dungeon</option>
+                        <option value="night">Night</option>
+                        <option value="fantasy">Fantasy</option>
                     </select>
                 </div>
                 
-                <div class="control-item">
-                    <label>Environment Scale <span class="slider-value" id="envScaleValue">1.0</span></label>
-                    <div class="slider-container">
-                        <input type="range" id="envScale" min="0.5" max="2.0" step="0.1" value="1.0">
-                    </div>
-                </div>
-                
                 <button id="toggleShadows">Toggle Shadows: ON</button>
-            </div>
-            
-            <div class="instructions">
-                <h3>About</h3>
-                <p>This 3D character demo is built with Babylon.js. The character has full movement controls and customization options.</p>
+                <button id="toggleFog">Toggle Fog: OFF</button>
             </div>
         </div>
     </div>
@@ -309,354 +466,755 @@
             // Create the Babylon.js engine
             const engine = new BABYLON.Engine(canvas, true, {
                 preserveDrawingBuffer: true,
-                stencil: true
+                stencil: true,
+                antialias: true
             });
             
             // Create the scene
             const scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.15, 1.0);
+            scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.1, 1.0);
             
-            // Create the camera
-            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
-            camera.attachControl(canvas, true);
-            camera.lowerRadiusLimit = 5;
-            camera.upperRadiusLimit = 30;
-            camera.wheelDeltaPercentage = 0.01;
-            camera.panningSensibility = 1000;
+            // Enable scene fog for atmosphere
+            scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+            scene.fogDensity = 0.01;
+            scene.fogColor = new BABYLON.Color3(0.1, 0.1, 0.15);
             
-            // Create lights
-            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-            light.intensity = 0.8;
+            // Create advanced lighting
+            const hemisphericLight = new BABYLON.HemisphericLight("hemisphericLight", 
+                new BABYLON.Vector3(0, 1, 0), scene);
+            hemisphericLight.intensity = 0.5;
+            hemisphericLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.3);
+            hemisphericLight.diffuse = new BABYLON.Color3(0.8, 0.8, 0.9);
             
-            const directionalLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
-            directionalLight.intensity = 0.5;
-            directionalLight.position = new BABYLON.Vector3(10, 20, 10);
+            // Main directional light for shadows
+            const directionalLight = new BABYLON.DirectionalLight("dirLight", 
+                new BABYLON.Vector3(-0.5, -1, -0.5), scene);
+            directionalLight.intensity = 0.8;
+            directionalLight.position = new BABYLON.Vector3(20, 30, 20);
+            
+            // Add a second fill light
+            const fillLight = new BABYLON.DirectionalLight("fillLight", 
+                new BABYLON.Vector3(0.5, -0.5, 0.5), scene);
+            fillLight.intensity = 0.3;
+            fillLight.position = new BABYLON.Vector3(-20, 20, -20);
             
             // Enable shadows
-            const shadowGenerator = new BABYLON.ShadowGenerator(1024, directionalLight);
+            const shadowGenerator = new BABYLON.ShadowGenerator(2048, directionalLight);
             shadowGenerator.useBlurExponentialShadowMap = true;
             shadowGenerator.blurScale = 2;
+            shadowGenerator.blurBoxOffset = 1;
+            
+            // Camera system
+            let camera;
+            let cameraMode = "follow"; // follow, orbit, firstPerson, topDown
+            let cameraLocked = true;
+            let followDistance = 10;
+            let cameraHeight = 5;
+            
+            // Initialize camera
+            function initCamera() {
+                // Remove old camera if exists
+                if (camera) {
+                    scene.removeCamera(camera);
+                    camera.dispose();
+                }
+                
+                if (cameraMode === "follow" || cameraMode === "orbit") {
+                    // Third-person follow camera
+                    camera = new BABYLON.ArcRotateCamera("camera", 
+                        -Math.PI / 2, Math.PI / 4, followDistance, 
+                        BABYLON.Vector3.Zero(), scene);
+                    
+                    camera.lowerRadiusLimit = 3;
+                    camera.upperRadiusLimit = 30;
+                    camera.wheelDeltaPercentage = 0.01;
+                    camera.panningSensibility = 50;
+                    camera.allowUpsideDown = false;
+                    
+                    // Lock camera controls if in follow mode
+                    if (cameraMode === "follow" && cameraLocked) {
+                        camera.inputs.attached.pointers.detachControl();
+                    } else {
+                        camera.attachControl(canvas, true);
+                    }
+                    
+                } else if (cameraMode === "firstPerson") {
+                    // First-person camera
+                    camera = new BABYLON.UniversalCamera("firstPersonCamera", 
+                        new BABYLON.Vector3(0, 2, 0), scene);
+                    camera.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+                    camera.attachControl(canvas, true);
+                    camera.speed = 0.2;
+                    camera.angularSensibility = 2000;
+                    camera.applyGravity = false;
+                    camera.checkCollisions = true;
+                    camera.ellipsoid = new BABYLON.Vector3(1, 1, 1);
+                    
+                } else if (cameraMode === "topDown") {
+                    // Top-down camera
+                    camera = new BABYLON.UniversalCamera("topDownCamera", 
+                        new BABYLON.Vector3(0, 20, 0), scene);
+                    camera.setTarget(new BABYLON.Vector3(0, 0, 0));
+                    camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+                    camera.orthoTop = 20;
+                    camera.orthoBottom = -20;
+                    camera.orthoLeft = -20;
+                    camera.orthoRight = 20;
+                    camera.attachControl(canvas, false);
+                }
+                
+                updateCameraStatus();
+            }
+            
+            // Initialize with follow camera
+            initCamera();
             
             // Character variables
             let character;
-            let characterMesh;
+            let characterRoot;
+            let characterBody;
             let isMoving = false;
             let movementDirection = new BABYLON.Vector3(0, 0, 0);
-            let characterSpeed = 0.1;
+            let characterSpeed = 0.08;
             let isRunning = false;
             let isJumping = false;
+            let isDancing = false;
+            let isAttacking = false;
+            let isWaving = false;
+            let isTaunting = false;
+            
             let jumpStartTime = 0;
-            const jumpDuration = 1000; // ms
-            const jumpHeight = 2;
+            const jumpDuration = 800; // ms
+            const jumpHeight = 1.5;
+            
+            // Animation variables
+            let walkAnimationRate = 1.0;
+            let currentAnimation = "idle";
             
             // Character customization
-            let characterColor = new BABYLON.Color3.FromHexString("#4cc9f0");
-            let currentCharacterType = "robot";
+            let characterColor = new BABYLON.Color3.FromHexString("#3498db");
+            let currentCharacterType = "warrior";
             
-            // Create ground
-            const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
-            ground.receiveShadows = true;
-            
-            // Ground material
-            const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-            groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.35);
-            groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-            ground.material = groundMaterial;
-            
-            // Create environment
-            function createEnvironment() {
-                // Create some buildings or obstacles
-                const buildingPositions = [
-                    {x: -15, z: -15, width: 4, height: 8, depth: 4},
-                    {x: 10, z: -10, width: 6, height: 10, depth: 6},
-                    {x: -8, z: 12, width: 5, height: 6, depth: 5},
-                    {x: 12, z: 8, width: 3, height: 5, depth: 3}
-                ];
+            // Create detailed terrain
+            function createTerrain() {
+                // Create ground with texture
+                const ground = BABYLON.MeshBuilder.CreateGround("ground", 
+                    {width: 100, height: 100, subdivisions: 100}, scene);
+                ground.receiveShadows = true;
                 
-                buildingPositions.forEach((pos, index) => {
-                    const building = BABYLON.MeshBuilder.CreateBox(`building${index}`, 
-                        {width: pos.width, height: pos.height, depth: pos.depth}, scene);
-                    building.position = new BABYLON.Vector3(pos.x, pos.height/2, pos.z);
+                // Create ground material with texture
+                const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+                groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.4, 0.2);
+                groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+                
+                // Add some grass-like texture effect
+                groundMaterial.ambientColor = new BABYLON.Color3(0.4, 0.5, 0.3);
+                ground.material = groundMaterial;
+                
+                // Add some hills using a height map simulation
+                const vertices = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+                for (let i = 0; i < vertices.length; i += 3) {
+                    const x = vertices[i];
+                    const z = vertices[i + 2];
                     
-                    const buildingMaterial = new BABYLON.StandardMaterial(`buildingMat${index}`, scene);
-                    buildingMaterial.diffuseColor = new BABYLON.Color3(
-                        0.4 + Math.random() * 0.3, 
-                        0.4 + Math.random() * 0.3, 
-                        0.4 + Math.random() * 0.3
-                    );
-                    building.material = buildingMaterial;
-                    building.receiveShadows = true;
-                    shadowGenerator.addShadowCaster(building);
-                });
-                
-                // Create trees
-                for (let i = 0; i < 20; i++) {
-                    const tree = createTree(
-                        Math.random() * 40 - 20, 
-                        0, 
-                        Math.random() * 40 - 20
-                    );
-                    shadowGenerator.addShadowCaster(tree);
+                    // Create gentle hills
+                    const height = 2 * Math.sin(x * 0.1) * Math.cos(z * 0.1) + 
+                                  1.5 * Math.sin(x * 0.05) * Math.cos(z * 0.05);
+                    
+                    vertices[i + 1] = height;
                 }
+                ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, vertices);
+                
+                // Create a physics impostor for ground
+                ground.physicsImpostor = new BABYLON.PhysicsImpostor(
+                    ground, 
+                    BABYLON.PhysicsImpostor.HeightmapImpostor, 
+                    { mass: 0, friction: 0.5, restitution: 0.3 }, 
+                    scene
+                );
+                
+                return ground;
             }
             
-            // Function to create a simple tree
-            function createTree(x, y, z) {
+            // Create detailed environment
+            function createEnvironment() {
+                // Create terrain
+                createTerrain();
+                
+                // Create trees with better details
+                for (let i = 0; i < 30; i++) {
+                    createDetailedTree(
+                        Math.random() * 80 - 40, 
+                        0, 
+                        Math.random() * 80 - 40,
+                        Math.random() * 0.5 + 0.8
+                    );
+                }
+                
+                // Create rocks
+                for (let i = 0; i < 20; i++) {
+                    createRock(
+                        Math.random() * 70 - 35, 
+                        0, 
+                        Math.random() * 70 - 35
+                    );
+                }
+                
+                // Create a small village
+                createVillage();
+                
+                // Create a river or path
+                createPath();
+            }
+            
+            // Create detailed tree
+            function createDetailedTree(x, y, z, scale = 1) {
                 const tree = new BABYLON.Mesh("tree", scene);
                 
-                // Trunk
+                // Trunk with bark texture
                 const trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", 
-                    {height: 2, diameter: 0.5}, scene);
-                trunk.position.y = 1;
+                    {height: 3 * scale, diameter: 0.8 * scale, tessellation: 8}, scene);
+                trunk.position.y = 1.5 * scale;
                 
-                // Leaves
-                const leaves = BABYLON.MeshBuilder.CreateSphere("leaves", 
-                    {diameter: 3}, scene);
-                leaves.position.y = 3.5;
-                
-                // Materials
+                // Bark material
                 const trunkMaterial = new BABYLON.StandardMaterial("trunkMat", scene);
                 trunkMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
+                trunkMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
                 trunk.material = trunkMaterial;
                 
-                const leavesMaterial = new BABYLON.StandardMaterial("leavesMat", scene);
-                leavesMaterial.diffuseColor = new BABYLON.Color3(
-                    0.1 + Math.random() * 0.2, 
-                    0.4 + Math.random() * 0.3, 
-                    0.1 + Math.random() * 0.2
-                );
-                leaves.material = leavesMaterial;
+                // Create leaves in layers
+                const leaves1 = BABYLON.MeshBuilder.CreateSphere("leaves1", 
+                    {diameter: 4 * scale, segments: 8}, scene);
+                leaves1.position.y = 3.5 * scale;
                 
-                // Parent children to tree
+                const leaves2 = BABYLON.MeshBuilder.CreateSphere("leaves2", 
+                    {diameter: 3 * scale, segments: 8}, scene);
+                leaves2.position.y = 4.5 * scale;
+                
+                const leaves3 = BABYLON.MeshBuilder.CreateSphere("leaves3", 
+                    {diameter: 2 * scale, segments: 8}, scene);
+                leaves3.position.y = 5.2 * scale;
+                
+                // Leaves material
+                const leavesMaterial = new BABYLON.StandardMaterial("leavesMat", scene);
+                const green = 0.3 + Math.random() * 0.3;
+                leavesMaterial.diffuseColor = new BABYLON.Color3(0.1, green, 0.1);
+                leavesMaterial.specularColor = new BABYLON.Color3(0.05, 0.1, 0.05);
+                
+                [leaves1, leaves2, leaves3].forEach(leaves => {
+                    leaves.material = leavesMaterial;
+                });
+                
+                // Parent all parts to tree
                 trunk.parent = tree;
-                leaves.parent = tree;
+                leaves1.parent = tree;
+                leaves2.parent = tree;
+                leaves3.parent = tree;
                 
                 tree.position = new BABYLON.Vector3(x, y, z);
+                
+                // Add to shadow generator
+                shadowGenerator.addShadowCaster(tree);
                 
                 return tree;
             }
             
-            // Create character
-            function createCharacter(type = "robot") {
+            // Create rock
+            function createRock(x, y, z) {
+                const rock = BABYLON.MeshBuilder.CreateSphere("rock", 
+                    {diameter: 1 + Math.random() * 2, segments: 6}, scene);
+                rock.scaling.y = 0.5 + Math.random() * 0.5;
+                rock.scaling.x = 0.7 + Math.random() * 0.6;
+                rock.scaling.z = 0.7 + Math.random() * 0.6;
+                
+                const rockMaterial = new BABYLON.StandardMaterial("rockMat", scene);
+                rockMaterial.diffuseColor = new BABYLON.Color3(
+                    0.3 + Math.random() * 0.2, 
+                    0.3 + Math.random() * 0.2, 
+                    0.3 + Math.random() * 0.2
+                );
+                rock.material = rockMaterial;
+                
+                rock.position = new BABYLON.Vector3(x, y, z);
+                rock.rotation.y = Math.random() * Math.PI * 2;
+                
+                // Add physics
+                rock.physicsImpostor = new BABYLON.PhysicsImpostor(
+                    rock, 
+                    BABYLON.PhysicsImpostor.SphereImpostor, 
+                    { mass: 0, friction: 0.8, restitution: 0.1 }, 
+                    scene
+                );
+                
+                shadowGenerator.addShadowCaster(rock);
+                
+                return rock;
+            }
+            
+            // Create village buildings
+            function createVillage() {
+                // Create several houses
+                const housePositions = [
+                    {x: -15, z: -10, scale: 1.2},
+                    {x: 10, z: -15, scale: 1.0},
+                    {x: -8, z: 15, scale: 1.5},
+                    {x: 20, z: 5, scale: 0.9},
+                    {x: -25, z: 5, scale: 1.1}
+                ];
+                
+                housePositions.forEach((pos, index) => {
+                    createHouse(pos.x, pos.z, pos.scale);
+                });
+            }
+            
+            // Create a house
+            function createHouse(x, z, scale = 1) {
+                const house = new BABYLON.Mesh("house", scene);
+                
+                // Base
+                const base = BABYLON.MeshBuilder.CreateBox("houseBase", 
+                    {width: 5 * scale, height: 3 * scale, depth: 5 * scale}, scene);
+                base.position.y = 1.5 * scale;
+                
+                // Roof
+                const roof = BABYLON.MeshBuilder.CreateCylinder("roof", 
+                    {height: 3 * scale, diameter: 6 * scale, tessellation: 4}, scene);
+                roof.position.y = 4.5 * scale;
+                roof.rotation.y = Math.PI / 4;
+                
+                // Door
+                const door = BABYLON.MeshBuilder.CreateBox("door", 
+                    {width: 1.2 * scale, height: 2 * scale, depth: 0.2 * scale}, scene);
+                door.position = new BABYLON.Vector3(0, 1 * scale, 2.6 * scale);
+                
+                // Materials
+                const baseMaterial = new BABYLON.StandardMaterial("houseBaseMat", scene);
+                baseMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.6, 0.5);
+                
+                const roofMaterial = new BABYLON.StandardMaterial("roofMat", scene);
+                roofMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.2);
+                
+                const doorMaterial = new BABYLON.StandardMaterial("doorMat", scene);
+                doorMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
+                
+                base.material = baseMaterial;
+                roof.material = roofMaterial;
+                door.material = doorMaterial;
+                
+                // Parent to house
+                base.parent = house;
+                roof.parent = house;
+                door.parent = house;
+                
+                house.position = new BABYLON.Vector3(x, 0, z);
+                
+                // Add shadows
+                shadowGenerator.addShadowCaster(house);
+                
+                return house;
+            }
+            
+            // Create a path
+            function createPath() {
+                const path = BABYLON.MeshBuilder.CreateGround("path", 
+                    {width: 60, height: 8, subdivisions: 2}, scene);
+                path.position.z = -20;
+                path.rotation.y = Math.PI / 2;
+                
+                const pathMaterial = new BABYLON.StandardMaterial("pathMat", scene);
+                pathMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.45, 0.4);
+                path.material = pathMaterial;
+                
+                return path;
+            }
+            
+            // Create advanced character with detailed animations
+            function createCharacter(type = "warrior") {
                 // Remove existing character if any
                 if (character) {
                     character.dispose();
                 }
                 
+                // Create root node for character
+                characterRoot = new BABYLON.TransformNode("characterRoot", scene);
+                characterRoot.position = new BABYLON.Vector3(0, 2, 0);
+                
+                // Create character container
                 character = new BABYLON.Mesh("character", scene);
+                character.parent = characterRoot;
                 
                 // Different character types
-                if (type === "robot") {
-                    createRobotCharacter();
-                } else if (type === "knight") {
-                    createKnightCharacter();
+                if (type === "warrior") {
+                    createWarriorCharacter();
+                } else if (type === "archer") {
+                    createArcherCharacter();
                 } else if (type === "mage") {
                     createMageCharacter();
+                } else if (type === "rogue") {
+                    createRogueCharacter();
                 }
                 
                 // Set character properties
-                character.position = new BABYLON.Vector3(0, 1, 0);
-                character.rotation = new BABYLON.Vector3(0, 0, 0);
+                characterRoot.position = new BABYLON.Vector3(0, 2, 0);
                 
                 // Add character to shadow generator
                 shadowGenerator.addShadowCaster(character);
                 
                 // Set as the character mesh for movement
-                characterMesh = character;
+                characterBody = character;
                 currentCharacterType = type;
+                
+                // Initialize animations
+                setupCharacterAnimations();
                 
                 return character;
             }
             
-            // Create robot character
-            function createRobotCharacter() {
-                // Body
-                const body = BABYLON.MeshBuilder.CreateBox("body", 
-                    {width: 1.5, height: 2.5, depth: 1}, scene);
-                body.position.y = 1.5;
+            // Create warrior character
+            function createWarriorCharacter() {
+                // Body (torso)
+                const torso = BABYLON.MeshBuilder.CreateCylinder("torso", 
+                    {height: 2, diameterTop: 1.2, diameterBottom: 1.5, tessellation: 8}, scene);
+                torso.position.y = 1.5;
                 
-                // Head
+                // Armor plates
+                const chestPlate = BABYLON.MeshBuilder.CreateBox("chestPlate", 
+                    {width: 1.8, height: 0.8, depth: 0.3}, scene);
+                chestPlate.position = new BABYLON.Vector3(0, 2, 0.6);
+                
+                const shoulderLeft = BABYLON.MeshBuilder.CreateSphere("shoulderLeft", 
+                    {diameter: 0.8, segments: 8}, scene);
+                shoulderLeft.position = new BABYLON.Vector3(-0.9, 2.2, 0);
+                
+                const shoulderRight = BABYLON.MeshBuilder.CreateSphere("shoulderRight", 
+                    {diameter: 0.8, segments: 8}, scene);
+                shoulderRight.position = new BABYLON.Vector3(0.9, 2.2, 0);
+                
+                // Head with helmet
                 const head = BABYLON.MeshBuilder.CreateSphere("head", 
-                    {diameter: 1.5}, scene);
-                head.position.y = 3.5;
-                
-                // Arms
-                const leftArm = BABYLON.MeshBuilder.CreateBox("leftArm", 
-                    {width: 0.5, height: 2, depth: 0.5}, scene);
-                leftArm.position = new BABYLON.Vector3(-1.2, 1.5, 0);
-                
-                const rightArm = BABYLON.MeshBuilder.CreateBox("rightArm", 
-                    {width: 0.5, height: 2, depth: 0.5}, scene);
-                rightArm.position = new BABYLON.Vector3(1.2, 1.5, 0);
-                
-                // Legs
-                const leftLeg = BABYLON.MeshBuilder.CreateBox("leftLeg", 
-                    {width: 0.5, height: 2, depth: 0.5}, scene);
-                leftLeg.position = new BABYLON.Vector3(-0.4, 0, 0);
-                
-                const rightLeg = BABYLON.MeshBuilder.CreateBox("rightLeg", 
-                    {width: 0.5, height: 2, depth: 0.5}, scene);
-                rightLeg.position = new BABYLON.Vector3(0.4, 0, 0);
-                
-                // Parent all parts to character
-                body.parent = character;
-                head.parent = character;
-                leftArm.parent = character;
-                rightArm.parent = character;
-                leftLeg.parent = character;
-                rightLeg.parent = character;
-                
-                // Apply material
-                const characterMaterial = new BABYLON.StandardMaterial("characterMaterial", scene);
-                characterMaterial.diffuseColor = characterColor;
-                characterMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-                
-                [body, head, leftArm, rightArm, leftLeg, rightLeg].forEach(part => {
-                    part.material = characterMaterial;
-                });
-                
-                // Add some details
-                const eyeMaterial = new BABYLON.StandardMaterial("eyeMaterial", scene);
-                eyeMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-                eyeMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-                
-                const leftEye = BABYLON.MeshBuilder.CreateSphere("leftEye", 
-                    {diameter: 0.2}, scene);
-                leftEye.position = new BABYLON.Vector3(-0.3, 3.6, 0.7);
-                leftEye.material = eyeMaterial;
-                leftEye.parent = character;
-                
-                const rightEye = BABYLON.MeshBuilder.CreateSphere("rightEye", 
-                    {diameter: 0.2}, scene);
-                rightEye.position = new BABYLON.Vector3(0.3, 3.6, 0.7);
-                rightEye.material = eyeMaterial;
-                rightEye.parent = character;
-            }
-            
-            // Create knight character
-            function createKnightCharacter() {
-                // Body
-                const body = BABYLON.MeshBuilder.CreateCylinder("knightBody", 
-                    {height: 2, diameter: 1.2}, scene);
-                body.position.y = 1.5;
-                
-                // Head
-                const head = BABYLON.MeshBuilder.CreateSphere("knightHead", 
-                    {diameter: 1}, scene);
-                head.position.y = 3;
-                
-                // Helmet
-                const helmet = BABYLON.MeshBuilder.CreateCylinder("helmet", 
-                    {height: 1.2, diameter: 1.1}, scene);
-                helmet.position.y = 3.2;
-                
-                // Arms
-                const leftArm = BABYLON.MeshBuilder.CreateBox("knightLeftArm", 
-                    {width: 0.4, height: 1.8, depth: 0.4}, scene);
-                leftArm.position = new BABYLON.Vector3(-0.9, 1.5, 0);
-                
-                const rightArm = BABYLON.MeshBuilder.CreateBox("knightRightArm", 
-                    {width: 0.4, height: 1.8, depth: 0.4}, scene);
-                rightArm.position = new BABYLON.Vector3(0.9, 1.5, 0);
-                
-                // Legs
-                const leftLeg = BABYLON.MeshBuilder.CreateBox("knightLeftLeg", 
-                    {width: 0.5, height: 2, depth: 0.5}, scene);
-                leftLeg.position = new BABYLON.Vector3(-0.3, 0, 0);
-                
-                const rightLeg = BABYLON.MeshBuilder.CreateBox("knightRightLeg", 
-                    {width: 0.5, height: 2, depth: 0.5}, scene);
-                rightLeg.position = new BABYLON.Vector3(0.3, 0, 0);
-                
-                // Parent all parts to character
-                body.parent = character;
-                head.parent = character;
-                helmet.parent = character;
-                leftArm.parent = character;
-                rightArm.parent = character;
-                leftLeg.parent = character;
-                rightLeg.parent = character;
-                
-                // Apply material
-                const characterMaterial = new BABYLON.StandardMaterial("knightMaterial", scene);
-                characterMaterial.diffuseColor = characterColor;
-                characterMaterial.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-                
-                [body, helmet, leftArm, rightArm, leftLeg, rightLeg].forEach(part => {
-                    part.material = characterMaterial;
-                });
-                
-                // Head material (different color)
-                const headMaterial = new BABYLON.StandardMaterial("knightHeadMaterial", scene);
-                headMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-                head.material = headMaterial;
-            }
-            
-            // Create mage character
-            function createMageCharacter() {
-                // Body (robe)
-                const body = BABYLON.MeshBuilder.CreateCylinder("mageBody", 
-                    {height: 2.5, diameterTop: 0.8, diameterBottom: 1.5}, scene);
-                body.position.y = 1.5;
-                
-                // Head
-                const head = BABYLON.MeshBuilder.CreateSphere("mageHead", 
-                    {diameter: 1}, scene);
+                    {diameter: 1.0, segments: 12}, scene);
                 head.position.y = 3.2;
                 
-                // Hat
-                const hat = BABYLON.MeshBuilder.CreateCylinder("hat", 
-                    {height: 1.5, diameterTop: 0.1, diameterBottom: 1.2}, scene);
-                hat.position.y = 4.2;
+                const helmet = BABYLON.MeshBuilder.CreateCylinder("helmet", 
+                    {height: 1.2, diameterTop: 0.8, diameterBottom: 1.2, tessellation: 8}, scene);
+                helmet.position.y = 3.4;
                 
-                // Arms
-                const leftArm = BABYLON.MeshBuilder.CreateBox("mageLeftArm", 
-                    {width: 0.3, height: 1.5, depth: 0.3}, scene);
-                leftArm.position = new BABYLON.Vector3(-0.7, 1.8, 0);
+                // Arms with armor segments
+                const upperArmLeft = BABYLON.MeshBuilder.CreateCylinder("upperArmLeft", 
+                    {height: 1.2, diameter: 0.4, tessellation: 6}, scene);
+                upperArmLeft.position = new BABYLON.Vector3(-0.7, 2, 0);
+                upperArmLeft.rotation.z = Math.PI / 6;
                 
-                const rightArm = BABYLON.MeshBuilder.CreateBox("mageRightArm", 
-                    {width: 0.3, height: 1.5, depth: 0.3}, scene);
-                rightArm.position = new BABYLON.Vector3(0.7, 1.8, 0);
+                const lowerArmLeft = BABYLON.MeshBuilder.CreateCylinder("lowerArmLeft", 
+                    {height: 1.0, diameter: 0.35, tessellation: 6}, scene);
+                lowerArmLeft.position = new BABYLON.Vector3(-1.4, 1.4, 0);
+                lowerArmLeft.parent = upperArmLeft;
                 
-                // Staff
-                const staff = BABYLON.MeshBuilder.CreateCylinder("staff", 
-                    {height: 4, diameter: 0.1}, scene);
-                staff.position = new BABYLON.Vector3(1, 1, 0);
-                staff.rotation.z = Math.PI / 6;
+                const upperArmRight = BABYLON.MeshBuilder.CreateCylinder("upperArmRight", 
+                    {height: 1.2, diameter: 0.4, tessellation: 6}, scene);
+                upperArmRight.position = new BABYLON.Vector3(0.7, 2, 0);
+                upperArmRight.rotation.z = -Math.PI / 6;
                 
-                // Staff orb
-                const orb = BABYLON.MeshBuilder.CreateSphere("orb", 
-                    {diameter: 0.3}, scene);
-                orb.position = new BABYLON.Vector3(1.7, 3, 0);
+                const lowerArmRight = BABYLON.MeshBuilder.CreateCylinder("lowerArmRight", 
+                    {height: 1.0, diameter: 0.35, tessellation: 6}, scene);
+                lowerArmRight.position = new BABYLON.Vector3(1.4, 1.4, 0);
+                lowerArmRight.parent = upperArmRight;
+                
+                // Legs with armor
+                const upperLegLeft = BABYLON.MeshBuilder.CreateCylinder("upperLegLeft", 
+                    {height: 1.5, diameter: 0.5, tessellation: 6}, scene);
+                upperLegLeft.position = new BABYLON.Vector3(-0.3, 0.5, 0);
+                
+                const lowerLegLeft = BABYLON.MeshBuilder.CreateCylinder("lowerLegLeft", 
+                    {height: 1.5, diameter: 0.4, tessellation: 6}, scene);
+                lowerLegLeft.position = new BABYLON.Vector3(0, -0.8, 0);
+                lowerLegLeft.parent = upperLegLeft;
+                
+                const upperLegRight = BABYLON.MeshBuilder.CreateCylinder("upperLegRight", 
+                    {height: 1.5, diameter: 0.5, tessellation: 6}, scene);
+                upperLegRight.position = new BABYLON.Vector3(0.3, 0.5, 0);
+                
+                const lowerLegRight = BABYLON.MeshBuilder.CreateCylinder("lowerLegRight", 
+                    {height: 1.5, diameter: 0.4, tessellation: 6}, scene);
+                lowerLegRight.position = new BABYLON.Vector3(0, -0.8, 0);
+                lowerLegRight.parent = upperLegRight;
+                
+                // Sword
+                const swordHandle = BABYLON.MeshBuilder.CreateCylinder("swordHandle", 
+                    {height: 0.8, diameter: 0.15, tessellation: 6}, scene);
+                swordHandle.position = new BABYLON.Vector3(1.8, 1.8, 0);
+                swordHandle.rotation.z = -Math.PI / 4;
+                
+                const swordBlade = BABYLON.MeshBuilder.CreateBox("swordBlade", 
+                    {width: 0.2, height: 1.5, depth: 0.05}, scene);
+                swordBlade.position = new BABYLON.Vector3(1.8, 2.6, 0);
+                swordBlade.parent = swordHandle;
+                
+                // Shield
+                const shield = BABYLON.MeshBuilder.CreateCylinder("shield", 
+                    {height: 0.1, diameter: 1.2, tessellation: 16}, scene);
+                shield.position = new BABYLON.Vector3(-1.8, 2, 0);
+                shield.rotation.x = Math.PI / 2;
                 
                 // Parent all parts to character
-                body.parent = character;
-                head.parent = character;
-                hat.parent = character;
-                leftArm.parent = character;
-                rightArm.parent = character;
-                staff.parent = character;
-                orb.parent = character;
+                const parts = [
+                    torso, chestPlate, shoulderLeft, shoulderRight, 
+                    head, helmet, upperArmLeft, upperArmRight,
+                    upperLegLeft, upperLegRight, swordHandle, shield
+                ];
                 
-                // Apply material
-                const characterMaterial = new BABYLON.StandardMaterial("mageMaterial", scene);
-                characterMaterial.diffuseColor = characterColor;
-                characterMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-                
-                [body, hat, leftArm, rightArm, staff].forEach(part => {
-                    part.material = characterMaterial;
+                parts.forEach(part => {
+                    part.parent = character;
                 });
                 
-                // Head material
-                const headMaterial = new BABYLON.StandardMaterial("mageHeadMaterial", scene);
-                headMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-                head.material = headMaterial;
+                // Apply materials
+                const armorMaterial = new BABYLON.StandardMaterial("armorMaterial", scene);
+                armorMaterial.diffuseColor = characterColor;
+                armorMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+                armorMaterial.specularPower = 64;
                 
-                // Orb material (glowing)
-                const orbMaterial = new BABYLON.StandardMaterial("orbMaterial", scene);
-                orbMaterial.diffuseColor = new BABYLON.Color3(1, 0.8, 0.2);
-                orbMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.1);
-                orb.material = orbMaterial;
+                const metalMaterial = new BABYLON.StandardMaterial("metalMaterial", scene);
+                metalMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.9);
+                metalMaterial.specularColor = new BABYLON.Color3(0.9, 0.9, 1.0);
+                metalMaterial.specularPower = 128;
+                
+                const skinMaterial = new BABYLON.StandardMaterial("skinMaterial", scene);
+                skinMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+                
+                // Assign materials
+                [torso, chestPlate, shoulderLeft, shoulderRight, helmet, 
+                 upperArmLeft, upperArmRight, upperLegLeft, upperLegRight].forEach(part => {
+                    part.material = armorMaterial;
+                });
+                
+                [swordHandle, swordBlade].forEach(part => {
+                    part.material = metalMaterial;
+                });
+                
+                head.material = skinMaterial;
+                shield.material = armorMaterial;
+                
+                // Store references for animation
+                character.upperArmLeft = upperArmLeft;
+                character.upperArmRight = upperArmRight;
+                character.lowerArmLeft = lowerArmLeft;
+                character.lowerArmRight = lowerArmRight;
+                character.upperLegLeft = upperLegLeft;
+                character.upperLegRight = upperLegRight;
+                character.lowerLegLeft = lowerLegLeft;
+                character.lowerLegRight = lowerLegRight;
+                character.swordHandle = swordHandle;
+                character.torso = torso;
+            }
+            
+            // Create archer character (simplified for brevity)
+            function createArcherCharacter() {
+                // Similar structure but with bow and arrow
+                createWarriorCharacter(); // Start with warrior base
+                
+                // Remove sword and shield
+                character.getChildMeshes().forEach(child => {
+                    if (child.name.includes("sword") || child.name.includes("shield")) {
+                        child.dispose();
+                    }
+                });
+                
+                // Add bow
+                const bow = BABYLON.MeshBuilder.CreateTorus("bow", 
+                    {diameter: 1.5, thickness: 0.1, tessellation: 16}, scene);
+                bow.position = new BABYLON.Vector3(1.5, 2, 0);
+                bow.rotation.x = Math.PI / 2;
+                bow.parent = character;
+                
+                const bowMaterial = new BABYLON.StandardMaterial("bowMaterial", scene);
+                bowMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.1);
+                bow.material = bowMaterial;
+                
+                // Quiver with arrows
+                const quiver = BABYLON.MeshBuilder.CreateCylinder("quiver", 
+                    {height: 1.2, diameter: 0.4, tessellation: 8}, scene);
+                quiver.position = new BABYLON.Vector3(-1.5, 1.8, 0);
+                quiver.parent = character;
+                quiver.material = bowMaterial;
+            }
+            
+            // Create mage character (simplified)
+            function createMageCharacter() {
+                createWarriorCharacter(); // Start with base
+                
+                // Remove weapons
+                character.getChildMeshes().forEach(child => {
+                    if (child.name.includes("sword") || child.name.includes("shield")) {
+                        child.dispose();
+                    }
+                });
+                
+                // Add robe details
+                const robe = BABYLON.MeshBuilder.CreateSphere("robe", 
+                    {diameter: 2.2, segments: 16}, scene);
+                robe.position.y = 1;
+                robe.scaling.y = 2;
+                robe.parent = character;
+                
+                const robeMaterial = new BABYLON.StandardMaterial("robeMaterial", scene);
+                robeMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.1, 0.4);
+                robe.material = robeMaterial;
+                
+                // Staff with crystal
+                const staff = BABYLON.MeshBuilder.CreateCylinder("staff", 
+                    {height: 3, diameter: 0.1, tessellation: 6}, scene);
+                staff.position = new BABYLON.Vector3(1.5, 1.5, 0);
+                staff.parent = character;
+                
+                const crystal = BABYLON.MeshBuilder.CreateSphere("crystal", 
+                    {diameter: 0.4, segments: 12}, scene);
+                crystal.position = new BABYLON.Vector3(1.5, 3, 0);
+                crystal.parent = character;
+                
+                const crystalMaterial = new BABYLON.StandardMaterial("crystalMaterial", scene);
+                crystalMaterial.diffuseColor = new BABYLON.Color3(1, 0.5, 1);
+                crystalMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.2, 0.5);
+                crystal.material = crystalMaterial;
+            }
+            
+            // Create rogue character (simplified)
+            function createRogueCharacter() {
+                createWarriorCharacter(); // Start with base
+                
+                // Remove sword and shield
+                character.getChildMeshes().forEach(child => {
+                    if (child.name.includes("sword") || child.name.includes("shield")) {
+                        child.dispose();
+                    }
+                });
+                
+                // Add daggers
+                const dagger1 = BABYLON.MeshBuilder.CreateBox("dagger1", 
+                    {width: 0.1, height: 0.8, depth: 0.05}, scene);
+                dagger1.position = new BABYLON.Vector3(1.5, 1.8, 0);
+                dagger1.parent = character;
+                
+                const dagger2 = BABYLON.MeshBuilder.CreateBox("dagger2", 
+                    {width: 0.1, height: 0.8, depth: 0.05}, scene);
+                dagger2.position = new BABYLON.Vector3(-1.5, 1.8, 0);
+                dagger2.parent = character;
+                
+                const daggerMaterial = new BABYLON.StandardMaterial("daggerMaterial", scene);
+                daggerMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.8);
+                dagger1.material = daggerMaterial;
+                dagger2.material = daggerMaterial;
+                
+                // Hood
+                const hood = BABYLON.MeshBuilder.CreateSphere("hood", 
+                    {diameter: 1.3, segments: 12}, scene);
+                hood.position.y = 3.3;
+                hood.scaling.y = 1.2;
+                hood.parent = character;
+                hood.material = character.getChildMeshes()[0].material;
+            }
+            
+            // Setup character animations
+            function setupCharacterAnimations() {
+                // This function sets up animation references
+                // Actual animation updates happen in updateCharacterAnimations()
+            }
+            
+            // Update character animations based on state
+            function updateCharacterAnimations() {
+                if (!character) return;
+                
+                const time = Date.now() * 0.001; // Current time in seconds
+                const walkSpeed = isRunning ? 10 : 5;
+                
+                // Reset to idle position
+                if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6;
+                if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6;
+                if (character.lowerArmLeft) character.lowerArmLeft.rotation.z = 0;
+                if (character.lowerArmRight) character.lowerArmRight.rotation.z = 0;
+                if (character.upperLegLeft) character.upperLegLeft.rotation.z = 0;
+                if (character.upperLegRight) character.upperLegRight.rotation.z = 0;
+                if (character.lowerLegLeft) character.lowerLegLeft.rotation.z = 0;
+                if (character.lowerLegRight) character.lowerLegRight.rotation.z = 0;
+                if (character.torso) character.torso.rotation.z = 0;
+                
+                // Apply animations based on state
+                if (isDancing) {
+                    // Dance animation
+                    const danceTime = time * 3;
+                    if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 + Math.sin(danceTime) * 0.5;
+                    if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 + Math.sin(danceTime + 1) * 0.5;
+                    if (character.upperLegLeft) character.upperLegLeft.rotation.z = Math.sin(danceTime + 2) * 0.3;
+                    if (character.upperLegRight) character.upperLegRight.rotation.z = Math.sin(danceTime + 3) * 0.3;
+                    if (character.torso) character.torso.rotation.z = Math.sin(danceTime * 0.5) * 0.1;
+                    
+                } else if (isAttacking) {
+                    // Attack animation
+                    const attackTime = (Date.now() % 1000) / 1000; // 0 to 1 over 1 second
+                    const attackAngle = attackTime < 0.5 ? attackTime * Math.PI : Math.PI - (attackTime - 0.5) * Math.PI;
+                    
+                    if (character.swordHandle) {
+                        character.swordHandle.rotation.z = -Math.PI / 4 - attackAngle;
+                    }
+                    if (character.upperArmRight) {
+                        character.upperArmRight.rotation.z = -Math.PI / 6 - attackAngle * 0.7;
+                    }
+                    
+                } else if (isWaving) {
+                    // Wave animation
+                    const waveTime = time * 5;
+                    if (character.upperArmRight) {
+                        character.upperArmRight.rotation.z = -Math.PI / 6 + Math.sin(waveTime) * 1.5;
+                    }
+                    
+                } else if (isTaunting) {
+                    // Taunt animation
+                    const tauntTime = time * 2;
+                    if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 + Math.sin(tauntTime) * 0.3;
+                    if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 2 + Math.sin(tauntTime + 1) * 0.2;
+                    if (character.torso) character.torso.rotation.z = Math.sin(tauntTime * 0.5) * 0.05;
+                    
+                } else if (isMoving) {
+                    // Walking/running animation
+                    const legSwing = Math.sin(time * walkSpeed) * 0.5;
+                    const armSwing = Math.sin(time * walkSpeed) * 0.3;
+                    const bodySway = Math.sin(time * walkSpeed * 0.5) * 0.05;
+                    
+                    if (character.upperLegLeft) character.upperLegLeft.rotation.z = legSwing;
+                    if (character.upperLegRight) character.upperLegRight.rotation.z = -legSwing;
+                    if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 - armSwing;
+                    if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 - armSwing;
+                    if (character.torso) character.torso.rotation.z = bodySway;
+                    
+                } else if (isJumping) {
+                    // Jumping animation
+                    const jumpTime = (Date.now() - jumpStartTime) / jumpDuration;
+                    const jumpPhase = Math.min(jumpTime, 1);
+                    
+                    // Crouch before jump
+                    if (jumpPhase < 0.2) {
+                        if (character.upperLegLeft) character.upperLegLeft.rotation.z = 0.5;
+                        if (character.upperLegRight) character.upperLegRight.rotation.z = -0.5;
+                        if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 + 0.3;
+                        if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 + 0.3;
+                    }
+                    // In air
+                    else if (jumpPhase < 0.8) {
+                        if (character.upperLegLeft) character.upperLegLeft.rotation.z = -0.3;
+                        if (character.upperLegRight) character.upperLegRight.rotation.z = 0.3;
+                        if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 - 0.5;
+                        if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 - 0.5;
+                    }
+                    // Landing
+                    else {
+                        if (character.upperLegLeft) character.upperLegLeft.rotation.z = 0.2;
+                        if (character.upperLegRight) character.upperLegRight.rotation.z = -0.2;
+                    }
+                    
+                } else {
+                    // Idle breathing animation
+                    const breath = Math.sin(time * 2) * 0.02;
+                    if (character.torso) character.torso.position.y = 1.5 + breath;
+                }
             }
             
             // Character movement and controls
@@ -664,52 +1222,94 @@
             
             // Keyboard event listeners
             window.addEventListener("keydown", function(event) {
-                keys[event.key.toLowerCase()] = true;
+                const key = event.key.toLowerCase();
+                keys[key] = true;
                 
                 // Space for jump
-                if (event.key === " " && !isJumping) {
+                if (key === " " && !isJumping && !isDancing && !isAttacking) {
                     isJumping = true;
                     jumpStartTime = Date.now();
+                    currentAnimation = "jumping";
+                    updateStatusIndicator();
                 }
                 
                 // Shift for running
-                if (event.key === "Shift") {
+                if (key === "shift") {
                     isRunning = true;
+                }
+                
+                // E for dance
+                if (key === "e" && !isJumping && !isAttacking) {
+                    isDancing = !isDancing;
+                    if (isDancing) {
+                        currentAnimation = "dancing";
+                    } else if (isMoving) {
+                        currentAnimation = isRunning ? "running" : "walking";
+                    } else {
+                        currentAnimation = "idle";
+                    }
+                    updateStatusIndicator();
+                }
+                
+                // F for attack
+                if (key === "f" && !isJumping && !isDancing) {
+                    isAttacking = true;
+                    currentAnimation = "attacking";
+                    updateStatusIndicator();
+                    // Auto reset attack after 1 second
+                    setTimeout(() => {
+                        isAttacking = false;
+                        if (isMoving) {
+                            currentAnimation = isRunning ? "running" : "walking";
+                        } else {
+                            currentAnimation = "idle";
+                        }
+                        updateStatusIndicator();
+                    }, 1000);
                 }
             });
             
             window.addEventListener("keyup", function(event) {
-                keys[event.key.toLowerCase()] = false;
+                const key = event.key.toLowerCase();
+                keys[key] = false;
                 
-                if (event.key === "Shift") {
+                if (key === "shift") {
                     isRunning = false;
                 }
             });
             
             // Update character position and rotation
             function updateCharacter() {
-                if (!characterMesh) return;
+                if (!characterRoot || isDancing || isAttacking) return;
                 
                 movementDirection.set(0, 0, 0);
                 isMoving = false;
                 
                 // Determine movement direction based on keys
-                if (keys["w"] || keys["arrowup"]) {
+                if (keys["w"]) {
                     movementDirection.z += 1;
                     isMoving = true;
                 }
-                if (keys["s"] || keys["arrowdown"]) {
+                if (keys["s"]) {
                     movementDirection.z -= 1;
                     isMoving = true;
                 }
-                if (keys["a"] || keys["arrowleft"]) {
+                if (keys["a"]) {
                     movementDirection.x -= 1;
                     isMoving = true;
                 }
-                if (keys["d"] || keys["arrowright"]) {
+                if (keys["d"]) {
                     movementDirection.x += 1;
                     isMoving = true;
                 }
+                
+                // Update animation state
+                if (isMoving && !isJumping) {
+                    currentAnimation = isRunning ? "running" : "walking";
+                } else if (!isJumping && !isDancing && !isAttacking) {
+                    currentAnimation = "idle";
+                }
+                updateStatusIndicator();
                 
                 // Normalize movement direction
                 if (movementDirection.length() > 0) {
@@ -717,20 +1317,19 @@
                 }
                 
                 // Calculate speed (running or walking)
-                const speed = isRunning ? characterSpeed * 2 : characterSpeed;
-                const animSpeed = isRunning ? 2.0 : 1.0;
+                const speed = isRunning ? characterSpeed * 2.5 : characterSpeed;
                 
                 // Update character position
-                characterMesh.position.x += movementDirection.x * speed;
-                characterMesh.position.z += movementDirection.z * speed;
+                characterRoot.position.x += movementDirection.x * speed;
+                characterRoot.position.z += movementDirection.z * speed;
                 
                 // Update character rotation to face movement direction
                 if (isMoving) {
                     const targetRotation = Math.atan2(movementDirection.x, movementDirection.z);
-                    characterMesh.rotation.y = BABYLON.Scalar.Lerp(
-                        characterMesh.rotation.y, 
+                    characterRoot.rotation.y = BABYLON.Scalar.Lerp(
+                        characterRoot.rotation.y, 
                         targetRotation, 
-                        0.1
+                        0.2 // Smooth rotation
                     );
                 }
                 
@@ -741,47 +1340,137 @@
                     
                     // Parabolic jump curve
                     const jumpY = 4 * jumpHeight * jumpProgress * (1 - jumpProgress);
-                    characterMesh.position.y = 1 + jumpY;
+                    characterRoot.position.y = 2 + jumpY;
                     
                     // End jump
                     if (jumpProgress >= 1) {
                         isJumping = false;
-                        characterMesh.position.y = 1;
+                        characterRoot.position.y = 2;
+                        if (isMoving) {
+                            currentAnimation = isRunning ? "running" : "walking";
+                        } else {
+                            currentAnimation = "idle";
+                        }
+                        updateStatusIndicator();
                     }
                 }
                 
                 // Ensure character stays within bounds
-                const bounds = 22;
-                characterMesh.position.x = Math.max(-bounds, Math.min(bounds, characterMesh.position.x));
-                characterMesh.position.z = Math.max(-bounds, Math.min(bounds, characterMesh.position.z));
+                const bounds = 45;
+                characterRoot.position.x = Math.max(-bounds, Math.min(bounds, characterRoot.position.x));
+                characterRoot.position.z = Math.max(-bounds, Math.min(bounds, characterRoot.position.z));
                 
                 // Update camera to follow character
-                camera.target = new BABYLON.Vector3(
-                    characterMesh.position.x,
-                    characterMesh.position.y + 1,
-                    characterMesh.position.z
-                );
+                updateCamera();
                 
                 // Update UI info
                 updateCharacterInfo();
+                
+                // Update animations
+                updateCharacterAnimations();
+            }
+            
+            // Update camera based on mode
+            function updateCamera() {
+                if (!characterRoot || !camera) return;
+                
+                if (cameraMode === "follow" || cameraMode === "orbit") {
+                    // Update camera target to character position
+                    camera.target = characterRoot.position;
+                    
+                    // For follow mode, also position camera behind character
+                    if (cameraMode === "follow" && cameraLocked) {
+                        const characterForward = new BABYLON.Vector3(
+                            Math.sin(characterRoot.rotation.y),
+                            0,
+                            Math.cos(characterRoot.rotation.y)
+                        );
+                        
+                        const cameraPosition = characterRoot.position
+                            .subtract(characterForward.scale(followDistance))
+                            .add(new BABYLON.Vector3(0, cameraHeight, 0));
+                        
+                        camera.position = BABYLON.Vector3.Lerp(
+                            camera.position,
+                            cameraPosition,
+                            0.1 // Smooth camera follow
+                        );
+                        
+                        // Make camera look slightly ahead of character
+                        const lookTarget = characterRoot.position
+                            .add(characterForward.scale(5));
+                        camera.setTarget(lookTarget);
+                    }
+                } else if (cameraMode === "firstPerson") {
+                    // First person camera attaches to character head
+                    camera.position = characterRoot.position.clone();
+                    camera.position.y += 1.8; // Eye level
+                    
+                    // Camera rotation follows character rotation
+                    camera.rotation.y = characterRoot.rotation.y + Math.PI;
+                } else if (cameraMode === "topDown") {
+                    // Top down camera follows character from above
+                    camera.position.x = characterRoot.position.x;
+                    camera.position.z = characterRoot.position.z;
+                    camera.setTarget(characterRoot.position);
+                }
             }
             
             // Update character info display
             function updateCharacterInfo() {
-                if (!characterMesh) return;
+                if (!characterRoot) return;
                 
-                document.getElementById("positionX").textContent = characterMesh.position.x.toFixed(1);
-                document.getElementById("positionZ").textContent = characterMesh.position.z.toFixed(1);
+                document.getElementById("positionX").textContent = characterRoot.position.x.toFixed(1);
+                document.getElementById("positionZ").textContent = characterRoot.position.z.toFixed(1);
                 
                 const speed = isMoving ? (isRunning ? 8.0 : 4.0) : 0.0;
                 document.getElementById("speed").textContent = speed.toFixed(1);
+            }
+            
+            // Update status indicator
+            function updateStatusIndicator() {
+                const indicator = document.getElementById("statusIndicator");
+                indicator.className = "status-indicator";
+                
+                switch(currentAnimation) {
+                    case "idle":
+                        indicator.classList.add("status-idle");
+                        break;
+                    case "walking":
+                        indicator.classList.add("status-walking");
+                        break;
+                    case "running":
+                        indicator.classList.add("status-running");
+                        break;
+                    case "jumping":
+                        indicator.classList.add("status-jumping");
+                        break;
+                    case "dancing":
+                        indicator.classList.add("status-dancing");
+                        break;
+                    case "attacking":
+                        indicator.classList.add("status-jumping"); // Use jumping color for attack
+                        break;
+                }
+            }
+            
+            // Update camera status display
+            function updateCameraStatus() {
+                const status = document.getElementById("cameraStatus");
+                let statusText = `Camera: ${cameraMode.charAt(0).toUpperCase() + cameraMode.slice(1)} Mode`;
+                
+                if (cameraMode === "follow") {
+                    statusText += cameraLocked ? " (Locked)" : " (Manual)";
+                }
+                
+                status.textContent = statusText;
             }
             
             // Create environment
             createEnvironment();
             
             // Create initial character
-            createCharacter("robot");
+            createCharacter("warrior");
             
             // UI Controls
             document.getElementById("characterType").addEventListener("change", function() {
@@ -796,39 +1485,147 @@
             document.getElementById("animSpeed").addEventListener("input", function() {
                 const value = parseFloat(this.value);
                 document.getElementById("animSpeedValue").textContent = value.toFixed(1);
-                characterSpeed = 0.1 * value;
+                characterSpeed = 0.08 * value;
+                walkAnimationRate = value;
             });
             
             document.getElementById("resetCharacter").addEventListener("click", function() {
-                if (characterMesh) {
-                    characterMesh.position = new BABYLON.Vector3(0, 1, 0);
-                    characterMesh.rotation = new BABYLON.Vector3(0, 0, 0);
+                if (characterRoot) {
+                    characterRoot.position = new BABYLON.Vector3(0, 2, 0);
+                    characterRoot.rotation = new BABYLON.Vector3(0, 0, 0);
+                    isDancing = false;
+                    isAttacking = false;
+                    isWaving = false;
+                    isTaunting = false;
+                    currentAnimation = "idle";
+                    updateStatusIndicator();
                 }
             });
             
+            // Animation buttons
+            document.getElementById("danceBtn").addEventListener("click", function() {
+                isDancing = !isDancing;
+                if (isDancing) {
+                    currentAnimation = "dancing";
+                } else {
+                    currentAnimation = "idle";
+                }
+                updateStatusIndicator();
+            });
+            
+            document.getElementById("attackBtn").addEventListener("click", function() {
+                if (!isAttacking) {
+                    isAttacking = true;
+                    currentAnimation = "attacking";
+                    updateStatusIndicator();
+                    
+                    setTimeout(() => {
+                        isAttacking = false;
+                        currentAnimation = "idle";
+                        updateStatusIndicator();
+                    }, 1000);
+                }
+            });
+            
+            document.getElementById("waveBtn").addEventListener("click", function() {
+                isWaving = true;
+                currentAnimation = "waving";
+                updateStatusIndicator();
+                
+                setTimeout(() => {
+                    isWaving = false;
+                    currentAnimation = "idle";
+                    updateStatusIndicator();
+                }, 2000);
+            });
+            
+            document.getElementById("tauntBtn").addEventListener("click", function() {
+                isTaunting = true;
+                currentAnimation = "taunting";
+                updateStatusIndicator();
+                
+                setTimeout(() => {
+                    isTaunting = false;
+                    currentAnimation = "idle";
+                    updateStatusIndicator();
+                }, 2000);
+            });
+            
+            // Camera controls
+            document.getElementById("cameraMode").addEventListener("change", function() {
+                cameraMode = this.value;
+                initCamera();
+                updateCameraStatus();
+            });
+            
+            document.getElementById("followDist").addEventListener("input", function() {
+                followDistance = parseInt(this.value);
+                document.getElementById("followDistValue").textContent = followDistance;
+            });
+            
+            document.getElementById("cameraHeight").addEventListener("input", function() {
+                cameraHeight = parseFloat(this.value);
+                document.getElementById("cameraHeightValue").textContent = cameraHeight;
+            });
+            
+            document.getElementById("toggleCameraLock").addEventListener("click", function() {
+                cameraLocked = !cameraLocked;
+                this.textContent = cameraLocked ? "Camera Lock: ON" : "Camera Lock: OFF";
+                
+                if (cameraMode === "follow") {
+                    if (cameraLocked) {
+                        camera.inputs.attached.pointers.detachControl();
+                    } else {
+                        camera.attachControl(canvas, true);
+                    }
+                }
+                
+                updateCameraStatus();
+            });
+            
+            document.getElementById("resetCamera").addEventListener("click", function() {
+                if (cameraMode === "follow" || cameraMode === "orbit") {
+                    camera.alpha = -Math.PI / 2;
+                    camera.beta = Math.PI / 4;
+                    camera.radius = followDistance;
+                }
+            });
+            
+            // Environment controls
             document.getElementById("lighting").addEventListener("change", function() {
                 const value = this.value;
                 
                 switch(value) {
                     case "day":
-                        light.intensity = 0.8;
-                        directionalLight.intensity = 0.5;
+                        hemisphericLight.intensity = 0.7;
+                        directionalLight.intensity = 0.8;
+                        fillLight.intensity = 0.3;
                         scene.clearColor = new BABYLON.Color4(0.6, 0.8, 1.0, 1.0);
-                        break;
-                    case "night":
-                        light.intensity = 0.3;
-                        directionalLight.intensity = 0.2;
-                        scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.1, 1.0);
+                        scene.fogColor = new BABYLON.Color3(0.7, 0.8, 0.9);
                         break;
                     case "sunset":
-                        light.intensity = 0.6;
-                        directionalLight.intensity = 0.4;
+                        hemisphericLight.intensity = 0.5;
+                        directionalLight.intensity = 0.6;
+                        fillLight.intensity = 0.4;
+                        directionalLight.diffuse = new BABYLON.Color3(1, 0.6, 0.3);
                         scene.clearColor = new BABYLON.Color4(0.9, 0.5, 0.3, 1.0);
+                        scene.fogColor = new BABYLON.Color3(0.8, 0.5, 0.3);
                         break;
-                    case "dungeon":
-                        light.intensity = 0.2;
-                        directionalLight.intensity = 0.1;
-                        scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.1, 1.0);
+                    case "night":
+                        hemisphericLight.intensity = 0.2;
+                        directionalLight.intensity = 0.3;
+                        fillLight.intensity = 0.1;
+                        scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.1, 1.0);
+                        scene.fogColor = new BABYLON.Color3(0.1, 0.1, 0.15);
+                        break;
+                    case "fantasy":
+                        hemisphericLight.intensity = 0.4;
+                        directionalLight.intensity = 0.6;
+                        fillLight.intensity = 0.5;
+                        directionalLight.diffuse = new BABYLON.Color3(0.8, 0.4, 0.8);
+                        fillLight.diffuse = new BABYLON.Color3(0.4, 0.8, 1);
+                        scene.clearColor = new BABYLON.Color4(0.3, 0.1, 0.4, 1.0);
+                        scene.fogColor = new BABYLON.Color3(0.3, 0.1, 0.4);
                         break;
                 }
             });
@@ -843,25 +1640,12 @@
                 this.textContent = shadowsEnabled ? "Toggle Shadows: ON" : "Toggle Shadows: OFF";
             });
             
-            document.getElementById("envScale").addEventListener("input", function() {
-                const value = parseFloat(this.value);
-                document.getElementById("envScaleValue").textContent = value.toFixed(1);
+            let fogEnabled = false;
+            document.getElementById("toggleFog").addEventListener("click", function() {
+                fogEnabled = !fogEnabled;
+                scene.fogDensity = fogEnabled ? 0.02 : 0.01;
                 
-                // Scale ground
-                ground.scaling = new BABYLON.Vector3(value, 1, value);
-                
-                // Scale environment elements (simplified)
-                scene.meshes.forEach(mesh => {
-                    if (mesh.name.includes("building") || mesh.name.includes("tree")) {
-                        const originalScale = mesh.metadata?.originalScale || new BABYLON.Vector3(1, 1, 1);
-                        mesh.scaling = originalScale.scale(value);
-                        
-                        if (!mesh.metadata) {
-                            mesh.metadata = {};
-                        }
-                        mesh.metadata.originalScale = originalScale;
-                    }
-                });
+                this.textContent = fogEnabled ? "Toggle Fog: ON" : "Toggle Fog: OFF";
             });
             
             // Animation loop
@@ -874,9 +1658,21 @@
                 engine.resize();
             });
             
+            // Initialize status indicator
+            updateStatusIndicator();
+            updateCameraStatus();
+            
             // Run the render loop
             engine.runRenderLoop(function() {
                 scene.render();
+            });
+            
+            // Handle window focus for controls
+            window.addEventListener("focus", function() {
+                // Reset keys when window regains focus
+                Object.keys(keys).forEach(key => {
+                    keys[key] = false;
+                });
             });
         });
     </script>
