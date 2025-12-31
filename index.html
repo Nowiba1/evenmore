@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced 3D Character with Camera Following | Babylon.js</title>
+    <title>Professional 3D Character with GLB Animations | Babylon.js</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
-    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -17,7 +17,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
             color: #fff;
             overflow: hidden;
             height: 100vh;
@@ -28,24 +28,24 @@
         header {
             padding: 15px;
             text-align: center;
-            background: rgba(0, 0, 0, 0.4);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00b4d8;
             z-index: 10;
         }
         
         h1 {
-            font-size: 2.2rem;
+            font-size: 2rem;
             margin-bottom: 5px;
-            background: linear-gradient(to right, #00dbde, #fc00ff);
+            background: linear-gradient(to right, #00b4d8, #90e0ef);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
         
         .subtitle {
-            color: #a5b4fc;
-            font-size: 1rem;
+            color: #90e0ef;
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
         
         .container {
@@ -62,42 +62,65 @@
         }
         
         .controls-panel {
-            width: 320px;
-            background: rgba(0, 0, 0, 0.75);
+            width: 350px;
+            background: rgba(10, 10, 15, 0.95);
             padding: 20px;
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(0, 180, 216, 0.3);
             overflow-y: auto;
             backdrop-filter: blur(10px);
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
         }
         
-        .controls-panel h2 {
-            color: #00dbde;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 1.5rem;
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #00b4d8;
+        }
+        
+        .loader p {
+            margin-top: 15px;
+            color: #90e0ef;
+        }
+        
+        .loader.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 180, 216, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #00b4d8;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .control-group {
             margin-bottom: 25px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(20, 20, 30, 0.7);
             padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 180, 216, 0.2);
         }
         
         .control-group h3 {
-            color: #a5b4fc;
+            color: #00b4d8;
             margin-bottom: 15px;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-        }
-        
-        .control-group h3 i {
-            margin-right: 10px;
             font-size: 1.1rem;
+            border-bottom: 1px solid rgba(0, 180, 216, 0.3);
+            padding-bottom: 8px;
         }
         
         .control-item {
@@ -107,37 +130,31 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #ddd;
-            font-size: 0.95rem;
+            color: #caf0f8;
+            font-size: 0.9rem;
         }
         
-        select, button {
+        select, button, input {
             width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            background: rgba(30, 30, 40, 0.8);
+            border: 1px solid rgba(0, 180, 216, 0.3);
             color: white;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-        }
-        
-        select:hover, button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #00dbde;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 219, 222, 0.2);
+            transition: all 0.2s;
+            font-size: 0.9rem;
         }
         
         button {
-            background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(to right, #0077b6, #0096c7);
             font-weight: bold;
-            margin-top: 5px;
         }
         
         button:hover {
-            background: linear-gradient(to right, #764ba2 0%, #667eea 100%);
+            background: linear-gradient(to right, #0096c7, #00b4d8);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
         }
         
         .slider-container {
@@ -149,103 +166,17 @@
             flex: 1;
             margin-right: 10px;
             height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            outline: none;
-            -webkit-appearance: none;
-        }
-        
-        .slider-container input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #00dbde;
-            cursor: pointer;
+            background: rgba(0, 180, 216, 0.2);
         }
         
         .slider-value {
             min-width: 40px;
             text-align: right;
-            color: #00dbde;
+            color: #00b4d8;
             font-weight: bold;
         }
         
-        .instructions {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .instructions h3 {
-            color: #00dbde;
-            margin-bottom: 10px;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-            color: #ccc;
-            font-size: 0.9rem;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-        }
-        
-        .key {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 3px 10px;
-            border-radius: 5px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-family: monospace;
-            margin: 0 3px;
-            font-size: 0.9rem;
-        }
-        
-        .character-info {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-        
-        .character-info div {
-            text-align: center;
-        }
-        
-        .character-info .value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #00dbde;
-            text-shadow: 0 0 5px rgba(0, 219, 222, 0.5);
-        }
-        
-        .character-info .label {
-            color: #a5b4fc;
-            margin-top: 3px;
-            font-size: 0.8rem;
-        }
-        
-        .camera-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        
-        .camera-btn {
-            width: 48%;
-            padding: 10px;
-            font-size: 0.9rem;
-        }
-        
-        .animation-controls {
+        .animation-buttons {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
@@ -254,48 +185,100 @@
         
         .animation-btn {
             padding: 10px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            background: rgba(0, 119, 182, 0.7);
+        }
+        
+        .animation-btn.active {
+            background: linear-gradient(to right, #00b4d8, #90e0ef);
+            color: #0a0a0a;
+            font-weight: bold;
+        }
+        
+        .character-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        
+        .character-info div {
+            text-align: center;
+        }
+        
+        .character-info .value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #00b4d8;
+        }
+        
+        .character-info .label {
+            color: #90e0ef;
+            margin-top: 3px;
+            font-size: 0.75rem;
+        }
+        
+        .instructions {
+            background: rgba(0, 20, 40, 0.6);
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 3px solid #0077b6;
+            font-size: 0.85rem;
+        }
+        
+        .instructions h4 {
+            color: #90e0ef;
+            margin-bottom: 8px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            color: #caf0f8;
+        }
+        
+        .instructions li {
+            margin-bottom: 6px;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(0, 180, 216, 0.2);
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 180, 216, 0.4);
+            font-family: monospace;
+            margin: 0 2px;
+            font-size: 0.85rem;
         }
         
         .status-indicator {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .status-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
             margin-right: 8px;
-            background-color: #4CAF50;
         }
         
-        .status-idle {
-            background-color: #4CAF50;
-        }
+        .status-idle { background-color: #4CAF50; }
+        .status-walk { background-color: #2196F3; }
+        .status-run { background-color: #FF9800; }
+        .status-jump { background-color: #F44336; }
+        .status-action { background-color: #9C27B0; }
         
-        .status-walking {
-            background-color: #2196F3;
-        }
-        
-        .status-running {
-            background-color: #FF9800;
-        }
-        
-        .status-jumping {
-            background-color: #F44336;
-        }
-        
-        .status-dancing {
-            background-color: #9C27B0;
-        }
-        
-        .camera-status {
-            margin-top: 10px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            font-size: 0.85rem;
-            color: #a5b4fc;
-        }
-        
-        @media (max-width: 1000px) {
+        @media (max-width: 1100px) {
             .container {
                 flex-direction: column;
             }
@@ -304,49 +287,88 @@
                 width: 100%;
                 height: 350px;
                 border-left: none;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-            }
-            
-            .character-info {
-                grid-template-columns: repeat(3, 1fr);
+                border-top: 1px solid rgba(0, 180, 216, 0.3);
             }
         }
         
-        /* Animation keyframes for UI */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        .debug-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            color: #90e0ef;
+            max-width: 300px;
         }
         
-        .pulse {
-            animation: pulse 1.5s infinite;
+        .model-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .model-option {
+            padding: 12px;
+            background: rgba(30, 30, 40, 0.8);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .model-option:hover {
+            background: rgba(0, 180, 216, 0.1);
+            border-color: #00b4d8;
+        }
+        
+        .model-option.active {
+            background: rgba(0, 180, 216, 0.2);
+            border-color: #00b4d8;
+        }
+        
+        .model-option h4 {
+            color: #00b4d8;
+            margin-bottom: 5px;
+        }
+        
+        .model-option p {
+            color: #caf0f8;
+            font-size: 0.85rem;
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Advanced 3D Character with Camera Following</h1>
-        <p class="subtitle">Realistic character animations with automatic camera tracking</p>
+        <h1>Professional 3D Character with GLB Animations</h1>
+        <p class="subtitle">Load external GLB/GLTF models with full animation support</p>
     </header>
+    
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <p id="loaderText">Loading 3D Character Model...</p>
+    </div>
     
     <div class="container">
         <canvas id="renderCanvas"></canvas>
         
         <div class="controls-panel">
-            <h2>Character Controls</h2>
-            
             <div class="control-group">
-                <h3><span class="status-indicator status-idle" id="statusIndicator"></span>Movement & Actions</h3>
+                <div class="status-indicator">
+                    <div class="status-dot status-idle" id="statusDot"></div>
+                    <span id="statusText">Idle</span>
+                </div>
+                
                 <div class="instructions">
-                    <h3>Controls</h3>
+                    <h4>Controls</h4>
                     <ul>
                         <li>Move: <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span></li>
                         <li>Run: Hold <span class="key">Shift</span></li>
                         <li>Jump: <span class="key">Space</span></li>
-                        <li>Dance: <span class="key">E</span></li>
-                        <li>Attack: <span class="key">F</span></li>
-                        <li>Look: Mouse drag or touch</li>
+                        <li>Camera: Hold <span class="key">Right Click</span> + Drag</li>
+                        <li>Reset Camera: <span class="key">R</span></li>
                     </ul>
                 </div>
                 
@@ -360,108 +382,127 @@
                         <div class="label">Position Z</div>
                     </div>
                     <div>
-                        <div class="value" id="speed">0.0</div>
-                        <div class="label">Speed</div>
+                        <div class="value" id="fps">60</div>
+                        <div class="label">FPS</div>
                     </div>
-                </div>
-                
-                <div class="animation-controls">
-                    <button class="animation-btn" id="danceBtn">Dance <span class="key">E</span></button>
-                    <button class="animation-btn" id="attackBtn">Attack <span class="key">F</span></button>
-                    <button class="animation-btn" id="waveBtn">Wave</button>
-                    <button class="animation-btn" id="tauntBtn">Taunt</button>
+                    <div>
+                        <div class="value" id="polyCount">0</div>
+                        <div class="label">Polygons</div>
+                    </div>
                 </div>
             </div>
             
             <div class="control-group">
-                <h3><i>👤</i> Character Customization</h3>
-                
-                <div class="control-item">
-                    <label for="characterType">Character Type</label>
-                    <select id="characterType">
-                        <option value="warrior">Warrior</option>
-                        <option value="archer">Archer</option>
-                        <option value="mage">Mage</option>
-                        <option value="rogue">Rogue</option>
-                    </select>
+                <h3>Character Model</h3>
+                <div class="model-selector">
+                    <div class="model-option active" data-model="robot">
+                        <h4>🤖 Robot Character</h4>
+                        <p>Low-poly robot with 8 animations</p>
+                    </div>
+                    <div class="model-option" data-model="ybot">
+                        <h4>🧍‍♂️ Human Character</h4>
+                        <p>Mixamo Y-Bot with 5 animations</p>
+                    </div>
+                    <div class="model-option" data-model="soldier">
+                        <h4>🎯 Soldier Character</h4>
+                        <p>Animated soldier with weapons</p>
+                    </div>
                 </div>
                 
-                <div class="control-item">
-                    <label for="colorPicker">Armor Color</label>
-                    <input type="color" id="colorPicker" value="#3498db">
+                <div class="control-item" style="margin-top: 15px;">
+                    <label for="modelUrl">Or Load Custom Model (GLB/GLTF URL):</label>
+                    <input type="text" id="modelUrl" placeholder="https://example.com/model.glb">
+                    <button id="loadCustomModel" style="margin-top: 8px;">Load Custom Model</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Animations</h3>
+                <div class="animation-buttons" id="animationButtons">
+                    <!-- Animation buttons will be generated here -->
                 </div>
                 
                 <div class="control-item">
                     <label>Animation Speed <span class="slider-value" id="animSpeedValue">1.0</span></label>
                     <div class="slider-container">
-                        <input type="range" id="animSpeed" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <input type="range" id="animSpeed" min="0.1" max="3.0" step="0.1" value="1.0">
                     </div>
                 </div>
                 
-                <button id="resetCharacter">Reset Character Position</button>
+                <div class="control-item">
+                    <label>Blend Speed <span class="slider-value" id="blendSpeedValue">0.1</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="blendSpeed" min="0.01" max="0.5" step="0.01" value="0.1">
+                    </div>
+                </div>
             </div>
             
             <div class="control-group">
-                <h3><i>🎥</i> Camera System</h3>
+                <h3>Camera & Movement</h3>
                 
                 <div class="control-item">
                     <label for="cameraMode">Camera Mode</label>
                     <select id="cameraMode">
-                        <option value="follow">Follow (Automatic)</option>
-                        <option value="orbit">Orbit (Manual)</option>
-                        <option value="firstPerson">First Person</option>
-                        <option value="topDown">Top Down</option>
+                        <option value="follow">Follow Character</option>
+                        <option value="orbit">Orbit Around</option>
+                        <option value="fixed">Fixed Position</option>
                     </select>
                 </div>
                 
                 <div class="control-item">
-                    <label>Follow Distance <span class="slider-value" id="followDistValue">10</span></label>
+                    <label>Movement Speed <span class="slider-value" id="moveSpeedValue">0.1</span></label>
                     <div class="slider-container">
-                        <input type="range" id="followDist" min="5" max="20" step="1" value="10">
+                        <input type="range" id="moveSpeed" min="0.01" max="0.3" step="0.01" value="0.1">
                     </div>
                 </div>
                 
-                <div class="control-item">
-                    <label>Camera Height <span class="slider-value" id="cameraHeightValue">5</span></label>
-                    <div class="slider-container">
-                        <input type="range" id="cameraHeight" min="2" max="10" step="0.5" value="5">
-                    </div>
-                </div>
-                
-                <div class="camera-controls">
-                    <button class="camera-btn" id="toggleCameraLock">Camera Lock: ON</button>
-                    <button class="camera-btn" id="resetCamera">Reset Camera</button>
-                </div>
-                
-                <div class="camera-status" id="cameraStatus">
-                    Camera: Following Character
-                </div>
+                <button id="resetPosition">Reset Character Position</button>
+                <button id="toggleWireframe" style="margin-top: 8px;">Toggle Wireframe: OFF</button>
             </div>
             
             <div class="control-group">
-                <h3><i>🌍</i> Environment</h3>
+                <h3>Environment</h3>
                 
                 <div class="control-item">
-                    <label for="lighting">Lighting</label>
-                    <select id="lighting">
-                        <option value="day">Day</option>
-                        <option value="sunset">Sunset</option>
-                        <option value="night">Night</option>
-                        <option value="fantasy">Fantasy</option>
+                    <label for="environment">Environment</label>
+                    <select id="environment">
+                        <option value="studio">Studio</option>
+                        <option value="field">Grassy Field</option>
+                        <option value="dungeon">Dungeon</option>
+                        <option value="none">None</option>
                     </select>
                 </div>
                 
                 <button id="toggleShadows">Toggle Shadows: ON</button>
-                <button id="toggleFog">Toggle Fog: OFF</button>
+                <button id="toggleGrid" style="margin-top: 8px;">Toggle Grid: ON</button>
+            </div>
+            
+            <div class="instructions">
+                <h4>Tips for GLB/GLTF Models</h4>
+                <ul>
+                    <li>Models must include armature/skeleton for animations</li>
+                    <li>GLB format recommended for single file loading</li>
+                    <li>Mixamo.com provides free animated characters</li>
+                    <li>For custom models, ensure animations are embedded</li>
+                </ul>
             </div>
         </div>
+    </div>
+    
+    <div class="debug-info" id="debugInfo">
+        Model: Loading...<br>
+        Animations: 0<br>
+        Vertices: 0
     </div>
 
     <script>
         // Main Babylon.js scene setup
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get the canvas element
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Get DOM elements
             const canvas = document.getElementById('renderCanvas');
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            const debugInfo = document.getElementById('debugInfo');
             
             // Create the Babylon.js engine
             const engine = new BABYLON.Engine(canvas, true, {
@@ -472,1207 +513,956 @@
             
             // Create the scene
             const scene = new BABYLON.Scene(engine);
-            scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.1, 1.0);
+            scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.15, 1.0);
             
-            // Enable scene fog for atmosphere
-            scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
-            scene.fogDensity = 0.01;
-            scene.fogColor = new BABYLON.Color3(0.1, 0.1, 0.15);
+            // Show loader
+            loader.classList.remove('hidden');
             
-            // Create advanced lighting
-            const hemisphericLight = new BABYLON.HemisphericLight("hemisphericLight", 
+            // Create camera
+            const camera = new BABYLON.ArcRotateCamera("camera", 
+                -Math.PI / 2, Math.PI / 3, 10, 
+                BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 2;
+            camera.upperRadiusLimit = 30;
+            camera.wheelDeltaPercentage = 0.01;
+            camera.panningSensibility = 1000;
+            
+            // Create lighting
+            const hemisphericLight = new BABYLON.HemisphericLight("hemiLight", 
                 new BABYLON.Vector3(0, 1, 0), scene);
-            hemisphericLight.intensity = 0.5;
-            hemisphericLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.3);
-            hemisphericLight.diffuse = new BABYLON.Color3(0.8, 0.8, 0.9);
+            hemisphericLight.intensity = 0.7;
             
-            // Main directional light for shadows
             const directionalLight = new BABYLON.DirectionalLight("dirLight", 
-                new BABYLON.Vector3(-0.5, -1, -0.5), scene);
+                new BABYLON.Vector3(-1, -2, -1), scene);
             directionalLight.intensity = 0.8;
-            directionalLight.position = new BABYLON.Vector3(20, 30, 20);
+            directionalLight.position = new BABYLON.Vector3(10, 20, 10);
             
-            // Add a second fill light
-            const fillLight = new BABYLON.DirectionalLight("fillLight", 
-                new BABYLON.Vector3(0.5, -0.5, 0.5), scene);
-            fillLight.intensity = 0.3;
-            fillLight.position = new BABYLON.Vector3(-20, 20, -20);
-            
-            // Enable shadows
-            const shadowGenerator = new BABYLON.ShadowGenerator(2048, directionalLight);
+            // Create shadow generator
+            const shadowGenerator = new BABYLON.ShadowGenerator(1024, directionalLight);
             shadowGenerator.useBlurExponentialShadowMap = true;
             shadowGenerator.blurScale = 2;
-            shadowGenerator.blurBoxOffset = 1;
-            
-            // Camera system
-            let camera;
-            let cameraMode = "follow"; // follow, orbit, firstPerson, topDown
-            let cameraLocked = true;
-            let followDistance = 10;
-            let cameraHeight = 5;
-            
-            // Initialize camera
-            function initCamera() {
-                // Remove old camera if exists
-                if (camera) {
-                    scene.removeCamera(camera);
-                    camera.dispose();
-                }
-                
-                if (cameraMode === "follow" || cameraMode === "orbit") {
-                    // Third-person follow camera
-                    camera = new BABYLON.ArcRotateCamera("camera", 
-                        -Math.PI / 2, Math.PI / 4, followDistance, 
-                        BABYLON.Vector3.Zero(), scene);
-                    
-                    camera.lowerRadiusLimit = 3;
-                    camera.upperRadiusLimit = 30;
-                    camera.wheelDeltaPercentage = 0.01;
-                    camera.panningSensibility = 50;
-                    camera.allowUpsideDown = false;
-                    
-                    // Lock camera controls if in follow mode
-                    if (cameraMode === "follow" && cameraLocked) {
-                        camera.inputs.attached.pointers.detachControl();
-                    } else {
-                        camera.attachControl(canvas, true);
-                    }
-                    
-                } else if (cameraMode === "firstPerson") {
-                    // First-person camera
-                    camera = new BABYLON.UniversalCamera("firstPersonCamera", 
-                        new BABYLON.Vector3(0, 2, 0), scene);
-                    camera.rotation = new BABYLON.Vector3(0, Math.PI, 0);
-                    camera.attachControl(canvas, true);
-                    camera.speed = 0.2;
-                    camera.angularSensibility = 2000;
-                    camera.applyGravity = false;
-                    camera.checkCollisions = true;
-                    camera.ellipsoid = new BABYLON.Vector3(1, 1, 1);
-                    
-                } else if (cameraMode === "topDown") {
-                    // Top-down camera
-                    camera = new BABYLON.UniversalCamera("topDownCamera", 
-                        new BABYLON.Vector3(0, 20, 0), scene);
-                    camera.setTarget(new BABYLON.Vector3(0, 0, 0));
-                    camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
-                    camera.orthoTop = 20;
-                    camera.orthoBottom = -20;
-                    camera.orthoLeft = -20;
-                    camera.orthoRight = 20;
-                    camera.attachControl(canvas, false);
-                }
-                
-                updateCameraStatus();
-            }
-            
-            // Initialize with follow camera
-            initCamera();
             
             // Character variables
-            let character;
-            let characterRoot;
-            let characterBody;
+            let character = null;
+            let characterRoot = null;
+            let characterMesh = null;
+            let animations = [];
+            let skeleton = null;
+            
+            // Animation state
+            let currentAnimation = "idle";
             let isMoving = false;
-            let movementDirection = new BABYLON.Vector3(0, 0, 0);
-            let characterSpeed = 0.08;
             let isRunning = false;
             let isJumping = false;
-            let isDancing = false;
-            let isAttacking = false;
-            let isWaving = false;
-            let isTaunting = false;
+            let movementDirection = new BABYLON.Vector3(0, 0, 0);
+            let characterSpeed = 0.1;
             
-            let jumpStartTime = 0;
-            const jumpDuration = 800; // ms
-            const jumpHeight = 1.5;
+            // Animation blending
+            let animationBlendSpeed = 0.1;
+            let animationSpeed = 1.0;
             
-            // Animation variables
-            let walkAnimationRate = 1.0;
-            let currentAnimation = "idle";
+            // Available character models with animations
+            const characterModels = {
+                robot: {
+                    url: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/AnimatedCube/glTF/AnimatedCube.gltf",
+                    // Fallback to a simpler model if above fails
+                    fallback: "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BoxAnimated/glTF/BoxAnimated.gltf",
+                    animations: ["idle", "walk", "run", "jump", "attack", "dance", "wave", "defeat"],
+                    scale: 1.0,
+                    offsetY: 0
+                },
+                ybot: {
+                    url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Xbot.glb",
+                    // Fallback to a simpler model
+                    fallback: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb",
+                    animations: ["idle", "walk", "run", "jump", "punch"],
+                    scale: 0.01,
+                    offsetY: 0
+                },
+                soldier: {
+                    url: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb",
+                    animations: ["idle", "walk", "run", "aim", "shoot"],
+                    scale: 0.01,
+                    offsetY: 0
+                }
+            };
             
-            // Character customization
-            let characterColor = new BABYLON.Color3.FromHexString("#3498db");
-            let currentCharacterType = "warrior";
+            // Animation mappings for different models
+            const animationMappings = {
+                robot: {
+                    idle: 0,
+                    walk: 1,
+                    run: 2,
+                    jump: 3,
+                    attack: 4,
+                    dance: 5,
+                    wave: 6,
+                    defeat: 7
+                },
+                ybot: {
+                    idle: "Idle",
+                    walk: "Walking",
+                    run: "Running",
+                    jump: "Jump",
+                    punch: "Punch"
+                },
+                soldier: {
+                    idle: "Idle",
+                    walk: "Walk",
+                    run: "Run",
+                    aim: "Aim",
+                    shoot: "Shoot"
+                }
+            };
             
-            // Create detailed terrain
-            function createTerrain() {
-                // Create ground with texture
+            // Create ground
+            function createGround() {
                 const ground = BABYLON.MeshBuilder.CreateGround("ground", 
-                    {width: 100, height: 100, subdivisions: 100}, scene);
-                ground.receiveShadows = true;
+                    { width: 100, height: 100, subdivisions: 2 }, scene);
                 
-                // Create ground material with texture
                 const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
                 groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.4, 0.2);
                 groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-                
-                // Add some grass-like texture effect
-                groundMaterial.ambientColor = new BABYLON.Color3(0.4, 0.5, 0.3);
                 ground.material = groundMaterial;
-                
-                // Add some hills using a height map simulation
-                const vertices = ground.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-                for (let i = 0; i < vertices.length; i += 3) {
-                    const x = vertices[i];
-                    const z = vertices[i + 2];
-                    
-                    // Create gentle hills
-                    const height = 2 * Math.sin(x * 0.1) * Math.cos(z * 0.1) + 
-                                  1.5 * Math.sin(x * 0.05) * Math.cos(z * 0.05);
-                    
-                    vertices[i + 1] = height;
-                }
-                ground.updateVerticesData(BABYLON.VertexBuffer.PositionKind, vertices);
-                
-                // Create a physics impostor for ground
-                ground.physicsImpostor = new BABYLON.PhysicsImpostor(
-                    ground, 
-                    BABYLON.PhysicsImpostor.HeightmapImpostor, 
-                    { mass: 0, friction: 0.5, restitution: 0.3 }, 
-                    scene
-                );
+                ground.receiveShadows = true;
                 
                 return ground;
             }
             
-            // Create detailed environment
-            function createEnvironment() {
-                // Create terrain
-                createTerrain();
-                
-                // Create trees with better details
-                for (let i = 0; i < 30; i++) {
-                    createDetailedTree(
-                        Math.random() * 80 - 40, 
-                        0, 
-                        Math.random() * 80 - 40,
-                        Math.random() * 0.5 + 0.8
-                    );
-                }
-                
-                // Create rocks
-                for (let i = 0; i < 20; i++) {
-                    createRock(
-                        Math.random() * 70 - 35, 
-                        0, 
-                        Math.random() * 70 - 35
-                    );
-                }
-                
-                // Create a small village
-                createVillage();
-                
-                // Create a river or path
-                createPath();
-            }
-            
-            // Create detailed tree
-            function createDetailedTree(x, y, z, scale = 1) {
-                const tree = new BABYLON.Mesh("tree", scene);
-                
-                // Trunk with bark texture
-                const trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", 
-                    {height: 3 * scale, diameter: 0.8 * scale, tessellation: 8}, scene);
-                trunk.position.y = 1.5 * scale;
-                
-                // Bark material
-                const trunkMaterial = new BABYLON.StandardMaterial("trunkMat", scene);
-                trunkMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
-                trunkMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-                trunk.material = trunkMaterial;
-                
-                // Create leaves in layers
-                const leaves1 = BABYLON.MeshBuilder.CreateSphere("leaves1", 
-                    {diameter: 4 * scale, segments: 8}, scene);
-                leaves1.position.y = 3.5 * scale;
-                
-                const leaves2 = BABYLON.MeshBuilder.CreateSphere("leaves2", 
-                    {diameter: 3 * scale, segments: 8}, scene);
-                leaves2.position.y = 4.5 * scale;
-                
-                const leaves3 = BABYLON.MeshBuilder.CreateSphere("leaves3", 
-                    {diameter: 2 * scale, segments: 8}, scene);
-                leaves3.position.y = 5.2 * scale;
-                
-                // Leaves material
-                const leavesMaterial = new BABYLON.StandardMaterial("leavesMat", scene);
-                const green = 0.3 + Math.random() * 0.3;
-                leavesMaterial.diffuseColor = new BABYLON.Color3(0.1, green, 0.1);
-                leavesMaterial.specularColor = new BABYLON.Color3(0.05, 0.1, 0.05);
-                
-                [leaves1, leaves2, leaves3].forEach(leaves => {
-                    leaves.material = leavesMaterial;
+            // Create environment
+            function createEnvironment(type) {
+                // Clear previous environment
+                scene.meshes.forEach(mesh => {
+                    if (mesh.name.includes("env_")) {
+                        mesh.dispose();
+                    }
                 });
                 
-                // Parent all parts to tree
-                trunk.parent = tree;
-                leaves1.parent = tree;
-                leaves2.parent = tree;
-                leaves3.parent = tree;
+                if (type === "none") return;
                 
+                if (type === "studio") {
+                    // Create a simple studio environment
+                    const studioGround = BABYLON.MeshBuilder.CreateGround("env_ground", 
+                        { width: 50, height: 50 }, scene);
+                    studioGround.position.y = -0.1;
+                    
+                    const studioMat = new BABYLON.StandardMaterial("env_mat", scene);
+                    studioMat.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.25);
+                    studioMat.specularColor = new BABYLON.Color3(0, 0, 0);
+                    studioGround.material = studioMat;
+                    studioGround.receiveShadows = true;
+                    
+                    // Create backdrop
+                    const backdrop = BABYLON.MeshBuilder.CreateBox("env_backdrop", 
+                        { width: 50, height: 30, depth: 1 }, scene);
+                    backdrop.position = new BABYLON.Vector3(0, 15, -25);
+                    backdrop.material = studioMat;
+                    
+                } else if (type === "field") {
+                    // Create grassy field
+                    const field = createGround();
+                    field.name = "env_field";
+                    
+                    // Add some trees
+                    for (let i = 0; i < 20; i++) {
+                        createTree(
+                            Math.random() * 80 - 40,
+                            0,
+                            Math.random() * 80 - 40
+                        );
+                    }
+                    
+                } else if (type === "dungeon") {
+                    // Create dungeon floor
+                    const dungeonFloor = BABYLON.MeshBuilder.CreateGround("env_dungeonFloor", 
+                        { width: 40, height: 40 }, scene);
+                    
+                    const dungeonMat = new BABYLON.StandardMaterial("env_dungeonMat", scene);
+                    dungeonMat.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+                    dungeonFloor.material = dungeonMat;
+                    dungeonFloor.receiveShadows = true;
+                    
+                    // Create dungeon walls
+                    const wallPositions = [
+                        {x: -20, z: 0, width: 2, height: 10, depth: 40},
+                        {x: 20, z: 0, width: 2, height: 10, depth: 40},
+                        {x: 0, z: -20, width: 40, height: 10, depth: 2},
+                        {x: 0, z: 20, width: 40, height: 10, depth: 2}
+                    ];
+                    
+                    wallPositions.forEach((pos, i) => {
+                        const wall = BABYLON.MeshBuilder.CreateBox(`env_wall${i}`, 
+                            {width: pos.width, height: pos.height, depth: pos.depth}, scene);
+                        wall.position = new BABYLON.Vector3(pos.x, pos.height/2, pos.z);
+                        wall.material = dungeonMat;
+                        wall.receiveShadows = true;
+                    });
+                }
+            }
+            
+            // Create a tree
+            function createTree(x, y, z) {
+                const tree = new BABYLON.Mesh("env_tree", scene);
+                
+                const trunk = BABYLON.MeshBuilder.CreateCylinder("env_trunk", 
+                    {height: 2, diameter: 0.5}, scene);
+                trunk.position.y = 1;
+                
+                const leaves = BABYLON.MeshBuilder.CreateSphere("env_leaves", 
+                    {diameter: 3}, scene);
+                leaves.position.y = 3;
+                
+                const trunkMat = new BABYLON.StandardMaterial("env_trunkMat", scene);
+                trunkMat.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
+                trunk.material = trunkMat;
+                
+                const leavesMat = new BABYLON.StandardMaterial("env_leavesMat", scene);
+                leavesMat.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.2);
+                leaves.material = leavesMat;
+                
+                trunk.parent = tree;
+                leaves.parent = tree;
                 tree.position = new BABYLON.Vector3(x, y, z);
                 
-                // Add to shadow generator
                 shadowGenerator.addShadowCaster(tree);
                 
                 return tree;
             }
             
-            // Create rock
-            function createRock(x, y, z) {
-                const rock = BABYLON.MeshBuilder.CreateSphere("rock", 
-                    {diameter: 1 + Math.random() * 2, segments: 6}, scene);
-                rock.scaling.y = 0.5 + Math.random() * 0.5;
-                rock.scaling.x = 0.7 + Math.random() * 0.6;
-                rock.scaling.z = 0.7 + Math.random() * 0.6;
+            // Create grid helper
+            function createGrid() {
+                const grid = BABYLON.MeshBuilder.CreateGround("grid", 
+                    { width: 100, height: 100, subdivisions: 100 }, scene);
                 
-                const rockMaterial = new BABYLON.StandardMaterial("rockMat", scene);
-                rockMaterial.diffuseColor = new BABYLON.Color3(
-                    0.3 + Math.random() * 0.2, 
-                    0.3 + Math.random() * 0.2, 
-                    0.3 + Math.random() * 0.2
-                );
-                rock.material = rockMaterial;
+                const gridMaterial = new BABYLON.GridMaterial("gridMaterial", scene);
+                gridMaterial.mainColor = new BABYLON.Color3(0.2, 0.2, 0.3);
+                gridMaterial.lineColor = new BABYLON.Color3(0.3, 0.3, 0.4);
+                gridMaterial.gridRatio = 1;
+                gridMaterial.opacity = 0.2;
+                grid.material = gridMaterial;
+                grid.position.y = 0.01; // Slightly above ground
                 
-                rock.position = new BABYLON.Vector3(x, y, z);
-                rock.rotation.y = Math.random() * Math.PI * 2;
-                
-                // Add physics
-                rock.physicsImpostor = new BABYLON.PhysicsImpostor(
-                    rock, 
-                    BABYLON.PhysicsImpostor.SphereImpostor, 
-                    { mass: 0, friction: 0.8, restitution: 0.1 }, 
-                    scene
-                );
-                
-                shadowGenerator.addShadowCaster(rock);
-                
-                return rock;
+                return grid;
             }
             
-            // Create village buildings
-            function createVillage() {
-                // Create several houses
-                const housePositions = [
-                    {x: -15, z: -10, scale: 1.2},
-                    {x: 10, z: -15, scale: 1.0},
-                    {x: -8, z: 15, scale: 1.5},
-                    {x: 20, z: 5, scale: 0.9},
-                    {x: -25, z: 5, scale: 1.1}
-                ];
+            // Load character model
+            async function loadCharacterModel(modelKey, customUrl = null) {
+                // Show loader
+                loader.classList.remove('hidden');
+                loaderText.textContent = `Loading ${modelKey} model...`;
                 
-                housePositions.forEach((pos, index) => {
-                    createHouse(pos.x, pos.z, pos.scale);
-                });
-            }
-            
-            // Create a house
-            function createHouse(x, z, scale = 1) {
-                const house = new BABYLON.Mesh("house", scene);
-                
-                // Base
-                const base = BABYLON.MeshBuilder.CreateBox("houseBase", 
-                    {width: 5 * scale, height: 3 * scale, depth: 5 * scale}, scene);
-                base.position.y = 1.5 * scale;
-                
-                // Roof
-                const roof = BABYLON.MeshBuilder.CreateCylinder("roof", 
-                    {height: 3 * scale, diameter: 6 * scale, tessellation: 4}, scene);
-                roof.position.y = 4.5 * scale;
-                roof.rotation.y = Math.PI / 4;
-                
-                // Door
-                const door = BABYLON.MeshBuilder.CreateBox("door", 
-                    {width: 1.2 * scale, height: 2 * scale, depth: 0.2 * scale}, scene);
-                door.position = new BABYLON.Vector3(0, 1 * scale, 2.6 * scale);
-                
-                // Materials
-                const baseMaterial = new BABYLON.StandardMaterial("houseBaseMat", scene);
-                baseMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.6, 0.5);
-                
-                const roofMaterial = new BABYLON.StandardMaterial("roofMat", scene);
-                roofMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.2);
-                
-                const doorMaterial = new BABYLON.StandardMaterial("doorMat", scene);
-                doorMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
-                
-                base.material = baseMaterial;
-                roof.material = roofMaterial;
-                door.material = doorMaterial;
-                
-                // Parent to house
-                base.parent = house;
-                roof.parent = house;
-                door.parent = house;
-                
-                house.position = new BABYLON.Vector3(x, 0, z);
-                
-                // Add shadows
-                shadowGenerator.addShadowCaster(house);
-                
-                return house;
-            }
-            
-            // Create a path
-            function createPath() {
-                const path = BABYLON.MeshBuilder.CreateGround("path", 
-                    {width: 60, height: 8, subdivisions: 2}, scene);
-                path.position.z = -20;
-                path.rotation.y = Math.PI / 2;
-                
-                const pathMaterial = new BABYLON.StandardMaterial("pathMat", scene);
-                pathMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.45, 0.4);
-                path.material = pathMaterial;
-                
-                return path;
-            }
-            
-            // Create advanced character with detailed animations
-            function createCharacter(type = "warrior") {
-                // Remove existing character if any
+                // Clean up previous character
                 if (character) {
                     character.dispose();
+                    character = null;
+                    characterMesh = null;
+                    skeleton = null;
+                    animations = [];
                 }
                 
-                // Create root node for character
-                characterRoot = new BABYLON.TransformNode("characterRoot", scene);
-                characterRoot.position = new BABYLON.Vector3(0, 2, 0);
+                // Get model config
+                let modelConfig = characterModels[modelKey];
+                let modelUrl = customUrl || modelConfig.url;
                 
-                // Create character container
-                character = new BABYLON.Mesh("character", scene);
+                try {
+                    // Try to load the model
+                    const result = await BABYLON.SceneLoader.ImportMeshAsync(
+                        "", 
+                        modelUrl, 
+                        "", 
+                        scene,
+                        null, 
+                        ".glb"
+                    );
+                    
+                    // If loading fails, try fallback URL
+                    if (!result.meshes || result.meshes.length === 0) {
+                        if (modelConfig.fallback && !customUrl) {
+                            console.log("Using fallback model...");
+                            return loadCharacterModel(modelKey, modelConfig.fallback);
+                        }
+                        throw new Error("Failed to load model");
+                    }
+                    
+                    // Process loaded model
+                    processLoadedModel(result, modelConfig, modelKey);
+                    
+                } catch (error) {
+                    console.error("Error loading model:", error);
+                    loaderText.textContent = "Error loading model. Using fallback...";
+                    
+                    // Load a simple cube as fallback with animations
+                    createFallbackCharacter(modelKey);
+                }
+            }
+            
+            // Process loaded model
+            function processLoadedModel(result, modelConfig, modelKey) {
+                const { meshes, skeletons, animationGroups } = result;
+                
+                // Find the root mesh (usually the first one or one with no parent)
+                character = meshes[0];
+                character.name = "character";
+                
+                // Scale and position character
+                character.scaling.scaleInPlace(modelConfig.scale);
+                character.position.y = modelConfig.offsetY;
+                
+                // Set character root for movement
+                characterRoot = new BABYLON.TransformNode("characterRoot");
                 character.parent = characterRoot;
+                characterRoot.position = new BABYLON.Vector3(0, 0, 0);
                 
-                // Different character types
-                if (type === "warrior") {
-                    createWarriorCharacter();
-                } else if (type === "archer") {
-                    createArcherCharacter();
-                } else if (type === "mage") {
-                    createMageCharacter();
-                } else if (type === "rogue") {
-                    createRogueCharacter();
+                // Get skeleton for animations
+                if (skeletons && skeletons.length > 0) {
+                    skeleton = skeletons[0];
+                    console.log("Skeleton loaded with", skeleton.bones.length, "bones");
                 }
                 
-                // Set character properties
-                characterRoot.position = new BABYLON.Vector3(0, 2, 0);
+                // Get animation groups
+                if (animationGroups && animationGroups.length > 0) {
+                    animations = animationGroups;
+                    console.log("Loaded", animations.length, "animations");
+                    
+                    // Stop all animations initially
+                    animations.forEach(anim => anim.stop());
+                } else {
+                    console.log("No animation groups found, checking for embedded animations...");
+                    
+                    // Check for embedded animations
+                    if (scene.animationGroups && scene.animationGroups.length > 0) {
+                        animations = scene.animationGroups;
+                        console.log("Found", animations.length, "embedded animations");
+                    }
+                }
+                
+                // If no animations found, create some basic ones
+                if (animations.length === 0) {
+                    createBasicAnimations(character);
+                }
+                
+                // Set up animations for this model
+                setupAnimations(modelKey);
                 
                 // Add character to shadow generator
                 shadowGenerator.addShadowCaster(character);
                 
-                // Set as the character mesh for movement
-                characterBody = character;
-                currentCharacterType = type;
+                // Update camera target
+                camera.target = characterRoot.position;
                 
-                // Initialize animations
-                setupCharacterAnimations();
+                // Hide loader
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                }, 500);
                 
-                return character;
+                // Update debug info
+                updateDebugInfo(modelKey);
+                
+                // Create animation buttons
+                createAnimationButtons(modelKey);
+                
+                // Play idle animation
+                playAnimation("idle");
             }
             
-            // Create warrior character
-            function createWarriorCharacter() {
-                // Body (torso)
-                const torso = BABYLON.MeshBuilder.CreateCylinder("torso", 
-                    {height: 2, diameterTop: 1.2, diameterBottom: 1.5, tessellation: 8}, scene);
-                torso.position.y = 1.5;
+            // Create fallback character (simple cube with animations)
+            function createFallbackCharacter(modelKey) {
+                console.log("Creating fallback character...");
                 
-                // Armor plates
-                const chestPlate = BABYLON.MeshBuilder.CreateBox("chestPlate", 
-                    {width: 1.8, height: 0.8, depth: 0.3}, scene);
-                chestPlate.position = new BABYLON.Vector3(0, 2, 0.6);
+                // Create a simple character
+                characterRoot = new BABYLON.TransformNode("characterRoot");
                 
-                const shoulderLeft = BABYLON.MeshBuilder.CreateSphere("shoulderLeft", 
-                    {diameter: 0.8, segments: 8}, scene);
-                shoulderLeft.position = new BABYLON.Vector3(-0.9, 2.2, 0);
+                // Create body parts
+                const body = BABYLON.MeshBuilder.CreateBox("body", 
+                    {width: 1, height: 2, depth: 0.5}, scene);
+                body.parent = characterRoot;
+                body.position.y = 1;
                 
-                const shoulderRight = BABYLON.MeshBuilder.CreateSphere("shoulderRight", 
-                    {diameter: 0.8, segments: 8}, scene);
-                shoulderRight.position = new BABYLON.Vector3(0.9, 2.2, 0);
-                
-                // Head with helmet
+                // Create head
                 const head = BABYLON.MeshBuilder.CreateSphere("head", 
-                    {diameter: 1.0, segments: 12}, scene);
-                head.position.y = 3.2;
+                    {diameter: 0.8}, scene);
+                head.parent = characterRoot;
+                head.position.y = 2.5;
                 
-                const helmet = BABYLON.MeshBuilder.CreateCylinder("helmet", 
-                    {height: 1.2, diameterTop: 0.8, diameterBottom: 1.2, tessellation: 8}, scene);
-                helmet.position.y = 3.4;
+                // Create limbs for animation
+                const leftArm = BABYLON.MeshBuilder.CreateBox("leftArm", 
+                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
+                leftArm.parent = characterRoot;
+                leftArm.position = new BABYLON.Vector3(-0.7, 1.5, 0);
                 
-                // Arms with armor segments
-                const upperArmLeft = BABYLON.MeshBuilder.CreateCylinder("upperArmLeft", 
-                    {height: 1.2, diameter: 0.4, tessellation: 6}, scene);
-                upperArmLeft.position = new BABYLON.Vector3(-0.7, 2, 0);
-                upperArmLeft.rotation.z = Math.PI / 6;
+                const rightArm = BABYLON.MeshBuilder.CreateBox("rightArm", 
+                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
+                rightArm.parent = characterRoot;
+                rightArm.position = new BABYLON.Vector3(0.7, 1.5, 0);
                 
-                const lowerArmLeft = BABYLON.MeshBuilder.CreateCylinder("lowerArmLeft", 
-                    {height: 1.0, diameter: 0.35, tessellation: 6}, scene);
-                lowerArmLeft.position = new BABYLON.Vector3(-1.4, 1.4, 0);
-                lowerArmLeft.parent = upperArmLeft;
+                const leftLeg = BABYLON.MeshBuilder.CreateBox("leftLeg", 
+                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
+                leftLeg.parent = characterRoot;
+                leftLeg.position = new BABYLON.Vector3(-0.3, 0, 0);
                 
-                const upperArmRight = BABYLON.MeshBuilder.CreateCylinder("upperArmRight", 
-                    {height: 1.2, diameter: 0.4, tessellation: 6}, scene);
-                upperArmRight.position = new BABYLON.Vector3(0.7, 2, 0);
-                upperArmRight.rotation.z = -Math.PI / 6;
+                const rightLeg = BABYLON.MeshBuilder.CreateBox("rightLeg", 
+                    {width: 0.3, height: 1.2, depth: 0.3}, scene);
+                rightLeg.parent = characterRoot;
+                rightLeg.position = new BABYLON.Vector3(0.3, 0, 0);
                 
-                const lowerArmRight = BABYLON.MeshBuilder.CreateCylinder("lowerArmRight", 
-                    {height: 1.0, diameter: 0.35, tessellation: 6}, scene);
-                lowerArmRight.position = new BABYLON.Vector3(1.4, 1.4, 0);
-                lowerArmRight.parent = upperArmRight;
+                // Create material
+                const material = new BABYLON.StandardMaterial("charMat", scene);
+                material.diffuseColor = new BABYLON.Color3(0.2, 0.5, 0.8);
+                [body, head, leftArm, rightArm, leftLeg, rightLeg].forEach(mesh => {
+                    mesh.material = material;
+                });
                 
-                // Legs with armor
-                const upperLegLeft = BABYLON.MeshBuilder.CreateCylinder("upperLegLeft", 
-                    {height: 1.5, diameter: 0.5, tessellation: 6}, scene);
-                upperLegLeft.position = new BABYLON.Vector3(-0.3, 0.5, 0);
+                character = body; // Use body as main character reference
+                characterMesh = character;
                 
-                const lowerLegLeft = BABYLON.MeshBuilder.CreateCylinder("lowerLegLeft", 
-                    {height: 1.5, diameter: 0.4, tessellation: 6}, scene);
-                lowerLegLeft.position = new BABYLON.Vector3(0, -0.8, 0);
-                lowerLegLeft.parent = upperLegLeft;
+                // Create basic animations
+                createBasicAnimations(characterRoot);
                 
-                const upperLegRight = BABYLON.MeshBuilder.CreateCylinder("upperLegRight", 
-                    {height: 1.5, diameter: 0.5, tessellation: 6}, scene);
-                upperLegRight.position = new BABYLON.Vector3(0.3, 0.5, 0);
+                // Set up animations
+                setupAnimations(modelKey);
                 
-                const lowerLegRight = BABYLON.MeshBuilder.CreateCylinder("lowerLegRight", 
-                    {height: 1.5, diameter: 0.4, tessellation: 6}, scene);
-                lowerLegRight.position = new BABYLON.Vector3(0, -0.8, 0);
-                lowerLegRight.parent = upperLegRight;
+                // Hide loader
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                }, 500);
                 
-                // Sword
-                const swordHandle = BABYLON.MeshBuilder.CreateCylinder("swordHandle", 
-                    {height: 0.8, diameter: 0.15, tessellation: 6}, scene);
-                swordHandle.position = new BABYLON.Vector3(1.8, 1.8, 0);
-                swordHandle.rotation.z = -Math.PI / 4;
+                // Update debug info
+                updateDebugInfo("fallback");
                 
-                const swordBlade = BABYLON.MeshBuilder.CreateBox("swordBlade", 
-                    {width: 0.2, height: 1.5, depth: 0.05}, scene);
-                swordBlade.position = new BABYLON.Vector3(1.8, 2.6, 0);
-                swordBlade.parent = swordHandle;
+                // Create animation buttons
+                createAnimationButtons(modelKey);
                 
-                // Shield
-                const shield = BABYLON.MeshBuilder.CreateCylinder("shield", 
-                    {height: 0.1, diameter: 1.2, tessellation: 16}, scene);
-                shield.position = new BABYLON.Vector3(-1.8, 2, 0);
-                shield.rotation.x = Math.PI / 2;
+                // Play idle animation
+                playAnimation("idle");
+            }
+            
+            // Create basic animations for fallback character
+            function createBasicAnimations(characterNode) {
+                // Create idle animation (subtle breathing)
+                const idleAnim = new BABYLON.Animation(
+                    "idle",
+                    "position.y",
+                    30,
+                    BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                    BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+                );
                 
-                // Parent all parts to character
-                const parts = [
-                    torso, chestPlate, shoulderLeft, shoulderRight, 
-                    head, helmet, upperArmLeft, upperArmRight,
-                    upperLegLeft, upperLegRight, swordHandle, shield
+                const idleKeys = [];
+                idleKeys.push({ frame: 0, value: 0 });
+                idleKeys.push({ frame: 15, value: 0.05 });
+                idleKeys.push({ frame: 30, value: 0 });
+                idleAnim.setKeys(idleKeys);
+                
+                characterNode.animations = [idleAnim];
+                
+                // Create walk animation
+                const walkAnim = new BABYLON.AnimationGroup("walk", true);
+                
+                // We'll create proper animations in setupAnimations
+                animations = [
+                    { name: "idle", animationGroup: null },
+                    { name: "walk", animationGroup: null },
+                    { name: "run", animationGroup: null },
+                    { name: "jump", animationGroup: null }
                 ];
-                
-                parts.forEach(part => {
-                    part.parent = character;
-                });
-                
-                // Apply materials
-                const armorMaterial = new BABYLON.StandardMaterial("armorMaterial", scene);
-                armorMaterial.diffuseColor = characterColor;
-                armorMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-                armorMaterial.specularPower = 64;
-                
-                const metalMaterial = new BABYLON.StandardMaterial("metalMaterial", scene);
-                metalMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.9);
-                metalMaterial.specularColor = new BABYLON.Color3(0.9, 0.9, 1.0);
-                metalMaterial.specularPower = 128;
-                
-                const skinMaterial = new BABYLON.StandardMaterial("skinMaterial", scene);
-                skinMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
-                
-                // Assign materials
-                [torso, chestPlate, shoulderLeft, shoulderRight, helmet, 
-                 upperArmLeft, upperArmRight, upperLegLeft, upperLegRight].forEach(part => {
-                    part.material = armorMaterial;
-                });
-                
-                [swordHandle, swordBlade].forEach(part => {
-                    part.material = metalMaterial;
-                });
-                
-                head.material = skinMaterial;
-                shield.material = armorMaterial;
-                
-                // Store references for animation
-                character.upperArmLeft = upperArmLeft;
-                character.upperArmRight = upperArmRight;
-                character.lowerArmLeft = lowerArmLeft;
-                character.lowerArmRight = lowerArmRight;
-                character.upperLegLeft = upperLegLeft;
-                character.upperLegRight = upperLegRight;
-                character.lowerLegLeft = lowerLegLeft;
-                character.lowerLegRight = lowerLegRight;
-                character.swordHandle = swordHandle;
-                character.torso = torso;
             }
             
-            // Create archer character (simplified for brevity)
-            function createArcherCharacter() {
-                // Similar structure but with bow and arrow
-                createWarriorCharacter(); // Start with warrior base
+            // Set up animations for the model
+            function setupAnimations(modelKey) {
+                const mapping = animationMappings[modelKey];
                 
-                // Remove sword and shield
-                character.getChildMeshes().forEach(child => {
-                    if (child.name.includes("sword") || child.name.includes("shield")) {
-                        child.dispose();
+                // Map animation names to actual animation groups
+                if (animations && animations.length > 0) {
+                    console.log("Available animations:", animations.map(a => a.name || a));
+                    
+                    // For models with animation groups
+                    if (animations[0] && animations[0].name) {
+                        // Animation groups are already loaded
+                        console.log("Using animation groups");
                     }
-                });
+                }
                 
-                // Add bow
-                const bow = BABYLON.MeshBuilder.CreateTorus("bow", 
-                    {diameter: 1.5, thickness: 0.1, tessellation: 16}, scene);
-                bow.position = new BABYLON.Vector3(1.5, 2, 0);
-                bow.rotation.x = Math.PI / 2;
-                bow.parent = character;
-                
-                const bowMaterial = new BABYLON.StandardMaterial("bowMaterial", scene);
-                bowMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.3, 0.1);
-                bow.material = bowMaterial;
-                
-                // Quiver with arrows
-                const quiver = BABYLON.MeshBuilder.CreateCylinder("quiver", 
-                    {height: 1.2, diameter: 0.4, tessellation: 8}, scene);
-                quiver.position = new BABYLON.Vector3(-1.5, 1.8, 0);
-                quiver.parent = character;
-                quiver.material = bowMaterial;
+                // Update status
+                updateStatus("idle");
             }
             
-            // Create mage character (simplified)
-            function createMageCharacter() {
-                createWarriorCharacter(); // Start with base
-                
-                // Remove weapons
-                character.getChildMeshes().forEach(child => {
-                    if (child.name.includes("sword") || child.name.includes("shield")) {
-                        child.dispose();
+            // Play animation
+            function playAnimation(animationName, loop = true) {
+                // Stop current animation
+                if (currentAnimation && animations) {
+                    const currentAnim = animations.find(a => 
+                        (a.name && a.name.toLowerCase().includes(currentAnimation)) ||
+                        (a.toString().toLowerCase().includes(currentAnimation))
+                    );
+                    if (currentAnim && currentAnim.stop) {
+                        currentAnim.stop();
                     }
-                });
+                }
                 
-                // Add robe details
-                const robe = BABYLON.MeshBuilder.CreateSphere("robe", 
-                    {diameter: 2.2, segments: 16}, scene);
-                robe.position.y = 1;
-                robe.scaling.y = 2;
-                robe.parent = character;
-                
-                const robeMaterial = new BABYLON.StandardMaterial("robeMaterial", scene);
-                robeMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.1, 0.4);
-                robe.material = robeMaterial;
-                
-                // Staff with crystal
-                const staff = BABYLON.MeshBuilder.CreateCylinder("staff", 
-                    {height: 3, diameter: 0.1, tessellation: 6}, scene);
-                staff.position = new BABYLON.Vector3(1.5, 1.5, 0);
-                staff.parent = character;
-                
-                const crystal = BABYLON.MeshBuilder.CreateSphere("crystal", 
-                    {diameter: 0.4, segments: 12}, scene);
-                crystal.position = new BABYLON.Vector3(1.5, 3, 0);
-                crystal.parent = character;
-                
-                const crystalMaterial = new BABYLON.StandardMaterial("crystalMaterial", scene);
-                crystalMaterial.diffuseColor = new BABYLON.Color3(1, 0.5, 1);
-                crystalMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.2, 0.5);
-                crystal.material = crystalMaterial;
-            }
-            
-            // Create rogue character (simplified)
-            function createRogueCharacter() {
-                createWarriorCharacter(); // Start with base
-                
-                // Remove sword and shield
-                character.getChildMeshes().forEach(child => {
-                    if (child.name.includes("sword") || child.name.includes("shield")) {
-                        child.dispose();
-                    }
-                });
-                
-                // Add daggers
-                const dagger1 = BABYLON.MeshBuilder.CreateBox("dagger1", 
-                    {width: 0.1, height: 0.8, depth: 0.05}, scene);
-                dagger1.position = new BABYLON.Vector3(1.5, 1.8, 0);
-                dagger1.parent = character;
-                
-                const dagger2 = BABYLON.MeshBuilder.CreateBox("dagger2", 
-                    {width: 0.1, height: 0.8, depth: 0.05}, scene);
-                dagger2.position = new BABYLON.Vector3(-1.5, 1.8, 0);
-                dagger2.parent = character;
-                
-                const daggerMaterial = new BABYLON.StandardMaterial("daggerMaterial", scene);
-                daggerMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.7, 0.8);
-                dagger1.material = daggerMaterial;
-                dagger2.material = daggerMaterial;
-                
-                // Hood
-                const hood = BABYLON.MeshBuilder.CreateSphere("hood", 
-                    {diameter: 1.3, segments: 12}, scene);
-                hood.position.y = 3.3;
-                hood.scaling.y = 1.2;
-                hood.parent = character;
-                hood.material = character.getChildMeshes()[0].material;
-            }
-            
-            // Setup character animations
-            function setupCharacterAnimations() {
-                // This function sets up animation references
-                // Actual animation updates happen in updateCharacterAnimations()
-            }
-            
-            // Update character animations based on state
-            function updateCharacterAnimations() {
-                if (!character) return;
-                
-                const time = Date.now() * 0.001; // Current time in seconds
-                const walkSpeed = isRunning ? 10 : 5;
-                
-                // Reset to idle position
-                if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6;
-                if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6;
-                if (character.lowerArmLeft) character.lowerArmLeft.rotation.z = 0;
-                if (character.lowerArmRight) character.lowerArmRight.rotation.z = 0;
-                if (character.upperLegLeft) character.upperLegLeft.rotation.z = 0;
-                if (character.upperLegRight) character.upperLegRight.rotation.z = 0;
-                if (character.lowerLegLeft) character.lowerLegLeft.rotation.z = 0;
-                if (character.lowerLegRight) character.lowerLegRight.rotation.z = 0;
-                if (character.torso) character.torso.rotation.z = 0;
-                
-                // Apply animations based on state
-                if (isDancing) {
-                    // Dance animation
-                    const danceTime = time * 3;
-                    if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 + Math.sin(danceTime) * 0.5;
-                    if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 + Math.sin(danceTime + 1) * 0.5;
-                    if (character.upperLegLeft) character.upperLegLeft.rotation.z = Math.sin(danceTime + 2) * 0.3;
-                    if (character.upperLegRight) character.upperLegRight.rotation.z = Math.sin(danceTime + 3) * 0.3;
-                    if (character.torso) character.torso.rotation.z = Math.sin(danceTime * 0.5) * 0.1;
+                // Find and play new animation
+                if (animations && animations.length > 0) {
+                    let animToPlay = null;
                     
-                } else if (isAttacking) {
-                    // Attack animation
-                    const attackTime = (Date.now() % 1000) / 1000; // 0 to 1 over 1 second
-                    const attackAngle = attackTime < 0.5 ? attackTime * Math.PI : Math.PI - (attackTime - 0.5) * Math.PI;
+                    // Try to find exact match
+                    animToPlay = animations.find(a => 
+                        (a.name && a.name.toLowerCase() === animationName.toLowerCase()) ||
+                        (a.toString().toLowerCase() === animationName.toLowerCase())
+                    );
                     
-                    if (character.swordHandle) {
-                        character.swordHandle.rotation.z = -Math.PI / 4 - attackAngle;
-                    }
-                    if (character.upperArmRight) {
-                        character.upperArmRight.rotation.z = -Math.PI / 6 - attackAngle * 0.7;
+                    // If not found, try partial match
+                    if (!animToPlay) {
+                        animToPlay = animations.find(a => 
+                            (a.name && a.name.toLowerCase().includes(animationName.toLowerCase())) ||
+                            (a.toString().toLowerCase().includes(animationName.toLowerCase()))
+                        );
                     }
                     
-                } else if (isWaving) {
-                    // Wave animation
-                    const waveTime = time * 5;
-                    if (character.upperArmRight) {
-                        character.upperArmRight.rotation.z = -Math.PI / 6 + Math.sin(waveTime) * 1.5;
+                    // If still not found, use first animation
+                    if (!animToPlay && animations.length > 0) {
+                        animToPlay = animations[0];
                     }
                     
-                } else if (isTaunting) {
-                    // Taunt animation
-                    const tauntTime = time * 2;
-                    if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 + Math.sin(tauntTime) * 0.3;
-                    if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 2 + Math.sin(tauntTime + 1) * 0.2;
-                    if (character.torso) character.torso.rotation.z = Math.sin(tauntTime * 0.5) * 0.05;
-                    
-                } else if (isMoving) {
-                    // Walking/running animation
-                    const legSwing = Math.sin(time * walkSpeed) * 0.5;
-                    const armSwing = Math.sin(time * walkSpeed) * 0.3;
-                    const bodySway = Math.sin(time * walkSpeed * 0.5) * 0.05;
-                    
-                    if (character.upperLegLeft) character.upperLegLeft.rotation.z = legSwing;
-                    if (character.upperLegRight) character.upperLegRight.rotation.z = -legSwing;
-                    if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 - armSwing;
-                    if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 - armSwing;
-                    if (character.torso) character.torso.rotation.z = bodySway;
-                    
-                } else if (isJumping) {
-                    // Jumping animation
-                    const jumpTime = (Date.now() - jumpStartTime) / jumpDuration;
-                    const jumpPhase = Math.min(jumpTime, 1);
-                    
-                    // Crouch before jump
-                    if (jumpPhase < 0.2) {
-                        if (character.upperLegLeft) character.upperLegLeft.rotation.z = 0.5;
-                        if (character.upperLegRight) character.upperLegRight.rotation.z = -0.5;
-                        if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 + 0.3;
-                        if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 + 0.3;
+                    if (animToPlay) {
+                        if (animToPlay.start) {
+                            animToPlay.start(loop, animationSpeed);
+                            animToPlay.speedRatio = animationSpeed;
+                        }
+                        currentAnimation = animationName;
+                        updateStatus(animationName);
+                        console.log("Playing animation:", animationName);
                     }
-                    // In air
-                    else if (jumpPhase < 0.8) {
-                        if (character.upperLegLeft) character.upperLegLeft.rotation.z = -0.3;
-                        if (character.upperLegRight) character.upperLegRight.rotation.z = 0.3;
-                        if (character.upperArmLeft) character.upperArmLeft.rotation.z = Math.PI / 6 - 0.5;
-                        if (character.upperArmRight) character.upperArmRight.rotation.z = -Math.PI / 6 - 0.5;
-                    }
-                    // Landing
-                    else {
-                        if (character.upperLegLeft) character.upperLegLeft.rotation.z = 0.2;
-                        if (character.upperLegRight) character.upperLegRight.rotation.z = -0.2;
-                    }
-                    
                 } else {
-                    // Idle breathing animation
-                    const breath = Math.sin(time * 2) * 0.02;
-                    if (character.torso) character.torso.position.y = 1.5 + breath;
+                    // For fallback character, use simple animation
+                    if (characterRoot && characterRoot.animations) {
+                        scene.beginAnimation(characterRoot, 0, 30, loop, animationSpeed);
+                        currentAnimation = animationName;
+                        updateStatus(animationName);
+                    }
+                }
+                
+                // Update animation buttons
+                updateAnimationButtons(animationName);
+            }
+            
+            // Create animation buttons
+            function createAnimationButtons(modelKey) {
+                const container = document.getElementById("animationButtons");
+                container.innerHTML = "";
+                
+                const animationList = characterModels[modelKey]?.animations || 
+                                    ["idle", "walk", "run", "jump", "attack", "dance"];
+                
+                animationList.forEach(animName => {
+                    const button = document.createElement("button");
+                    button.className = "animation-btn";
+                    button.textContent = animName.charAt(0).toUpperCase() + animName.slice(1);
+                    button.dataset.animation = animName;
+                    
+                    button.addEventListener("click", () => {
+                        playAnimation(animName);
+                    });
+                    
+                    container.appendChild(button);
+                });
+            }
+            
+            // Update animation buttons state
+            function updateAnimationButtons(activeAnimation) {
+                const buttons = document.querySelectorAll(".animation-btn");
+                buttons.forEach(button => {
+                    if (button.dataset.animation === activeAnimation) {
+                        button.classList.add("active");
+                    } else {
+                        button.classList.remove("active");
+                    }
+                });
+            }
+            
+            // Update character status
+            function updateStatus(status) {
+                const statusDot = document.getElementById("statusDot");
+                const statusText = document.getElementById("statusText");
+                
+                statusDot.className = "status-dot";
+                
+                switch(status) {
+                    case "idle":
+                        statusDot.classList.add("status-idle");
+                        statusText.textContent = "Idle";
+                        break;
+                    case "walk":
+                    case "walking":
+                        statusDot.classList.add("status-walk");
+                        statusText.textContent = "Walking";
+                        break;
+                    case "run":
+                    case "running":
+                        statusDot.classList.add("status-run");
+                        statusText.textContent = "Running";
+                        break;
+                    case "jump":
+                    case "jumping":
+                        statusDot.classList.add("status-jump");
+                        statusText.textContent = "Jumping";
+                        break;
+                    default:
+                        statusDot.classList.add("status-action");
+                        statusText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                        break;
                 }
             }
             
-            // Character movement and controls
+            // Update debug info
+            function updateDebugInfo(modelName) {
+                if (!character) return;
+                
+                let vertexCount = 0;
+                let triangleCount = 0;
+                
+                // Calculate polygon count
+                const countGeometry = (mesh) => {
+                    if (mesh.getTotalVertices) {
+                        vertexCount += mesh.getTotalVertices();
+                    }
+                    if (mesh.getTotalIndices) {
+                        triangleCount += mesh.getTotalIndices() / 3;
+                    }
+                    
+                    // Check children
+                    if (mesh.getChildMeshes) {
+                        mesh.getChildMeshes().forEach(child => countGeometry(child));
+                    }
+                };
+                
+                countGeometry(character);
+                
+                debugInfo.innerHTML = `
+                    Model: ${modelName}<br>
+                    Animations: ${animations.length}<br>
+                    Vertices: ${vertexCount}<br>
+                    Triangles: ${triangleCount}<br>
+                    Bones: ${skeleton ? skeleton.bones.length : 0}
+                `;
+            }
+            
+            // Keyboard controls
             const keys = {};
             
-            // Keyboard event listeners
-            window.addEventListener("keydown", function(event) {
-                const key = event.key.toLowerCase();
+            window.addEventListener("keydown", (e) => {
+                const key = e.key.toLowerCase();
                 keys[key] = true;
                 
                 // Space for jump
-                if (key === " " && !isJumping && !isDancing && !isAttacking) {
+                if (key === " " && !isJumping) {
                     isJumping = true;
-                    jumpStartTime = Date.now();
-                    currentAnimation = "jumping";
-                    updateStatusIndicator();
+                    playAnimation("jump");
+                    
+                    // Reset jump after delay
+                    setTimeout(() => {
+                        isJumping = false;
+                        if (isMoving) {
+                            playAnimation(isRunning ? "run" : "walk");
+                        } else {
+                            playAnimation("idle");
+                        }
+                    }, 1000);
+                }
+                
+                // R to reset camera
+                if (key === "r") {
+                    camera.alpha = -Math.PI / 2;
+                    camera.beta = Math.PI / 3;
+                    camera.radius = 10;
                 }
                 
                 // Shift for running
                 if (key === "shift") {
                     isRunning = true;
-                }
-                
-                // E for dance
-                if (key === "e" && !isJumping && !isAttacking) {
-                    isDancing = !isDancing;
-                    if (isDancing) {
-                        currentAnimation = "dancing";
-                    } else if (isMoving) {
-                        currentAnimation = isRunning ? "running" : "walking";
-                    } else {
-                        currentAnimation = "idle";
+                    if (isMoving && !isJumping) {
+                        playAnimation("run");
                     }
-                    updateStatusIndicator();
-                }
-                
-                // F for attack
-                if (key === "f" && !isJumping && !isDancing) {
-                    isAttacking = true;
-                    currentAnimation = "attacking";
-                    updateStatusIndicator();
-                    // Auto reset attack after 1 second
-                    setTimeout(() => {
-                        isAttacking = false;
-                        if (isMoving) {
-                            currentAnimation = isRunning ? "running" : "walking";
-                        } else {
-                            currentAnimation = "idle";
-                        }
-                        updateStatusIndicator();
-                    }, 1000);
                 }
             });
             
-            window.addEventListener("keyup", function(event) {
-                const key = event.key.toLowerCase();
+            window.addEventListener("keyup", (e) => {
+                const key = e.key.toLowerCase();
                 keys[key] = false;
                 
                 if (key === "shift") {
                     isRunning = false;
+                    if (isMoving && !isJumping) {
+                        playAnimation("walk");
+                    }
                 }
             });
             
-            // Update character position and rotation
-            function updateCharacter() {
-                if (!characterRoot || isDancing || isAttacking) return;
+            // Update character movement
+            function updateCharacterMovement() {
+                if (!characterRoot || isJumping) return;
                 
                 movementDirection.set(0, 0, 0);
                 isMoving = false;
                 
-                // Determine movement direction based on keys
-                if (keys["w"]) {
+                // Check movement keys
+                if (keys["w"] || keys["arrowup"]) {
                     movementDirection.z += 1;
                     isMoving = true;
                 }
-                if (keys["s"]) {
+                if (keys["s"] || keys["arrowdown"]) {
                     movementDirection.z -= 1;
                     isMoving = true;
                 }
-                if (keys["a"]) {
+                if (keys["a"] || keys["arrowleft"]) {
                     movementDirection.x -= 1;
                     isMoving = true;
                 }
-                if (keys["d"]) {
+                if (keys["d"] || keys["arrowright"]) {
                     movementDirection.x += 1;
                     isMoving = true;
                 }
                 
-                // Update animation state
-                if (isMoving && !isJumping) {
-                    currentAnimation = isRunning ? "running" : "walking";
-                } else if (!isJumping && !isDancing && !isAttacking) {
-                    currentAnimation = "idle";
-                }
-                updateStatusIndicator();
-                
                 // Normalize movement direction
                 if (movementDirection.length() > 0) {
                     movementDirection.normalize();
+                    
+                    // Update animation based on movement
+                    if (!isJumping) {
+                        playAnimation(isRunning ? "run" : "walk");
+                    }
+                } else if (!isJumping) {
+                    // Not moving, play idle
+                    playAnimation("idle");
+                    isMoving = false;
                 }
                 
-                // Calculate speed (running or walking)
-                const speed = isRunning ? characterSpeed * 2.5 : characterSpeed;
+                // Calculate speed
+                const speed = isRunning ? characterSpeed * 2 : characterSpeed;
                 
-                // Update character position
+                // Update position
                 characterRoot.position.x += movementDirection.x * speed;
                 characterRoot.position.z += movementDirection.z * speed;
                 
-                // Update character rotation to face movement direction
+                // Rotate character to face movement direction
                 if (isMoving) {
                     const targetRotation = Math.atan2(movementDirection.x, movementDirection.z);
                     characterRoot.rotation.y = BABYLON.Scalar.Lerp(
-                        characterRoot.rotation.y, 
-                        targetRotation, 
-                        0.2 // Smooth rotation
+                        characterRoot.rotation.y,
+                        targetRotation,
+                        0.2
                     );
                 }
                 
-                // Handle jumping
-                if (isJumping) {
-                    const jumpTime = Date.now() - jumpStartTime;
-                    const jumpProgress = Math.min(jumpTime / jumpDuration, 1);
-                    
-                    // Parabolic jump curve
-                    const jumpY = 4 * jumpHeight * jumpProgress * (1 - jumpProgress);
-                    characterRoot.position.y = 2 + jumpY;
-                    
-                    // End jump
-                    if (jumpProgress >= 1) {
-                        isJumping = false;
-                        characterRoot.position.y = 2;
-                        if (isMoving) {
-                            currentAnimation = isRunning ? "running" : "walking";
-                        } else {
-                            currentAnimation = "idle";
-                        }
-                        updateStatusIndicator();
-                    }
-                }
-                
-                // Ensure character stays within bounds
+                // Keep character within bounds
                 const bounds = 45;
                 characterRoot.position.x = Math.max(-bounds, Math.min(bounds, characterRoot.position.x));
                 characterRoot.position.z = Math.max(-bounds, Math.min(bounds, characterRoot.position.z));
                 
-                // Update camera to follow character
+                // Update camera based on mode
                 updateCamera();
                 
-                // Update UI info
+                // Update UI
                 updateCharacterInfo();
-                
-                // Update animations
-                updateCharacterAnimations();
             }
             
-            // Update camera based on mode
+            // Update camera
             function updateCamera() {
-                if (!characterRoot || !camera) return;
+                if (!characterRoot) return;
                 
-                if (cameraMode === "follow" || cameraMode === "orbit") {
-                    // Update camera target to character position
-                    camera.target = characterRoot.position;
+                const cameraMode = document.getElementById("cameraMode").value;
+                
+                if (cameraMode === "follow") {
+                    // Camera follows character from behind
+                    const characterForward = new BABYLON.Vector3(
+                        Math.sin(characterRoot.rotation.y),
+                        0,
+                        Math.cos(characterRoot.rotation.y)
+                    );
                     
-                    // For follow mode, also position camera behind character
-                    if (cameraMode === "follow" && cameraLocked) {
-                        const characterForward = new BABYLON.Vector3(
-                            Math.sin(characterRoot.rotation.y),
-                            0,
-                            Math.cos(characterRoot.rotation.y)
-                        );
-                        
-                        const cameraPosition = characterRoot.position
-                            .subtract(characterForward.scale(followDistance))
-                            .add(new BABYLON.Vector3(0, cameraHeight, 0));
-                        
-                        camera.position = BABYLON.Vector3.Lerp(
-                            camera.position,
-                            cameraPosition,
-                            0.1 // Smooth camera follow
-                        );
-                        
-                        // Make camera look slightly ahead of character
-                        const lookTarget = characterRoot.position
-                            .add(characterForward.scale(5));
-                        camera.setTarget(lookTarget);
-                    }
-                } else if (cameraMode === "firstPerson") {
-                    // First person camera attaches to character head
-                    camera.position = characterRoot.position.clone();
-                    camera.position.y += 1.8; // Eye level
+                    const targetPosition = characterRoot.position
+                        .subtract(characterForward.scale(8))
+                        .add(new BABYLON.Vector3(0, 4, 0));
                     
-                    // Camera rotation follows character rotation
-                    camera.rotation.y = characterRoot.rotation.y + Math.PI;
-                } else if (cameraMode === "topDown") {
-                    // Top down camera follows character from above
-                    camera.position.x = characterRoot.position.x;
-                    camera.position.z = characterRoot.position.z;
-                    camera.setTarget(characterRoot.position);
+                    camera.position = BABYLON.Vector3.Lerp(
+                        camera.position,
+                        targetPosition,
+                        0.1
+                    );
+                    
+                    camera.target = characterRoot.position.add(new BABYLON.Vector3(0, 2, 0));
+                    
+                } else if (cameraMode === "orbit") {
+                    // Camera orbits around character
+                    camera.target = characterRoot.position.add(new BABYLON.Vector3(0, 2, 0));
+                    
+                } else if (cameraMode === "fixed") {
+                    // Fixed camera position
+                    camera.target = characterRoot.position.add(new BABYLON.Vector3(0, 2, 0));
                 }
             }
             
-            // Update character info display
+            // Update character info UI
             function updateCharacterInfo() {
                 if (!characterRoot) return;
                 
                 document.getElementById("positionX").textContent = characterRoot.position.x.toFixed(1);
                 document.getElementById("positionZ").textContent = characterRoot.position.z.toFixed(1);
                 
-                const speed = isMoving ? (isRunning ? 8.0 : 4.0) : 0.0;
-                document.getElementById("speed").textContent = speed.toFixed(1);
+                // Update FPS counter
+                const fps = engine.getFps().toFixed(0);
+                document.getElementById("fps").textContent = fps;
             }
             
-            // Update status indicator
-            function updateStatusIndicator() {
-                const indicator = document.getElementById("statusIndicator");
-                indicator.className = "status-indicator";
-                
-                switch(currentAnimation) {
-                    case "idle":
-                        indicator.classList.add("status-idle");
-                        break;
-                    case "walking":
-                        indicator.classList.add("status-walking");
-                        break;
-                    case "running":
-                        indicator.classList.add("status-running");
-                        break;
-                    case "jumping":
-                        indicator.classList.add("status-jumping");
-                        break;
-                    case "dancing":
-                        indicator.classList.add("status-dancing");
-                        break;
-                    case "attacking":
-                        indicator.classList.add("status-jumping"); // Use jumping color for attack
-                        break;
-                }
-            }
+            // Initialize environment
+            createGround();
+            createEnvironment("studio");
+            let grid = createGrid();
             
-            // Update camera status display
-            function updateCameraStatus() {
-                const status = document.getElementById("cameraStatus");
-                let statusText = `Camera: ${cameraMode.charAt(0).toUpperCase() + cameraMode.slice(1)} Mode`;
-                
-                if (cameraMode === "follow") {
-                    statusText += cameraLocked ? " (Locked)" : " (Manual)";
-                }
-                
-                status.textContent = statusText;
-            }
+            // Load initial character
+            loadCharacterModel("robot");
             
-            // Create environment
-            createEnvironment();
-            
-            // Create initial character
-            createCharacter("warrior");
-            
-            // UI Controls
-            document.getElementById("characterType").addEventListener("change", function() {
-                createCharacter(this.value);
-            });
-            
-            document.getElementById("colorPicker").addEventListener("input", function() {
-                characterColor = BABYLON.Color3.FromHexString(this.value);
-                createCharacter(currentCharacterType);
-            });
-            
-            document.getElementById("animSpeed").addEventListener("input", function() {
-                const value = parseFloat(this.value);
-                document.getElementById("animSpeedValue").textContent = value.toFixed(1);
-                characterSpeed = 0.08 * value;
-                walkAnimationRate = value;
-            });
-            
-            document.getElementById("resetCharacter").addEventListener("click", function() {
-                if (characterRoot) {
-                    characterRoot.position = new BABYLON.Vector3(0, 2, 0);
-                    characterRoot.rotation = new BABYLON.Vector3(0, 0, 0);
-                    isDancing = false;
-                    isAttacking = false;
-                    isWaving = false;
-                    isTaunting = false;
-                    currentAnimation = "idle";
-                    updateStatusIndicator();
-                }
-            });
-            
-            // Animation buttons
-            document.getElementById("danceBtn").addEventListener("click", function() {
-                isDancing = !isDancing;
-                if (isDancing) {
-                    currentAnimation = "dancing";
-                } else {
-                    currentAnimation = "idle";
-                }
-                updateStatusIndicator();
-            });
-            
-            document.getElementById("attackBtn").addEventListener("click", function() {
-                if (!isAttacking) {
-                    isAttacking = true;
-                    currentAnimation = "attacking";
-                    updateStatusIndicator();
+            // UI Event Listeners
+            // Model selection
+            document.querySelectorAll(".model-option").forEach(option => {
+                option.addEventListener("click", function() {
+                    const modelKey = this.dataset.model;
                     
-                    setTimeout(() => {
-                        isAttacking = false;
-                        currentAnimation = "idle";
-                        updateStatusIndicator();
-                    }, 1000);
+                    // Update active state
+                    document.querySelectorAll(".model-option").forEach(opt => {
+                        opt.classList.remove("active");
+                    });
+                    this.classList.add("active");
+                    
+                    // Load model
+                    loadCharacterModel(modelKey);
+                });
+            });
+            
+            // Load custom model
+            document.getElementById("loadCustomModel").addEventListener("click", function() {
+                const url = document.getElementById("modelUrl").value.trim();
+                if (url) {
+                    loadCharacterModel("custom", url);
+                } else {
+                    alert("Please enter a valid GLB/GLTF URL");
                 }
             });
             
-            document.getElementById("waveBtn").addEventListener("click", function() {
-                isWaving = true;
-                currentAnimation = "waving";
-                updateStatusIndicator();
+            // Animation speed slider
+            document.getElementById("animSpeed").addEventListener("input", function() {
+                animationSpeed = parseFloat(this.value);
+                document.getElementById("animSpeedValue").textContent = animationSpeed.toFixed(1);
                 
-                setTimeout(() => {
-                    isWaving = false;
-                    currentAnimation = "idle";
-                    updateStatusIndicator();
-                }, 2000);
-            });
-            
-            document.getElementById("tauntBtn").addEventListener("click", function() {
-                isTaunting = true;
-                currentAnimation = "taunting";
-                updateStatusIndicator();
-                
-                setTimeout(() => {
-                    isTaunting = false;
-                    currentAnimation = "idle";
-                    updateStatusIndicator();
-                }, 2000);
-            });
-            
-            // Camera controls
-            document.getElementById("cameraMode").addEventListener("change", function() {
-                cameraMode = this.value;
-                initCamera();
-                updateCameraStatus();
-            });
-            
-            document.getElementById("followDist").addEventListener("input", function() {
-                followDistance = parseInt(this.value);
-                document.getElementById("followDistValue").textContent = followDistance;
-            });
-            
-            document.getElementById("cameraHeight").addEventListener("input", function() {
-                cameraHeight = parseFloat(this.value);
-                document.getElementById("cameraHeightValue").textContent = cameraHeight;
-            });
-            
-            document.getElementById("toggleCameraLock").addEventListener("click", function() {
-                cameraLocked = !cameraLocked;
-                this.textContent = cameraLocked ? "Camera Lock: ON" : "Camera Lock: OFF";
-                
-                if (cameraMode === "follow") {
-                    if (cameraLocked) {
-                        camera.inputs.attached.pointers.detachControl();
-                    } else {
-                        camera.attachControl(canvas, true);
+                // Update current animation speed
+                if (animations && currentAnimation) {
+                    const currentAnim = animations.find(a => 
+                        (a.name && a.name.toLowerCase().includes(currentAnimation)) ||
+                        (a.toString().toLowerCase().includes(currentAnimation))
+                    );
+                    if (currentAnim && currentAnim.speedRatio !== undefined) {
+                        currentAnim.speedRatio = animationSpeed;
                     }
                 }
-                
-                updateCameraStatus();
             });
             
-            document.getElementById("resetCamera").addEventListener("click", function() {
-                if (cameraMode === "follow" || cameraMode === "orbit") {
-                    camera.alpha = -Math.PI / 2;
-                    camera.beta = Math.PI / 4;
-                    camera.radius = followDistance;
+            // Blend speed slider
+            document.getElementById("blendSpeed").addEventListener("input", function() {
+                animationBlendSpeed = parseFloat(this.value);
+                document.getElementById("blendSpeedValue").textContent = animationBlendSpeed.toFixed(2);
+            });
+            
+            // Movement speed slider
+            document.getElementById("moveSpeed").addEventListener("input", function() {
+                characterSpeed = parseFloat(this.value);
+                document.getElementById("moveSpeedValue").textContent = characterSpeed.toFixed(2);
+            });
+            
+            // Reset position
+            document.getElementById("resetPosition").addEventListener("click", function() {
+                if (characterRoot) {
+                    characterRoot.position = new BABYLON.Vector3(0, 0, 0);
+                    characterRoot.rotation = new BABYLON.Vector3(0, 0, 0);
+                    playAnimation("idle");
                 }
             });
             
-            // Environment controls
-            document.getElementById("lighting").addEventListener("change", function() {
-                const value = this.value;
+            // Toggle wireframe
+            let wireframe = false;
+            document.getElementById("toggleWireframe").addEventListener("click", function() {
+                wireframe = !wireframe;
+                this.textContent = wireframe ? "Toggle Wireframe: ON" : "Toggle Wireframe: OFF";
                 
-                switch(value) {
-                    case "day":
-                        hemisphericLight.intensity = 0.7;
-                        directionalLight.intensity = 0.8;
-                        fillLight.intensity = 0.3;
-                        scene.clearColor = new BABYLON.Color4(0.6, 0.8, 1.0, 1.0);
-                        scene.fogColor = new BABYLON.Color3(0.7, 0.8, 0.9);
-                        break;
-                    case "sunset":
-                        hemisphericLight.intensity = 0.5;
-                        directionalLight.intensity = 0.6;
-                        fillLight.intensity = 0.4;
-                        directionalLight.diffuse = new BABYLON.Color3(1, 0.6, 0.3);
-                        scene.clearColor = new BABYLON.Color4(0.9, 0.5, 0.3, 1.0);
-                        scene.fogColor = new BABYLON.Color3(0.8, 0.5, 0.3);
-                        break;
-                    case "night":
-                        hemisphericLight.intensity = 0.2;
-                        directionalLight.intensity = 0.3;
-                        fillLight.intensity = 0.1;
-                        scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.1, 1.0);
-                        scene.fogColor = new BABYLON.Color3(0.1, 0.1, 0.15);
-                        break;
-                    case "fantasy":
-                        hemisphericLight.intensity = 0.4;
-                        directionalLight.intensity = 0.6;
-                        fillLight.intensity = 0.5;
-                        directionalLight.diffuse = new BABYLON.Color3(0.8, 0.4, 0.8);
-                        fillLight.diffuse = new BABYLON.Color3(0.4, 0.8, 1);
-                        scene.clearColor = new BABYLON.Color4(0.3, 0.1, 0.4, 1.0);
-                        scene.fogColor = new BABYLON.Color3(0.3, 0.1, 0.4);
-                        break;
+                if (character) {
+                    character.getChildMeshes().forEach(mesh => {
+                        if (mesh.material) {
+                            mesh.material.wireframe = wireframe;
+                        }
+                    });
                 }
             });
             
-            let shadowsEnabled = true;
+            // Environment selector
+            document.getElementById("environment").addEventListener("change", function() {
+                createEnvironment(this.value);
+            });
+            
+            // Toggle shadows
+            let shadows = true;
             document.getElementById("toggleShadows").addEventListener("click", function() {
-                shadowsEnabled = !shadowsEnabled;
-                shadowGenerator.getShadowMap().renderList.forEach(mesh => {
-                    mesh.receiveShadows = shadowsEnabled;
-                });
+                shadows = !shadows;
+                this.textContent = shadows ? "Toggle Shadows: ON" : "Toggle Shadows: OFF";
                 
-                this.textContent = shadowsEnabled ? "Toggle Shadows: ON" : "Toggle Shadows: OFF";
+                shadowGenerator.getShadowMap().renderList.forEach(mesh => {
+                    mesh.receiveShadows = shadows;
+                });
             });
             
-            let fogEnabled = false;
-            document.getElementById("toggleFog").addEventListener("click", function() {
-                fogEnabled = !fogEnabled;
-                scene.fogDensity = fogEnabled ? 0.02 : 0.01;
+            // Toggle grid
+            let gridVisible = true;
+            document.getElementById("toggleGrid").addEventListener("click", function() {
+                gridVisible = !gridVisible;
+                this.textContent = gridVisible ? "Toggle Grid: ON" : "Toggle Grid: OFF";
                 
-                this.textContent = fogEnabled ? "Toggle Fog: ON" : "Toggle Fog: OFF";
+                if (grid) {
+                    grid.setEnabled(gridVisible);
+                }
             });
+            
+            // Camera mode
+            document.getElementById("cameraMode").addEventListener("change", updateCamera);
             
             // Animation loop
             scene.onBeforeRenderObservable.add(() => {
-                updateCharacter();
+                updateCharacterMovement();
             });
             
-            // Resize event
-            window.addEventListener("resize", function() {
+            // Handle window resize
+            window.addEventListener("resize", () => {
                 engine.resize();
             });
             
-            // Initialize status indicator
-            updateStatusIndicator();
-            updateCameraStatus();
+            // Hide loader when scene is ready
+            scene.executeWhenReady(() => {
+                setTimeout(() => {
+                    loader.classList.add('hidden');
+                }, 1000);
+            });
             
-            // Run the render loop
-            engine.runRenderLoop(function() {
+            // Run render loop
+            engine.runRenderLoop(() => {
                 scene.render();
             });
             
-            // Handle window focus for controls
-            window.addEventListener("focus", function() {
-                // Reset keys when window regains focus
+            // Handle window focus loss
+            window.addEventListener("blur", () => {
                 Object.keys(keys).forEach(key => {
                     keys[key] = false;
                 });
+                isMoving = false;
+                isRunning = false;
+                if (!isJumping) {
+                    playAnimation("idle");
+                }
             });
         });
     </script>
