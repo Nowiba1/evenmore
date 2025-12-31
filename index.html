@@ -21,6 +21,7 @@
             min-height: 100vh;
             overflow: hidden;
             user-select: none;
+            touch-action: none;
         }
         
         /* Screens */
@@ -35,6 +36,7 @@
             opacity: 0;
             transition: opacity 0.3s ease;
             overflow-y: auto;
+            z-index: 10;
         }
         
         .screen.active {
@@ -479,6 +481,7 @@
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1;
         }
         
         .game-ui {
@@ -541,6 +544,7 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             max-height: 300px;
             overflow-y: auto;
+            pointer-events: auto;
         }
         
         .mission-list h3 {
@@ -605,6 +609,45 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
             min-width: 250px;
+            pointer-events: auto;
+            z-index: 100;
+        }
+        
+        /* Controls Overlay */
+        .controls-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.85), rgba(10, 10, 25, 0.85));
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            width: min(300px, 90vw);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+            z-index: 100;
+        }
+        
+        .controls-overlay h3 {
+            color: #4cc9f0;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .control-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .control-key {
+            background: rgba(67, 97, 238, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
         }
         
         /* Loading Screen */
@@ -853,7 +896,7 @@
                 gap: 10px;
             }
             
-            .ui-panel, .mission-list {
+            .ui-panel, .mission-list, .controls-overlay {
                 width: calc(100% - 40px);
                 min-width: unset;
                 transform: scale(0.95);
@@ -890,16 +933,6 @@
             .players-list {
                 grid-template-columns: 1fr;
             }
-        }
-        
-        /* Performance Optimizations */
-        .will-change-transform {
-            will-change: transform;
-        }
-        
-        .backface-hidden {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
         }
     </style>
 </head>
@@ -1122,15 +1155,52 @@
                 <span>Extract with partner</span>
             </div>
         </div>
+        
+        <!-- Controls Overlay -->
+        <div class="controls-overlay">
+            <h3>CONTROLS</h3>
+            <div class="control-item">
+                <span>Move:</span>
+                <span class="control-key">WASD</span>
+            </div>
+            <div class="control-item">
+                <span>Run:</span>
+                <span class="control-key">SHIFT</span>
+            </div>
+            <div class="control-item">
+                <span>Jump:</span>
+                <span class="control-key">SPACE</span>
+            </div>
+            <div class="control-item">
+                <span>Look:</span>
+                <span class="control-key">MOUSE</span>
+            </div>
+            <div class="control-item">
+                <span>Mission 1:</span>
+                <span class="control-key">1</span>
+            </div>
+            <div class="control-item">
+                <span>Mission 2:</span>
+                <span class="control-key">2</span>
+            </div>
+            <div class="control-item">
+                <span>Mission 3:</span>
+                <span class="control-key">3</span>
+            </div>
+            <div class="control-item">
+                <span>Extract:</span>
+                <span class="control-key">4</span>
+            </div>
+        </div>
     </div>
     
     <!-- Notification System -->
     <div class="notification-area" id="notificationArea"></div>
 
-    <!-- Three.js - Version updated to avoid CapsuleGeometry issue -->
+    <!-- Three.js - Updated to latest version for better features -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
     
     <script>
         // ======================
@@ -1146,7 +1216,12 @@
             ASSET_CHECK_INTERVAL: 1000,
             ROOM_UPDATE_INTERVAL: 1000,
             GAME_TICK_RATE: 60,
-            DEBUG: false
+            DEBUG: false,
+            PLAYER_SPEED: 5,
+            PLAYER_RUN_SPEED: 10,
+            PLAYER_JUMP_FORCE: 10,
+            GRAVITY: 30,
+            MOUSE_SENSITIVITY: 0.002
         };
 
         // ======================
@@ -1171,10 +1246,12 @@
             gameTime: 0,
             frameCount: 0,
             gameLoopRunning: false,
+            gamePaused: false,
             
             // Assets
             assetFiles: {},
             receivedAssets: {},
+            loadedModels: {},
             
             // Missions
             missions: {
@@ -1190,7 +1267,29 @@
             
             // Performance
             fps: 0,
-            lastFpsUpdate: 0
+            lastFpsUpdate: 0,
+            
+            // Player Movement
+            keys: {
+                w: false,
+                a: false,
+                s: false,
+                d: false,
+                shift: false,
+                space: false
+            },
+            mouse: {
+                x: 0,
+                y: 0,
+                sensitivity: CONFIG.MOUSE_SENSITIVITY
+            },
+            velocity: new THREE.Vector3(),
+            direction: new THREE.Vector3(),
+            rotation: new THREE.Euler(0, 0, 0, 'YXZ'),
+            
+            // Physics
+            playerOnGround: true,
+            playerVelocityY: 0
         };
 
         // ======================
@@ -1200,15 +1299,14 @@
         let camera = null;
         let renderer = null;
         let controls = null;
-        let mapModel = null;
-        let player1Model = null;
-        let player2Model = null;
-        let enemyModel = null;
         let playerObjects = {};
         let enemyObjects = [];
+        let mapObject = null;
         let extractionZone = null;
         let clock = new THREE.Clock();
         let deltaTime = 0;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
 
         // ======================
         // DOM ELEMENTS
@@ -1233,7 +1331,6 @@
             initEventListeners();
             generatePlayerId();
             loadPlayerName();
-            setupPerformanceMonitoring();
             
             console.log('Game initialized');
         }
@@ -1278,8 +1375,7 @@
             window.addEventListener('resize', onWindowResize);
             window.addEventListener('beforeunload', handleBeforeUnload);
             
-            // Game Controls
-            setupGameControls();
+            // Game Controls will be setup when game starts
         }
 
         function setupDragAndDrop(dropZone) {
@@ -1296,33 +1392,6 @@
                 e.preventDefault();
                 dropZone.classList.remove('dragover');
                 handleFileSelect({ target: { files: e.dataTransfer.files } });
-            });
-        }
-
-        function setupGameControls() {
-            document.addEventListener('keydown', (e) => {
-                if (!gameState.gameStarted) return;
-                
-                // Mission Simulation Controls
-                switch(e.key) {
-                    case '1':
-                        if (window.checkEnemyKill) window.checkEnemyKill();
-                        break;
-                    case '2':
-                        if (window.secureServerRoom) window.secureServerRoom();
-                        break;
-                    case '3':
-                        if (window.downloadIntel) window.downloadIntel();
-                        break;
-                    case '4':
-                        if (gameState.extractionAvailable && window.completeExtraction) {
-                            window.completeExtraction();
-                        }
-                        break;
-                    case 'Escape':
-                        pauseGame();
-                        break;
-                }
             });
         }
 
@@ -1374,6 +1443,7 @@
             gameState.receivedAssets = {};
             gameState.gameStarted = false;
             gameState.gameLoopRunning = false;
+            gameState.loadedModels = {};
         }
 
         // ======================
@@ -1385,6 +1455,12 @@
             
             console.log('Files selected:', files.length);
             
+            // Reset file status
+            CONFIG.REQUIRED_ASSETS.forEach(asset => {
+                gameState.assetFiles[asset] = null;
+                updateFileStatus(asset, 'Missing', 'Required');
+            });
+            
             files.forEach(file => {
                 const fileName = file.name.toLowerCase();
                 let assetType = null;
@@ -1395,7 +1471,6 @@
                     else if (fileName.includes('player1')) assetType = 'player1';
                     else if (fileName.includes('player2')) assetType = 'player2';
                     else if (fileName.includes('enemy')) assetType = 'enemy';
-                    else assetType = 'map'; // Default to map if unsure
                 }
                 
                 if (assetType) {
@@ -1440,6 +1515,11 @@
                     const sizeElement = fileItem.querySelector('.file-size');
                     if (sizeElement) sizeElement.textContent = size;
                 }
+            } else if (status === 'Missing') {
+                element.style.background = 'rgba(245, 158, 11, 0.2)';
+                element.style.color = '#f59e0b';
+                element.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+                fileItem.classList.remove('loaded');
             }
         }
 
@@ -1880,57 +1960,52 @@
             showLoadingScreen(true);
             updateLoadingProgress(0, 'Initializing game engine...');
             
-            // Simulate asset loading
-            const assetsToLoad = CONFIG.REQUIRED_ASSETS;
-            let loadedCount = 0;
-            
-            const loadNextAsset = () => {
-                if (loadedCount < assetsToLoad.length) {
-                    const asset = assetsToLoad[loadedCount];
-                    const percent = (loadedCount / assetsToLoad.length) * 100;
-                    
-                    updateLoadingProgress(percent, `Loading ${asset}.glb...`);
-                    
-                    // Simulate loading time based on file size
-                    const roomData = getRoomData(gameState.roomCode);
-                    const assetSize = roomData?.assets[asset]?.size || 1000000;
-                    const loadTime = Math.min(1000, Math.max(300, assetSize / 100000));
-                    
-                    setTimeout(() => {
-                        loadedCount++;
-                        loadNextAsset();
-                    }, loadTime);
-                } else {
-                    updateLoadingProgress(100, 'All assets loaded!');
-                    setTimeout(() => {
-                        showLoadingScreen(false);
-                        initializeGame();
-                    }, 500);
-                }
-            };
-            
-            loadNextAsset();
+            // First load basic game engine
+            setTimeout(() => {
+                updateLoadingProgress(30, 'Setting up game world...');
+                
+                // Initialize Three.js
+                initThreeJS();
+                
+                // Load actual assets or create placeholders
+                loadActualAssets();
+            }, 500);
         }
 
-        function initializeGame() {
-            showScreen('gameScreen');
+        function loadActualAssets() {
+            updateLoadingProgress(50, 'Loading game models...');
             
-            // Initialize Three.js
-            initThreeJS();
-            
-            // Setup game systems
-            initGameWorld();
-            initPlayers();
-            initEnemies();
-            initMissions();
-            
-            // Start game systems
-            startExtractionTimer();
-            startGameLoop();
-            startGameSimulation();
-            
-            // Show game instructions
-            showNotification('Game Started!', 'Use keys 1-4 to simulate mission progress', 5000);
+            // Create or load models
+            setTimeout(() => {
+                // Create map
+                createMap();
+                
+                // Create players
+                createPlayers();
+                
+                // Create enemies
+                createEnemies();
+                
+                // Create extraction zone
+                createExtractionZone();
+                
+                updateLoadingProgress(80, 'Setting up game systems...');
+                
+                // Initialize game systems
+                initMissions();
+                setupGameControls();
+                startExtractionTimer();
+                
+                updateLoadingProgress(100, 'Game ready!');
+                
+                setTimeout(() => {
+                    showLoadingScreen(false);
+                    startGameLoop();
+                    startGameSimulation();
+                    
+                    showNotification('Game Started!', 'WASD to move, Mouse to look, 1-4 for missions', 5000);
+                }, 500);
+            }, 1000);
         }
 
         function initThreeJS() {
@@ -1938,12 +2013,11 @@
             
             // Create scene
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050510);
+            scene.fog = new THREE.Fog(0x050510, 10, 200);
             
             // Create camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 15, 30);
-            camera.lookAt(0, 0, 0);
+            camera.position.set(0, 5, 10);
             
             // Get canvas element
             const canvas = document.getElementById('gameCanvas');
@@ -1963,9 +2037,10 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
             
             // Add lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
             scene.add(ambientLight);
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -1983,139 +2058,168 @@
             const hemisphereLight = new THREE.HemisphereLight(0x4361ee, 0x0c0c1d, 0.3);
             scene.add(hemisphereLight);
             
+            // Skybox
+            const skyboxGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
+            const skyboxMaterial = new THREE.MeshBasicMaterial({
+                color: 0x0c0c1d,
+                side: THREE.BackSide
+            });
+            const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+            scene.add(skybox);
+            
             console.log('Three.js initialized successfully');
         }
 
-        function initGameWorld() {
-            // Ground
-            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+        function createMap() {
+            // Create ground
+            const groundGeometry = new THREE.PlaneGeometry(200, 200, 50, 50);
+            
+            // Create terrain with height variations
+            const vertices = groundGeometry.attributes.position;
+            for (let i = 0; i < vertices.count; i++) {
+                const x = vertices.getX(i);
+                const y = vertices.getY(i);
+                const z = vertices.getZ(i);
+                
+                // Add some height variation
+                const height = Math.sin(x * 0.05) * Math.cos(z * 0.05) * 3 +
+                              Math.sin(x * 0.1) * Math.cos(z * 0.1) * 1.5;
+                vertices.setZ(i, height);
+            }
+            
+            groundGeometry.computeVertexNormals();
+            
             const groundMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x1a1a2e,
+                color: 0x2a4a2a,
                 roughness: 0.8,
-                metalness: 0.1,
-                side: THREE.DoubleSide
+                metalness: 0.2
             });
+            
             const ground = new THREE.Mesh(groundGeometry, groundMaterial);
             ground.rotation.x = -Math.PI / 2;
-            ground.position.y = -0.5;
+            ground.position.y = -2;
             ground.receiveShadow = true;
             scene.add(ground);
             
-            // Create buildings
-            createBuildings();
+            mapObject = ground;
             
-            // Create extraction zone
-            createExtractionZone();
+            // Create buildings and structures
+            createBuildings();
         }
 
         function createBuildings() {
-            const buildingData = [
-                // Server Room (Mission 1)
-                {
-                    position: [-40, 5, 30],
-                    size: [15, 10, 15],
-                    color: 0x1a6a3a,
-                    name: 'Server Room',
-                    mission: 'secureServerRoom'
-                },
-                // Intel Building (Mission 2)
-                {
-                    position: [40, 6, -30],
-                    size: [12, 12, 12],
-                    color: 0x6a3a1a,
-                    name: 'Intel Building',
-                    mission: 'downloadIntel'
-                },
-                // Warehouse
-                {
-                    position: [-30, 4, -25],
-                    size: [20, 8, 15],
-                    color: 0x3a3a6a,
-                    name: 'Warehouse'
-                },
-                // Guard Tower 1
-                {
-                    position: [25, 8, 25],
-                    size: [6, 16, 6],
-                    color: 0x5a3a3a,
-                    name: 'Guard Tower'
-                },
-                // Guard Tower 2
-                {
-                    position: [-25, 8, -30],
-                    size: [6, 16, 6],
-                    color: 0x5a3a3a,
-                    name: 'Guard Tower'
-                }
+            const buildingTypes = [
+                { geometry: new THREE.BoxGeometry(8, 12, 8), color: 0x3a3a6a, name: 'Server Room' },
+                { geometry: new THREE.CylinderGeometry(4, 4, 10, 6), color: 0x5a3a3a, name: 'Intel Building' },
+                { geometry: new THREE.ConeGeometry(5, 8, 8), color: 0x3a5a3a, name: 'Communication Tower' }
             ];
             
-            buildingData.forEach((data, index) => {
-                // Create building mesh
-                const geometry = new THREE.BoxGeometry(...data.size);
-                const material = new THREE.MeshStandardMaterial({ 
-                    color: data.color,
-                    roughness: 0.7,
-                    metalness: 0.2
-                });
-                const building = new THREE.Mesh(geometry, material);
-                building.position.set(...data.position);
+            // Create random buildings
+            for (let i = 0; i < 15; i++) {
+                const typeIndex = Math.floor(Math.random() * buildingTypes.length);
+                const type = buildingTypes[typeIndex];
+                const building = new THREE.Mesh(type.geometry, new THREE.MeshStandardMaterial({ 
+                    color: type.color,
+                    roughness: 0.7
+                }));
+                
+                const angle = (i / 15) * Math.PI * 2;
+                const radius = 30 + Math.random() * 40;
+                building.position.set(
+                    Math.cos(angle) * radius,
+                    type.geometry.parameters.height / 2,
+                    Math.sin(angle) * radius
+                );
+                
                 building.castShadow = true;
                 building.receiveShadow = true;
-                building.userData = { type: 'building', mission: data.mission };
+                building.userData = { type: 'building', name: type.name };
                 scene.add(building);
                 
-                // Add emissive windows
-                for (let i = 0; i < 4; i++) {
-                    const windowGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.1);
+                // Add windows or details
+                if (Math.random() > 0.5) {
+                    const windowGeometry = new THREE.BoxGeometry(1, 2, 0.2);
                     const windowMaterial = new THREE.MeshStandardMaterial({ 
                         color: 0xffffaa,
                         emissive: 0xffff00,
-                        emissiveIntensity: 0.5
+                        emissiveIntensity: 0.3
                     });
-                    const window = new THREE.Mesh(windowGeometry, windowMaterial);
                     
-                    const offset = (data.size[0] / 2) - 0.5;
-                    const height = -data.size[1]/2 + 2 + (i * 3);
-                    
-                    window.position.set(
-                        data.position[0] + (Math.random() > 0.5 ? offset : -offset),
-                        data.position[1] + height,
-                        data.position[2] + (Math.random() > 0.5 ? data.size[2]/2 : -data.size[2]/2)
-                    );
-                    scene.add(window);
+                    for (let w = 0; w < 4; w++) {
+                        const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                        window.position.set(
+                            building.position.x + (Math.random() - 0.5) * 4,
+                            building.position.y - 2 + w * 3,
+                            building.position.z + 4.1
+                        );
+                        scene.add(window);
+                    }
                 }
-            });
+            }
+            
+            // Server room (mission objective 1)
+            const serverRoom = new THREE.Mesh(
+                new THREE.BoxGeometry(15, 8, 15),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x1a6a3a,
+                    emissive: 0x0a3a1a,
+                    emissiveIntensity: 0.3
+                })
+            );
+            serverRoom.position.set(-40, 4, 30);
+            serverRoom.castShadow = true;
+            serverRoom.receiveShadow = true;
+            serverRoom.userData = { type: 'mission', mission: 'serverRoom' };
+            scene.add(serverRoom);
+            
+            // Intel data center (mission objective 2)
+            const intelBuilding = new THREE.Mesh(
+                new THREE.CylinderGeometry(6, 6, 12, 8),
+                new THREE.MeshStandardMaterial({ 
+                    color: 0x6a3a1a,
+                    emissive: 0x3a1a0a,
+                    emissiveIntensity: 0.3
+                })
+            );
+            intelBuilding.position.set(40, 6, -30);
+            intelBuilding.castShadow = true;
+            intelBuilding.userData = { type: 'mission', mission: 'intel' };
+            scene.add(intelBuilding);
+            
+            // Add antenna
+            const antenna = new THREE.Mesh(
+                new THREE.ConeGeometry(0.5, 4, 4),
+                new THREE.MeshStandardMaterial({ color: 0xaaaaaa })
+            );
+            antenna.position.set(40, 12, -30);
+            scene.add(antenna);
         }
 
         function createExtractionZone() {
-            const geometry = new THREE.CylinderGeometry(8, 8, 0.1, 32);
-            const material = new THREE.MeshStandardMaterial({ 
+            const extractionGeometry = new THREE.CylinderGeometry(8, 8, 0.2, 32);
+            const extractionMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0x4ade80,
                 emissive: 0x4ade80,
                 emissiveIntensity: 0.5,
                 transparent: true,
-                opacity: 0.6,
-                side: THREE.DoubleSide
+                opacity: 0.6
             });
             
-            extractionZone = new THREE.Mesh(geometry, material);
-            extractionZone.position.set(0, 0.05, 0);
-            extractionZone.rotation.x = Math.PI / 2;
-            extractionZone.userData = { type: 'extraction', active: false };
+            extractionZone = new THREE.Mesh(extractionGeometry, extractionMaterial);
+            extractionZone.position.set(0, 0.1, 0);
+            extractionZone.userData = { type: 'extraction' };
             scene.add(extractionZone);
             
-            // Add pulsing effect
             extractionZone.userData.pulseSpeed = 0.02;
             extractionZone.userData.pulseDirection = 1;
             extractionZone.userData.originalOpacity = 0.6;
         }
 
-        function initPlayers() {
-            // Use CylinderGeometry instead of CapsuleGeometry (which doesn't exist in r128)
-            const playerGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 8);
+        function createPlayers() {
             const playerColors = [0x4361ee, 0xf72585, 0x4ade80, 0xf59e0b];
             
             // Create current player
+            const playerGeometry = new THREE.CapsuleGeometry ? new THREE.CapsuleGeometry(0.5, 2, 4, 8) : new THREE.CylinderGeometry(0.5, 0.5, 2, 8);
             const playerMaterial = new THREE.MeshStandardMaterial({ 
                 color: playerColors[0],
                 emissive: playerColors[0],
@@ -2135,9 +2239,12 @@
                 health: 100,
                 maxHealth: 100,
                 position: { x: 0, y: 1, z: 0 },
-                rotation: 0,
-                speed: 5,
-                isMoving: false
+                rotation: { x: 0, y: 0, z: 0 },
+                velocity: new THREE.Vector3(),
+                speed: CONFIG.PLAYER_SPEED,
+                isMoving: false,
+                jumping: false,
+                onGround: true
             };
             
             // Update UI
@@ -2173,16 +2280,19 @@
                     health: 100,
                     maxHealth: 100,
                     position: { x: pos.x, y: 1, z: pos.z },
-                    rotation: 0,
-                    speed: 5,
-                    isMoving: false
+                    rotation: { x: 0, y: 0, z: 0 },
+                    velocity: new THREE.Vector3(),
+                    speed: CONFIG.PLAYER_SPEED,
+                    isMoving: false,
+                    jumping: false,
+                    onGround: true
                 };
             });
             
             updateTeamStatus();
         }
 
-        function initEnemies() {
+        function createEnemies() {
             const enemyGeometry = new THREE.ConeGeometry(0.6, 2, 8);
             const enemyMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0xaa3333,
@@ -2216,6 +2326,7 @@
                 
                 enemyMesh.position.set(x, 1, z);
                 enemyMesh.castShadow = true;
+                enemyMesh.userData = { type: 'enemy', health: 100, alive: true };
                 scene.add(enemyMesh);
                 
                 enemyObjects.push({
@@ -2229,8 +2340,162 @@
                     patrolSpeed: 0.5 + Math.random(),
                     detectionRange: 15,
                     attackRange: 5,
-                    state: 'patrol' // patrol, chase, attack
+                    state: 'patrol'
                 });
+            }
+        }
+
+        function setupGameControls() {
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                if (key in gameState.keys) {
+                    gameState.keys[key] = true;
+                }
+                
+                // Mission simulation controls
+                if (!gameState.gameStarted) return;
+                
+                switch(key) {
+                    case '1':
+                        if (window.checkEnemyKill) window.checkEnemyKill();
+                        break;
+                    case '2':
+                        if (window.secureServerRoom) window.secureServerRoom();
+                        break;
+                    case '3':
+                        if (window.downloadIntel) window.downloadIntel();
+                        break;
+                    case '4':
+                        if (gameState.extractionAvailable && window.completeExtraction) {
+                            window.completeExtraction();
+                        }
+                        break;
+                    case 'escape':
+                        togglePause();
+                        break;
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                if (key in gameState.keys) {
+                    gameState.keys[key] = false;
+                }
+            });
+            
+            // Mouse controls
+            document.addEventListener('mousemove', (e) => {
+                if (!gameState.gameStarted || gameState.gamePaused) return;
+                
+                gameState.mouse.x = e.movementX || 0;
+                gameState.mouse.y = e.movementY || 0;
+                
+                // Update camera rotation
+                if (camera && playerObjects[gameState.playerId]) {
+                    const player = playerObjects[gameState.playerId];
+                    player.rotation.y -= gameState.mouse.x * gameState.mouse.sensitivity;
+                    player.rotation.x -= gameState.mouse.y * gameState.mouse.sensitivity;
+                    
+                    // Clamp vertical rotation
+                    player.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, player.rotation.x));
+                }
+            });
+            
+            // Lock pointer when clicking on game
+            const canvas = document.getElementById('gameCanvas');
+            canvas.addEventListener('click', () => {
+                if (gameState.gameStarted && !gameState.gamePaused) {
+                    canvas.requestPointerLock();
+                }
+            });
+            
+            // Handle pointer lock change
+            document.addEventListener('pointerlockchange', () => {
+                gameState.pointerLocked = document.pointerLockElement === canvas;
+            });
+        }
+
+        function updatePlayerMovement(deltaTime) {
+            if (!playerObjects[gameState.playerId] || gameState.gamePaused) return;
+            
+            const player = playerObjects[gameState.playerId];
+            const speed = gameState.keys.shift ? CONFIG.PLAYER_RUN_SPEED : CONFIG.PLAYER_SPEED;
+            
+            // Reset velocity
+            player.velocity.set(0, 0, 0);
+            
+            // Calculate movement direction based on camera rotation
+            const forward = new THREE.Vector3();
+            const right = new THREE.Vector3();
+            
+            camera.getWorldDirection(forward);
+            forward.y = 0;
+            forward.normalize();
+            
+            right.crossVectors(camera.up, forward).normalize();
+            
+            // Apply movement
+            if (gameState.keys.w) {
+                player.velocity.add(forward.clone().multiplyScalar(speed));
+            }
+            if (gameState.keys.s) {
+                player.velocity.add(forward.clone().multiplyScalar(-speed));
+            }
+            if (gameState.keys.a) {
+                player.velocity.add(right.clone().multiplyScalar(speed));
+            }
+            if (gameState.keys.d) {
+                player.velocity.add(right.clone().multiplyScalar(-speed));
+            }
+            
+            // Jump
+            if (gameState.keys.space && player.onGround) {
+                player.velocity.y = CONFIG.PLAYER_JUMP_FORCE;
+                player.onGround = false;
+                player.jumping = true;
+            }
+            
+            // Apply gravity
+            if (!player.onGround) {
+                player.velocity.y -= CONFIG.GRAVITY * deltaTime;
+            }
+            
+            // Update position
+            player.position.x += player.velocity.x * deltaTime;
+            player.position.y += player.velocity.y * deltaTime;
+            player.position.z += player.velocity.z * deltaTime;
+            
+            // Ground collision
+            if (player.position.y < 1) {
+                player.position.y = 1;
+                player.velocity.y = 0;
+                player.onGround = true;
+                player.jumping = false;
+            }
+            
+            // Update mesh position
+            player.mesh.position.set(player.position.x, player.position.y, player.position.z);
+            
+            // Update camera position
+            if (camera) {
+                // Third-person camera
+                const cameraDistance = 10;
+                const cameraHeight = 5;
+                
+                const cameraOffset = new THREE.Vector3(
+                    Math.sin(player.rotation.y) * cameraDistance,
+                    cameraHeight,
+                    Math.cos(player.rotation.y) * cameraDistance
+                );
+                
+                camera.position.set(
+                    player.position.x + cameraOffset.x,
+                    player.position.y + cameraOffset.y,
+                    player.position.z + cameraOffset.z
+                );
+                
+                camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
             }
         }
 
@@ -2282,18 +2547,24 @@
             window.completeExtraction = function() {
                 if (!gameState.gameStarted || !gameState.extractionAvailable) return;
                 
-                const allPlayersAtExtraction = checkPlayersAtExtraction();
-                if (allPlayersAtExtraction) {
+                // Check if player is near extraction zone
+                const player = playerObjects[gameState.playerId];
+                const distanceToExtraction = Math.sqrt(
+                    Math.pow(player.position.x - extractionZone.position.x, 2) +
+                    Math.pow(player.position.z - extractionZone.position.z, 2)
+                );
+                
+                if (distanceToExtraction < 10) {
                     gameState.missions.extractionReady = true;
                     document.getElementById('mission4').classList.add('completed');
                     showNotification('Extraction Complete!', 'Mission accomplished! Well done, team!', 10000);
                     
                     // Game over - victory
                     setTimeout(() => {
-                        showNotification('VICTORY', 'All missions completed successfully!', 0);
+                        showNotification('VICTORY', 'All missions completed successfully!', 10000);
                     }, 2000);
                 } else {
-                    showNotification('Need All Players', 'All players must be at the extraction point!', 3000);
+                    showNotification('Too Far', 'Move closer to the extraction zone!', 3000);
                 }
             };
             
@@ -2301,11 +2572,6 @@
                 const count = (gameState.missions.serverSecured ? 1 : 0) + 
                              (gameState.missions.intelDownloaded ? 1 : 0);
                 document.getElementById('uiObjectives').textContent = count;
-            }
-            
-            function checkPlayersAtExtraction() {
-                // Simplified check - in real game, would check positions
-                return Object.keys(playerObjects).length >= 2;
             }
         }
 
@@ -2350,7 +2616,6 @@
             
             function animate() {
                 if (!gameState.gameStarted || !renderer || !scene || !camera) {
-                    console.log('Game not ready for rendering');
                     requestAnimationFrame(animate);
                     return;
                 }
@@ -2362,10 +2627,13 @@
                 gameState.gameTime += deltaTime;
                 gameState.frameCount++;
                 
+                // Update player movement
+                updatePlayerMovement(deltaTime);
+                
                 // Update game systems
                 updateExtractionZone();
                 updateEnemies();
-                updatePlayers();
+                updateCamera();
                 
                 // Render scene
                 try {
@@ -2385,7 +2653,7 @@
             if (!extractionZone || !extractionZone.userData) return;
             
             // Pulse effect
-            if (extractionZone.userData.active) {
+            if (gameState.extractionAvailable) {
                 extractionZone.material.opacity += extractionZone.userData.pulseSpeed * extractionZone.userData.pulseDirection;
                 
                 if (extractionZone.material.opacity >= 0.8 || extractionZone.material.opacity <= 0.4) {
@@ -2411,17 +2679,36 @@
                 
                 // Bob up and down
                 enemy.mesh.position.y = enemy.position.y + Math.sin(gameState.gameTime * 2 + enemy.patrolAngle) * 0.1;
+                
+                // Check distance to player
+                const player = playerObjects[gameState.playerId];
+                if (player) {
+                    const distanceToPlayer = Math.sqrt(
+                        Math.pow(enemy.mesh.position.x - player.position.x, 2) +
+                        Math.pow(enemy.mesh.position.z - player.position.z, 2)
+                    );
+                    
+                    if (distanceToPlayer < enemy.detectionRange) {
+                        // Enemy detected player
+                        enemy.state = 'chase';
+                        
+                        // Move toward player
+                        const dx = player.position.x - enemy.mesh.position.x;
+                        const dz = player.position.z - enemy.mesh.position.z;
+                        const angleToPlayer = Math.atan2(dz, dx);
+                        
+                        enemy.mesh.position.x += Math.cos(angleToPlayer) * enemy.patrolSpeed * deltaTime * 2;
+                        enemy.mesh.position.z += Math.sin(angleToPlayer) * enemy.patrolSpeed * deltaTime * 2;
+                        enemy.mesh.rotation.y = angleToPlayer - Math.PI / 2;
+                    } else {
+                        enemy.state = 'patrol';
+                    }
+                }
             });
         }
 
-        function updatePlayers() {
-            Object.values(playerObjects).forEach(player => {
-                // Simple idle animation
-                player.mesh.position.y = player.position.y + Math.sin(gameState.gameTime * 2) * 0.05;
-                
-                // Rotate slowly
-                player.mesh.rotation.y += 0.01;
-            });
+        function updateCamera() {
+            // Camera is updated in updatePlayerMovement
         }
 
         function startExtractionTimer() {
@@ -2488,6 +2775,10 @@
                             if (player.health <= 30 && player.health > 0) {
                                 showNotification('Low Health!', 'Find cover and recover!', 3000);
                             }
+                            
+                            if (player.health <= 0) {
+                                showNotification('You are down!', 'Wait for teammate to revive you', 5000);
+                            }
                         }
                     }
                 });
@@ -2505,6 +2796,15 @@
                     window.downloadIntel();
                 }
             }, 20000);
+        }
+
+        function togglePause() {
+            gameState.gamePaused = !gameState.gamePaused;
+            showNotification(
+                gameState.gamePaused ? 'Game Paused' : 'Game Resumed',
+                gameState.gamePaused ? 'Press ESC to resume' : 'Continue your mission',
+                3000
+            );
         }
 
         // ======================
@@ -2577,44 +2877,6 @@
                     deleteRoomData(gameState.roomCode);
                 }
             }
-        }
-
-        function pauseGame() {
-            // Placeholder for pause functionality
-            showNotification('Game Paused', 'Press ESC to resume', 0);
-        }
-
-        function saveGameState() {
-            // Save game state to localStorage for persistence
-            try {
-                const gameSave = {
-                    playerId: gameState.playerId,
-                    missions: gameState.missions,
-                    extractionTimer: gameState.extractionTimer,
-                    gameTime: gameState.gameTime,
-                    savedAt: Date.now()
-                };
-                localStorage.setItem('mission_extraction_game_save', JSON.stringify(gameSave));
-            } catch (e) {
-                console.error('Failed to save game state:', e);
-            }
-        }
-
-        function setupPerformanceMonitoring() {
-            if (!CONFIG.DEBUG) return;
-            
-            setInterval(() => {
-                const now = performance.now();
-                const elapsed = now - gameState.lastFpsUpdate;
-                
-                if (elapsed >= 1000) {
-                    gameState.fps = Math.round((gameState.frameCount * 1000) / elapsed);
-                    gameState.lastFpsUpdate = now;
-                    gameState.frameCount = 0;
-                    
-                    console.log(`FPS: ${gameState.fps}, Game Time: ${gameState.gameTime.toFixed(1)}s`);
-                }
-            }, 1000);
         }
     </script>
 </body>
