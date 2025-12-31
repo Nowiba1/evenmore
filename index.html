@@ -3,1876 +3,882 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚪 Door of Destiny - 3D Co-op Quiz Game</title>
+    <title>3D Character with Movement | Babylon.js</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
     <style>
-        /* Reset & Base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0c2461 0%, #1e3799 50%, #4a69bd 100%);
-            color: white;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
             overflow: hidden;
             height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Menu Screen */
-        #menuScreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle at center, rgba(12, 36, 97, 0.95) 0%, rgba(30, 55, 153, 0.9) 100%);
-            z-index: 1000;
+        }
+        
+        header {
             padding: 20px;
-            backdrop-filter: blur(5px);
-        }
-
-        .game-title {
-            font-size: 3.5rem;
-            background: linear-gradient(45deg, #ff9a00, #ff5252, #00ff9d);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 10px;
-            text-shadow: 0 0 40px rgba(255, 154, 0, 0.3);
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            0% { text-shadow: 0 0 20px rgba(255, 154, 0, 0.3); }
-            100% { text-shadow: 0 0 40px rgba(0, 255, 157, 0.3); }
-        }
-
-        .subtitle {
-            font-size: 1.1rem;
-            color: #a5b1c2;
-            margin-bottom: 40px;
             text-align: center;
-            max-width: 600px;
-            line-height: 1.6;
-        }
-
-        .menu-container {
-            display: flex;
-            gap: 30px;
-            max-width: 1000px;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .menu-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 30px;
-            flex: 1;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease;
-        }
-
-        .menu-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.12);
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            color: #ffcc00;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-title i {
-            font-size: 1.3rem;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #00ff9d;
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
-        }
-
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(45deg, #4a00e0, #8e2de2);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(142, 45, 226, 0.4);
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #00b09b, #96c93d);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-        }
-
-        .btn-small {
-            padding: 10px 20px;
-            font-size: 0.9rem;
-        }
-
-        .rooms-list {
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .room-item {
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            margin-bottom: 8px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .room-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .room-code {
-            font-weight: bold;
-            color: #00ff9d;
-            font-size: 1.2rem;
-        }
-
-        .room-players {
-            color: #ffcc00;
-            font-size: 0.9rem;
-        }
-
-        .player-list {
-            margin-top: 20px;
-        }
-
-        .player-item {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            margin-bottom: 8px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .player-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .player-ready {
-            margin-left: auto;
-            color: #00ff9d;
-            font-size: 0.9rem;
-        }
-
-        .player-not-ready {
-            color: #ff5252;
-        }
-
-        /* Game UI */
-        #gameUI {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        .stats-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .player-card {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 15px 25px;
-            border-radius: 15px;
-            min-width: 250px;
-            pointer-events: all;
-            border: 2px solid;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-        }
-
-        .player1-card {
-            border-color: #00ff9d;
-        }
-
-        .player2-card {
-            border-color: #00b8ff;
-        }
-
-        .player-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .player-name::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-
-        .player1-card .player-name::before {
-            background: #00ff9d;
-        }
-
-        .player2-card .player-name::before {
-            background: #00b8ff;
-        }
-
-        .player-score {
-            font-size: 1.8rem;
-            color: #ffcc00;
-            margin: 10px 0;
-        }
-
-        .lives-container {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .life {
-            width: 20px;
-            height: 20px;
-            background: #ff5252;
-            border-radius: 50%;
-            position: relative;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .life.lost {
-            background: rgba(255, 82, 82, 0.3);
-            animation: none;
-        }
-
-        .life::after {
-            content: '❤';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 10px;
-            color: white;
-        }
-
-        .question-display {
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(30, 55, 153, 0.9) 100%);
-            padding: 25px;
-            border-radius: 20px;
-            max-width: 800px;
-            margin: 20px auto;
-            pointer-events: all;
-            border: 2px solid #4a00e0;
-            box-shadow: 0 10px 40px rgba(74, 0, 224, 0.4);
-            backdrop-filter: blur(10px);
-        }
-
-        .question-category {
-            color: #8e2de2;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .question-text {
-            font-size: 1.5rem;
-            line-height: 1.5;
-            margin-bottom: 25px;
-            text-align: center;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-        }
-
-        .question-arabic {
-            font-size: 1.8rem;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-        }
-
-        .question-french {
-            font-style: italic;
-        }
-
-        .timer-container {
-            margin-top: 20px;
-        }
-
-        .timer-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .timer-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff9d, #00b8ff);
-            transition: width 0.3s ease;
-        }
-
-        /* Chat */
-        .chat-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 350px;
-            background: rgba(0, 0, 0, 0.85);
-            border-radius: 15px;
-            overflow: hidden;
-            pointer-events: all;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .chat-header {
-            background: linear-gradient(45deg, #4a00e0, #8e2de2);
-            padding: 15px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-messages {
-            height: 200px;
-            overflow-y: auto;
-            padding: 15px;
             background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        .chat-message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            animation: messageSlide 0.3s ease;
-        }
-
-        @keyframes messageSlide {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .chat-message.sent {
-            background: rgba(0, 255, 157, 0.1);
-            border-left: 3px solid #00ff9d;
-        }
-
-        .chat-message.received {
-            background: rgba(0, 184, 255, 0.1);
-            border-left: 3px solid #00b8ff;
-        }
-
-        .chat-input-container {
-            display: flex;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-        }
-
-        .chat-input:focus {
-            outline: none;
-            border-color: #00ff9d;
-        }
-
-        /* Game Over */
-        .game-over-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.95) 0%, rgba(30, 55, 153, 0.9) 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .result-title {
-            font-size: 4rem;
-            background: linear-gradient(45deg, #ff9a00, #ff5252, #00ff9d);
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            background: linear-gradient(to right, #4cc9f0, #4361ee);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 20px;
-            text-shadow: 0 0 30px rgba(255, 154, 0, 0.3);
-            animation: resultGlow 2s ease-in-out infinite alternate;
         }
-
-        @keyframes resultGlow {
-            0% { text-shadow: 0 0 20px rgba(255, 154, 0, 0.3); }
-            100% { text-shadow: 0 0 40px rgba(0, 255, 157, 0.3), 0 0 60px rgba(255, 82, 82, 0.2); }
+        
+        .subtitle {
+            color: #a5b4fc;
+            font-size: 1.1rem;
         }
-
-        .result-stats {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            color: #a5b1c2;
-        }
-
-        .result-stats span {
-            color: #ffcc00;
-            font-weight: bold;
-        }
-
-        /* Canvas */
-        #gameCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* Loading */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(12, 36, 97, 0.95);
+        
+        .container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
+            flex: 1;
+            overflow: hidden;
         }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #00ff9d;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            outline: none;
+            touch-action: none;
+        }
+        
+        .controls-panel {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+        
+        .controls-panel h2 {
+            color: #4cc9f0;
             margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        .control-group {
+            margin-bottom: 25px;
         }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .menu-container {
-                flex-direction: column;
-                gap: 20px;
-            }
-            
-            .game-title {
-                font-size: 2.5rem;
-            }
-            
-            .stats-container {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .player-card {
-                min-width: 200px;
-            }
-            
-            .chat-container {
-                width: 300px;
-            }
+        
+        .control-group h3 {
+            color: #a5b4fc;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
         }
-
-        @media (max-width: 768px) {
-            .game-title {
-                font-size: 2rem;
-            }
-            
-            .subtitle {
-                font-size: 1rem;
-            }
-            
-            .question-text {
-                font-size: 1.2rem;
-            }
-            
-            .chat-container {
-                width: 250px;
-                right: 10px;
-                bottom: 10px;
-            }
-            
-            .result-title {
-                font-size: 2.5rem;
-            }
+        
+        .control-item {
+            margin-bottom: 15px;
         }
-
-        /* Hidden utility */
-        .hidden {
-            display: none !important;
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-size: 0.9rem;
         }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(45deg, #4a00e0, #8e2de2);
+        
+        select, button {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-            animation: slideIn 0.3s ease;
-            z-index: 1000;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select:hover, button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4cc9f0;
+        }
+        
+        button {
+            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #4cc9f0, #4361ee);
+        }
+        
+        .slider-container {
             display: flex;
             align-items: center;
-            gap: 10px;
         }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        
+        .slider-container input {
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        .slider-value {
+            min-width: 40px;
+            text-align: right;
+            color: #4cc9f0;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #4361ee;
+        }
+        
+        .instructions h3 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-family: monospace;
+            margin: 0 2px;
+        }
+        
+        .character-info {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .character-info div {
+            text-align: center;
+        }
+        
+        .character-info .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4cc9f0;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls-panel {
+                width: 100%;
+                height: 300px;
+                border-left: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading hidden">
-        <div class="loading-spinner"></div>
-        <div id="loadingText">Loading game assets...</div>
-    </div>
-
-    <!-- Menu Screen -->
-    <div id="menuScreen">
-        <h1 class="game-title">🚪 DOOR OF DESTINY</h1>
-        <p class="subtitle">Answer quiz questions correctly to survive. Choose wrong door and face consequences. Work together to reach highest level!</p>
+    <header>
+        <h1>3D Character with Movement</h1>
+        <p class="subtitle">Interactive 3D character using Babylon.js engine</p>
+    </header>
+    
+    <div class="container">
+        <canvas id="renderCanvas"></canvas>
         
-        <div class="menu-container">
-            <!-- Host Section -->
-            <div class="menu-card">
-                <h2 class="card-title">🎮 Create Room</h2>
-                <div class="input-group">
-                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="15" value="Player">
-                    <select id="languageSelect">
-                        <option value="en">English Interface</option>
-                        <option value="ar">Arabic Interface</option>
-                        <option value="fr">French Interface</option>
+        <div class="controls-panel">
+            <h2>Character Controls</h2>
+            
+            <div class="control-group">
+                <h3>Movement</h3>
+                <div class="instructions">
+                    <h3>Controls</h3>
+                    <ul>
+                        <li>Move: <span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span> or <span class="key">↑</span> <span class="key">←</span> <span class="key">↓</span> <span class="key">→</span></li>
+                        <li>Jump: <span class="key">Space</span></li>
+                        <li>Run: Hold <span class="key">Shift</span></li>
+                        <li>Look: Mouse drag or touch</li>
+                    </ul>
+                </div>
+                
+                <div class="character-info">
+                    <div>
+                        <div class="value" id="positionX">0.0</div>
+                        <div>Position X</div>
+                    </div>
+                    <div>
+                        <div class="value" id="positionZ">0.0</div>
+                        <div>Position Z</div>
+                    </div>
+                    <div>
+                        <div class="value" id="speed">0.0</div>
+                        <div>Speed</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Character Customization</h3>
+                
+                <div class="control-item">
+                    <label for="characterType">Character Type</label>
+                    <select id="characterType">
+                        <option value="robot">Robot</option>
+                        <option value="knight">Knight</option>
+                        <option value="mage">Mage</option>
                     </select>
                 </div>
-                <button id="createRoomBtn" class="btn btn-primary">
-                    🏠 Create New Room
-                </button>
                 
-                <div id="roomInfo" class="hidden">
-                    <div style="margin: 20px 0; padding: 15px; background: rgba(0, 255, 157, 0.1); border-radius: 10px;">
-                        <div style="font-size: 0.9rem; color: #a5b1c2;">Share this code with your friend:</div>
-                        <div id="roomCodeDisplay" style="font-size: 2.5rem; font-weight: bold; color: #00ff9d; letter-spacing: 5px; margin: 10px 0;"></div>
-                        <div style="font-size: 0.9rem; color: #a5b1c2;">Players in room:</div>
-                    </div>
-                    
-                    <div id="playerList" class="player-list">
-                        <!-- Players will appear here -->
-                    </div>
-                    
-                    <div id="readySection" class="hidden">
-                        <button id="readyBtn" class="btn btn-primary">
-                            ✅ Ready
-                        </button>
-                        <div id="readyStatus" style="margin-top: 10px; color: #ffcc00;"></div>
+                <div class="control-item">
+                    <label for="colorPicker">Character Color</label>
+                    <input type="color" id="colorPicker" value="#4cc9f0">
+                </div>
+                
+                <div class="control-item">
+                    <label>Animation Speed <span class="slider-value" id="animSpeedValue">1.0</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="animSpeed" min="0.1" max="2.0" step="0.1" value="1.0">
                     </div>
                 </div>
+                
+                <button id="resetCharacter">Reset Character Position</button>
             </div>
-
-            <!-- Joiner Section -->
-            <div class="menu-card">
-                <h2 class="card-title">🔗 Join Room</h2>
-                <div class="input-group">
-                    <input type="text" id="roomCodeInput" placeholder="Enter 4-digit room code" maxlength="4" pattern="[A-Za-z0-9]{4}">
-                </div>
-                <button id="joinRoomBtn" class="btn">
-                    🔗 Join Room
-                </button>
-                <button id="refreshRoomsBtn" class="btn btn-small">
-                    🔄 Refresh Rooms
-                </button>
+            
+            <div class="control-group">
+                <h3>Environment</h3>
                 
-                <div id="availableRooms" class="rooms-list hidden">
-                    <div style="margin-bottom: 10px; color: #a5b1c2;">Available Rooms:</div>
-                    <!-- Rooms will appear here -->
+                <div class="control-item">
+                    <label for="lighting">Lighting</label>
+                    <select id="lighting">
+                        <option value="day">Day</option>
+                        <option value="night">Night</option>
+                        <option value="sunset">Sunset</option>
+                        <option value="dungeon">Dungeon</option>
+                    </select>
                 </div>
                 
-                <div id="joinRequest" class="hidden" style="margin-top: 20px; padding: 15px; background: rgba(255, 204, 0, 0.1); border-radius: 10px;">
-                    <div style="margin-bottom: 10px;">Join request sent to host...</div>
-                    <div id="requestStatus" style="color: #ffcc00;"></div>
+                <div class="control-item">
+                    <label>Environment Scale <span class="slider-value" id="envScaleValue">1.0</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="envScale" min="0.5" max="2.0" step="0.1" value="1.0">
+                    </div>
                 </div>
+                
+                <button id="toggleShadows">Toggle Shadows: ON</button>
+            </div>
+            
+            <div class="instructions">
+                <h3>About</h3>
+                <p>This 3D character demo is built with Babylon.js. The character has full movement controls and customization options.</p>
             </div>
         </div>
     </div>
 
-    <!-- Game Container -->
-    <div id="gameContainer" class="hidden">
-        <!-- Game UI -->
-        <div id="gameUI">
-            <div class="stats-container">
-                <div id="player1Card" class="player-card player1-card">
-                    <div class="player-name" id="player1Name">Player 1</div>
-                    <div class="player-score">Score: <span id="player1Score">0</span></div>
-                    <div class="lives-container" id="player1Lives">
-                        <div class="life"></div>
-                        <div class="life"></div>
-                        <div class="life"></div>
-                    </div>
-                </div>
-                
-                <div id="questionDisplay" class="question-display hidden">
-                    <div class="question-category">
-                        <span id="categoryIcon">🌍</span>
-                        <span id="category">Geography</span>
-                    </div>
-                    <div class="question-text" id="questionText">
-                        Which country has the largest population?
-                    </div>
-                    <div class="timer-container">
-                        <div class="timer-bar">
-                            <div id="timerFill" class="timer-fill" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="player2Card" class="player-card player2-card">
-                    <div class="player-name" id="player2Name">Player 2</div>
-                    <div class="player-score">Score: <span id="player2Score">0</span></div>
-                    <div class="lives-container" id="player2Lives">
-                        <div class="life"></div>
-                        <div class="life"></div>
-                        <div class="life"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat -->
-        <div class="chat-container hidden">
-            <div class="chat-header">
-                💬 Game Chat
-            </div>
-            <div class="chat-messages" id="chatMessages">
-                <!-- Messages will appear here -->
-            </div>
-            <div class="chat-input-container">
-                <input type="text" class="chat-input" id="chatInput" placeholder="Type message...">
-            </div>
-        </div>
-
-        <!-- Canvas -->
-        <canvas id="gameCanvas"></canvas>
-
-        <!-- Game Over Screen -->
-        <div id="gameOverScreen" class="game-over-screen hidden">
-            <h1 class="result-title" id="resultTitle">GAME OVER</h1>
-            <div class="result-stats">
-                Level Reached: <span id="finalLevel">1</span><br>
-                Final Score: <span id="finalScore">0</span><br>
-                Correct Answers: <span id="correctAnswers">0</span>
-            </div>
-            <button id="playAgainBtn" class="btn btn-primary" style="width: 200px; margin-bottom: 10px;">
-                🔄 Play Again
-            </button>
-            <button id="backToMenuBtn" class="btn" style="width: 200px;">
-                🏠 Back to Menu
-            </button>
-        </div>
-    </div>
-
-    <!-- Notification Container -->
-    <div id="notificationContainer"></div>
-
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Game Configuration
-        const CONFIG = {
-            VERSION: '1.0.0',
-            LIVES: 3,
-            MAX_PLAYERS: 4,
-            ROOM_CODE_LENGTH: 4,
-            QUESTION_TIME: 30,
-            LEVELS: [
-                { doors: 3, time: 30, points: 100 },
-                { doors: 3, time: 25, points: 150 },
-                { doors: 4, time: 25, points: 200 },
-                { doors: 4, time: 20, points: 250 },
-                { doors: 5, time: 20, points: 300 },
-                { doors: 5, time: 15, points: 400 },
-                { doors: 6, time: 15, points: 500 }
-            ],
-            PLAYER_COLORS: [0x00ff9d, 0x00b8ff, 0xff5252, 0xff9a00],
-            DOOR_COLORS: {
-                DEFAULT: 0x4a69bd,
-                CORRECT: 0x00ff9d,
-                WRONG: 0xff5252,
-                SELECTED: 0x00b8ff,
-                HIGHLIGHT: 0xffcc00
-            },
-            LANGUAGE_DISTRIBUTION: { ar: 0.7, en: 0.2, fr: 0.1 },
-            CATEGORIES: {
-                geography: { icon: '🌍', color: '#00b8ff' },
-                history: { icon: '🏛️', color: '#ff9a00' },
-                science: { icon: '🔬', color: '#00ff9d' },
-                culture: { icon: '🎭', color: '#ff5252' },
-                flags: { icon: '🏁', color: '#8e2de2' }
-            }
-        };
-
-        // Game State
-        let gameState = {
-            players: {},
-            currentPlayerId: null,
-            roomCode: null,
-            isHost: false,
-            gameActive: false,
-            currentLevel: 0,
-            currentQuestion: null,
-            selectedDoor: null,
-            timer: null,
-            timeLeft: CONFIG.QUESTION_TIME,
-            readyPlayers: new Set(),
-            peerConnections: {},
-            dataChannels: {}
-        };
-
-        // Available rooms (simulated - in real implementation would be from signaling server)
-        let availableRooms = {};
-
-        // Three.js variables
-        let scene, camera, renderer, controls;
-        let doors = [];
-        let playerMeshes = {};
-        let street, streetLights;
-        let clock = new THREE.Clock();
-
-        // DOM Elements
-        const loadingScreen = document.getElementById('loadingScreen');
-        const loadingText = document.getElementById('loadingText');
-        const menuScreen = document.getElementById('menuScreen');
-        const gameContainer = document.getElementById('gameContainer');
-        const playerNameInput = document.getElementById('playerName');
-        const languageSelect = document.getElementById('languageSelect');
-        const createRoomBtn = document.getElementById('createRoomBtn');
-        const roomInfo = document.getElementById('roomInfo');
-        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
-        const playerList = document.getElementById('playerList');
-        const readySection = document.getElementById('readySection');
-        const readyBtn = document.getElementById('readyBtn');
-        const readyStatus = document.getElementById('readyStatus');
-        const roomCodeInput = document.getElementById('roomCodeInput');
-        const joinRoomBtn = document.getElementById('joinRoomBtn');
-        const refreshRoomsBtn = document.getElementById('refreshRoomsBtn');
-        const availableRoomsDiv = document.getElementById('availableRooms');
-        const joinRequest = document.getElementById('joinRequest');
-        const requestStatus = document.getElementById('requestStatus');
-        const questionDisplay = document.getElementById('questionDisplay');
-        const questionText = document.getElementById('questionText');
-        const categoryIcon = document.getElementById('categoryIcon');
-        const categoryDisplay = document.getElementById('category');
-        const timerFill = document.getElementById('timerFill');
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const resultTitle = document.getElementById('resultTitle');
-        const finalLevel = document.getElementById('finalLevel');
-        const finalScore = document.getElementById('finalScore');
-        const correctAnswers = document.getElementById('correctAnswers');
-        const playAgainBtn = document.getElementById('playAgainBtn');
-        const backToMenuBtn = document.getElementById('backToMenuBtn');
-        const notificationContainer = document.getElementById('notificationContainer');
-
-        // Initialize
-        async function init() {
-            showLoading('Initializing game...');
+        // Main Babylon.js scene setup
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the canvas element
+            const canvas = document.getElementById('renderCanvas');
             
-            // Generate random player name
-            generateRandomName();
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Initialize WebRTC (simulated for demo)
-            initWebRTC();
-            
-            hideLoading();
-        }
-
-        function generateRandomName() {
-            const adjectives = ['Brave', 'Clever', 'Swift', 'Wise', 'Bold', 'Mighty', 'Royal', 'Epic'];
-            const nouns = ['Explorer', 'Champion', 'Hero', 'Warrior', 'Master', 'Legend', 'Knight', 'Wizard'];
-            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-            const noun = nouns[Math.floor(Math.random() * nouns.length)];
-            const num = Math.floor(Math.random() * 100);
-            playerNameInput.value = `${adj}${noun}${num}`;
-        }
-
-        function showLoading(text) {
-            loadingScreen.classList.remove('hidden');
-            loadingText.textContent = text;
-        }
-
-        function hideLoading() {
-            loadingScreen.classList.add('hidden');
-        }
-
-        function setupEventListeners() {
-            // Menu buttons
-            createRoomBtn.addEventListener('click', createRoom);
-            readyBtn.addEventListener('click', toggleReady);
-            joinRoomBtn.addEventListener('click', joinRoom);
-            refreshRoomsBtn.addEventListener('click', refreshAvailableRooms);
-            playAgainBtn.addEventListener('click', resetGame);
-            backToMenuBtn.addEventListener('click', returnToMenu);
-            
-            // Chat
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && chatInput.value.trim()) {
-                    sendChatMessage(chatInput.value);
-                    chatInput.value = '';
-                }
+            // Create the Babylon.js engine
+            const engine = new BABYLON.Engine(canvas, true, {
+                preserveDrawingBuffer: true,
+                stencil: true
             });
             
-            // Room code input formatting
-            roomCodeInput.addEventListener('input', (e) => {
-                e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            });
+            // Create the scene
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.15, 1.0);
             
-            // Keyboard controls
-            document.addEventListener('keydown', handleKeyDown);
+            // Create the camera
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3, 15, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(canvas, true);
+            camera.lowerRadiusLimit = 5;
+            camera.upperRadiusLimit = 30;
+            camera.wheelDeltaPercentage = 0.01;
+            camera.panningSensibility = 1000;
             
-            // Window resize
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        // Multiplayer System
-        function initWebRTC() {
-            // In a real implementation, this would initialize WebRTC with STUN/TURN servers
-            // For demo purposes, we'll simulate connections
-            console.log('WebRTC initialized (simulated)');
-        }
-
-        function createRoom() {
-            const playerName = playerNameInput.value.trim() || 'Player';
-            const language = languageSelect.value;
+            // Create lights
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.8;
             
-            // Generate room code
-            const roomCode = generateRoomCode();
+            const directionalLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
+            directionalLight.intensity = 0.5;
+            directionalLight.position = new BABYLON.Vector3(10, 20, 10);
             
-            // Create player
-            const playerId = 'player_' + Date.now();
-            gameState.currentPlayerId = playerId;
-            gameState.isHost = true;
-            gameState.roomCode = roomCode;
+            // Enable shadows
+            const shadowGenerator = new BABYLON.ShadowGenerator(1024, directionalLight);
+            shadowGenerator.useBlurExponentialShadowMap = true;
+            shadowGenerator.blurScale = 2;
             
-            gameState.players[playerId] = {
-                id: playerId,
-                name: playerName,
-                color: CONFIG.PLAYER_COLORS[0],
-                score: 0,
-                lives: CONFIG.LIVES,
-                language: language,
-                position: { x: -2, y: 0.5, z: 0 },
-                ready: false,
-                isHost: true
-            };
+            // Character variables
+            let character;
+            let characterMesh;
+            let isMoving = false;
+            let movementDirection = new BABYLON.Vector3(0, 0, 0);
+            let characterSpeed = 0.1;
+            let isRunning = false;
+            let isJumping = false;
+            let jumpStartTime = 0;
+            const jumpDuration = 1000; // ms
+            const jumpHeight = 2;
             
-            // Add room to available rooms
-            availableRooms[roomCode] = {
-                code: roomCode,
-                host: playerId,
-                players: [playerId],
-                created: Date.now(),
-                maxPlayers: CONFIG.MAX_PLAYERS
-            };
+            // Character customization
+            let characterColor = new BABYLON.Color3.FromHexString("#4cc9f0");
+            let currentCharacterType = "robot";
             
-            // Update UI
-            roomCodeDisplay.textContent = roomCode;
-            updatePlayerList();
-            roomInfo.classList.remove('hidden');
-            readySection.classList.remove('hidden');
+            // Create ground
+            const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
+            ground.receiveShadows = true;
             
-            showNotification(`Room created! Code: ${roomCode}`);
-        }
-
-        function generateRoomCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing characters
-            let code = '';
-            for (let i = 0; i < CONFIG.ROOM_CODE_LENGTH; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        }
-
-        function joinRoom() {
-            const roomCode = roomCodeInput.value.trim().toUpperCase();
-            const playerName = playerNameInput.value.trim() || 'Player';
-            const language = languageSelect.value;
+            // Ground material
+            const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+            groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.35);
+            groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+            ground.material = groundMaterial;
             
-            if (!roomCode || roomCode.length !== CONFIG.ROOM_CODE_LENGTH) {
-                showNotification('Please enter a valid 4-character room code');
-                return;
-            }
-            
-            // Check if room exists
-            const room = availableRooms[roomCode];
-            if (!room) {
-                showNotification('Room not found');
-                return;
-            }
-            
-            if (room.players.length >= room.maxPlayers) {
-                showNotification('Room is full');
-                return;
-            }
-            
-            // Create player
-            const playerId = 'player_' + Date.now();
-            gameState.currentPlayerId = playerId;
-            gameState.isHost = false;
-            gameState.roomCode = roomCode;
-            
-            gameState.players[playerId] = {
-                id: playerId,
-                name: playerName,
-                color: CONFIG.PLAYER_COLORS[room.players.length],
-                score: 0,
-                lives: CONFIG.LIVES,
-                language: language,
-                position: { x: 2, y: 0.5, z: 0 },
-                ready: false,
-                isHost: false
-            };
-            
-            // Add to room
-            room.players.push(playerId);
-            
-            // Show join request status
-            joinRequest.classList.remove('hidden');
-            requestStatus.textContent = 'Waiting for host to accept...';
-            
-            // Simulate host acceptance after 2 seconds
-            setTimeout(() => {
-                if (availableRooms[roomCode]) {
-                    requestStatus.textContent = 'Joined successfully!';
+            // Create environment
+            function createEnvironment() {
+                // Create some buildings or obstacles
+                const buildingPositions = [
+                    {x: -15, z: -15, width: 4, height: 8, depth: 4},
+                    {x: 10, z: -10, width: 6, height: 10, depth: 6},
+                    {x: -8, z: 12, width: 5, height: 6, depth: 5},
+                    {x: 12, z: 8, width: 3, height: 5, depth: 3}
+                ];
+                
+                buildingPositions.forEach((pos, index) => {
+                    const building = BABYLON.MeshBuilder.CreateBox(`building${index}`, 
+                        {width: pos.width, height: pos.height, depth: pos.depth}, scene);
+                    building.position = new BABYLON.Vector3(pos.x, pos.height/2, pos.z);
                     
-                    // Update UI
-                    roomCodeDisplay.textContent = roomCode;
-                    updatePlayerList();
-                    roomInfo.classList.remove('hidden');
-                    readySection.classList.remove('hidden');
-                    joinRequest.classList.add('hidden');
+                    const buildingMaterial = new BABYLON.StandardMaterial(`buildingMat${index}`, scene);
+                    buildingMaterial.diffuseColor = new BABYLON.Color3(
+                        0.4 + Math.random() * 0.3, 
+                        0.4 + Math.random() * 0.3, 
+                        0.4 + Math.random() * 0.3
+                    );
+                    building.material = buildingMaterial;
+                    building.receiveShadows = true;
+                    shadowGenerator.addShadowCaster(building);
+                });
+                
+                // Create trees
+                for (let i = 0; i < 20; i++) {
+                    const tree = createTree(
+                        Math.random() * 40 - 20, 
+                        0, 
+                        Math.random() * 40 - 20
+                    );
+                    shadowGenerator.addShadowCaster(tree);
+                }
+            }
+            
+            // Function to create a simple tree
+            function createTree(x, y, z) {
+                const tree = new BABYLON.Mesh("tree", scene);
+                
+                // Trunk
+                const trunk = BABYLON.MeshBuilder.CreateCylinder("trunk", 
+                    {height: 2, diameter: 0.5}, scene);
+                trunk.position.y = 1;
+                
+                // Leaves
+                const leaves = BABYLON.MeshBuilder.CreateSphere("leaves", 
+                    {diameter: 3}, scene);
+                leaves.position.y = 3.5;
+                
+                // Materials
+                const trunkMaterial = new BABYLON.StandardMaterial("trunkMat", scene);
+                trunkMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.3, 0.2);
+                trunk.material = trunkMaterial;
+                
+                const leavesMaterial = new BABYLON.StandardMaterial("leavesMat", scene);
+                leavesMaterial.diffuseColor = new BABYLON.Color3(
+                    0.1 + Math.random() * 0.2, 
+                    0.4 + Math.random() * 0.3, 
+                    0.1 + Math.random() * 0.2
+                );
+                leaves.material = leavesMaterial;
+                
+                // Parent children to tree
+                trunk.parent = tree;
+                leaves.parent = tree;
+                
+                tree.position = new BABYLON.Vector3(x, y, z);
+                
+                return tree;
+            }
+            
+            // Create character
+            function createCharacter(type = "robot") {
+                // Remove existing character if any
+                if (character) {
+                    character.dispose();
+                }
+                
+                character = new BABYLON.Mesh("character", scene);
+                
+                // Different character types
+                if (type === "robot") {
+                    createRobotCharacter();
+                } else if (type === "knight") {
+                    createKnightCharacter();
+                } else if (type === "mage") {
+                    createMageCharacter();
+                }
+                
+                // Set character properties
+                character.position = new BABYLON.Vector3(0, 1, 0);
+                character.rotation = new BABYLON.Vector3(0, 0, 0);
+                
+                // Add character to shadow generator
+                shadowGenerator.addShadowCaster(character);
+                
+                // Set as the character mesh for movement
+                characterMesh = character;
+                currentCharacterType = type;
+                
+                return character;
+            }
+            
+            // Create robot character
+            function createRobotCharacter() {
+                // Body
+                const body = BABYLON.MeshBuilder.CreateBox("body", 
+                    {width: 1.5, height: 2.5, depth: 1}, scene);
+                body.position.y = 1.5;
+                
+                // Head
+                const head = BABYLON.MeshBuilder.CreateSphere("head", 
+                    {diameter: 1.5}, scene);
+                head.position.y = 3.5;
+                
+                // Arms
+                const leftArm = BABYLON.MeshBuilder.CreateBox("leftArm", 
+                    {width: 0.5, height: 2, depth: 0.5}, scene);
+                leftArm.position = new BABYLON.Vector3(-1.2, 1.5, 0);
+                
+                const rightArm = BABYLON.MeshBuilder.CreateBox("rightArm", 
+                    {width: 0.5, height: 2, depth: 0.5}, scene);
+                rightArm.position = new BABYLON.Vector3(1.2, 1.5, 0);
+                
+                // Legs
+                const leftLeg = BABYLON.MeshBuilder.CreateBox("leftLeg", 
+                    {width: 0.5, height: 2, depth: 0.5}, scene);
+                leftLeg.position = new BABYLON.Vector3(-0.4, 0, 0);
+                
+                const rightLeg = BABYLON.MeshBuilder.CreateBox("rightLeg", 
+                    {width: 0.5, height: 2, depth: 0.5}, scene);
+                rightLeg.position = new BABYLON.Vector3(0.4, 0, 0);
+                
+                // Parent all parts to character
+                body.parent = character;
+                head.parent = character;
+                leftArm.parent = character;
+                rightArm.parent = character;
+                leftLeg.parent = character;
+                rightLeg.parent = character;
+                
+                // Apply material
+                const characterMaterial = new BABYLON.StandardMaterial("characterMaterial", scene);
+                characterMaterial.diffuseColor = characterColor;
+                characterMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+                
+                [body, head, leftArm, rightArm, leftLeg, rightLeg].forEach(part => {
+                    part.material = characterMaterial;
+                });
+                
+                // Add some details
+                const eyeMaterial = new BABYLON.StandardMaterial("eyeMaterial", scene);
+                eyeMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+                eyeMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+                
+                const leftEye = BABYLON.MeshBuilder.CreateSphere("leftEye", 
+                    {diameter: 0.2}, scene);
+                leftEye.position = new BABYLON.Vector3(-0.3, 3.6, 0.7);
+                leftEye.material = eyeMaterial;
+                leftEye.parent = character;
+                
+                const rightEye = BABYLON.MeshBuilder.CreateSphere("rightEye", 
+                    {diameter: 0.2}, scene);
+                rightEye.position = new BABYLON.Vector3(0.3, 3.6, 0.7);
+                rightEye.material = eyeMaterial;
+                rightEye.parent = character;
+            }
+            
+            // Create knight character
+            function createKnightCharacter() {
+                // Body
+                const body = BABYLON.MeshBuilder.CreateCylinder("knightBody", 
+                    {height: 2, diameter: 1.2}, scene);
+                body.position.y = 1.5;
+                
+                // Head
+                const head = BABYLON.MeshBuilder.CreateSphere("knightHead", 
+                    {diameter: 1}, scene);
+                head.position.y = 3;
+                
+                // Helmet
+                const helmet = BABYLON.MeshBuilder.CreateCylinder("helmet", 
+                    {height: 1.2, diameter: 1.1}, scene);
+                helmet.position.y = 3.2;
+                
+                // Arms
+                const leftArm = BABYLON.MeshBuilder.CreateBox("knightLeftArm", 
+                    {width: 0.4, height: 1.8, depth: 0.4}, scene);
+                leftArm.position = new BABYLON.Vector3(-0.9, 1.5, 0);
+                
+                const rightArm = BABYLON.MeshBuilder.CreateBox("knightRightArm", 
+                    {width: 0.4, height: 1.8, depth: 0.4}, scene);
+                rightArm.position = new BABYLON.Vector3(0.9, 1.5, 0);
+                
+                // Legs
+                const leftLeg = BABYLON.MeshBuilder.CreateBox("knightLeftLeg", 
+                    {width: 0.5, height: 2, depth: 0.5}, scene);
+                leftLeg.position = new BABYLON.Vector3(-0.3, 0, 0);
+                
+                const rightLeg = BABYLON.MeshBuilder.CreateBox("knightRightLeg", 
+                    {width: 0.5, height: 2, depth: 0.5}, scene);
+                rightLeg.position = new BABYLON.Vector3(0.3, 0, 0);
+                
+                // Parent all parts to character
+                body.parent = character;
+                head.parent = character;
+                helmet.parent = character;
+                leftArm.parent = character;
+                rightArm.parent = character;
+                leftLeg.parent = character;
+                rightLeg.parent = character;
+                
+                // Apply material
+                const characterMaterial = new BABYLON.StandardMaterial("knightMaterial", scene);
+                characterMaterial.diffuseColor = characterColor;
+                characterMaterial.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+                
+                [body, helmet, leftArm, rightArm, leftLeg, rightLeg].forEach(part => {
+                    part.material = characterMaterial;
+                });
+                
+                // Head material (different color)
+                const headMaterial = new BABYLON.StandardMaterial("knightHeadMaterial", scene);
+                headMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+                head.material = headMaterial;
+            }
+            
+            // Create mage character
+            function createMageCharacter() {
+                // Body (robe)
+                const body = BABYLON.MeshBuilder.CreateCylinder("mageBody", 
+                    {height: 2.5, diameterTop: 0.8, diameterBottom: 1.5}, scene);
+                body.position.y = 1.5;
+                
+                // Head
+                const head = BABYLON.MeshBuilder.CreateSphere("mageHead", 
+                    {diameter: 1}, scene);
+                head.position.y = 3.2;
+                
+                // Hat
+                const hat = BABYLON.MeshBuilder.CreateCylinder("hat", 
+                    {height: 1.5, diameterTop: 0.1, diameterBottom: 1.2}, scene);
+                hat.position.y = 4.2;
+                
+                // Arms
+                const leftArm = BABYLON.MeshBuilder.CreateBox("mageLeftArm", 
+                    {width: 0.3, height: 1.5, depth: 0.3}, scene);
+                leftArm.position = new BABYLON.Vector3(-0.7, 1.8, 0);
+                
+                const rightArm = BABYLON.MeshBuilder.CreateBox("mageRightArm", 
+                    {width: 0.3, height: 1.5, depth: 0.3}, scene);
+                rightArm.position = new BABYLON.Vector3(0.7, 1.8, 0);
+                
+                // Staff
+                const staff = BABYLON.MeshBuilder.CreateCylinder("staff", 
+                    {height: 4, diameter: 0.1}, scene);
+                staff.position = new BABYLON.Vector3(1, 1, 0);
+                staff.rotation.z = Math.PI / 6;
+                
+                // Staff orb
+                const orb = BABYLON.MeshBuilder.CreateSphere("orb", 
+                    {diameter: 0.3}, scene);
+                orb.position = new BABYLON.Vector3(1.7, 3, 0);
+                
+                // Parent all parts to character
+                body.parent = character;
+                head.parent = character;
+                hat.parent = character;
+                leftArm.parent = character;
+                rightArm.parent = character;
+                staff.parent = character;
+                orb.parent = character;
+                
+                // Apply material
+                const characterMaterial = new BABYLON.StandardMaterial("mageMaterial", scene);
+                characterMaterial.diffuseColor = characterColor;
+                characterMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+                
+                [body, hat, leftArm, rightArm, staff].forEach(part => {
+                    part.material = characterMaterial;
+                });
+                
+                // Head material
+                const headMaterial = new BABYLON.StandardMaterial("mageHeadMaterial", scene);
+                headMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.8, 0.7);
+                head.material = headMaterial;
+                
+                // Orb material (glowing)
+                const orbMaterial = new BABYLON.StandardMaterial("orbMaterial", scene);
+                orbMaterial.diffuseColor = new BABYLON.Color3(1, 0.8, 0.2);
+                orbMaterial.emissiveColor = new BABYLON.Color3(0.5, 0.4, 0.1);
+                orb.material = orbMaterial;
+            }
+            
+            // Character movement and controls
+            const keys = {};
+            
+            // Keyboard event listeners
+            window.addEventListener("keydown", function(event) {
+                keys[event.key.toLowerCase()] = true;
+                
+                // Space for jump
+                if (event.key === " " && !isJumping) {
+                    isJumping = true;
+                    jumpStartTime = Date.now();
+                }
+                
+                // Shift for running
+                if (event.key === "Shift") {
+                    isRunning = true;
+                }
+            });
+            
+            window.addEventListener("keyup", function(event) {
+                keys[event.key.toLowerCase()] = false;
+                
+                if (event.key === "Shift") {
+                    isRunning = false;
+                }
+            });
+            
+            // Update character position and rotation
+            function updateCharacter() {
+                if (!characterMesh) return;
+                
+                movementDirection.set(0, 0, 0);
+                isMoving = false;
+                
+                // Determine movement direction based on keys
+                if (keys["w"] || keys["arrowup"]) {
+                    movementDirection.z += 1;
+                    isMoving = true;
+                }
+                if (keys["s"] || keys["arrowdown"]) {
+                    movementDirection.z -= 1;
+                    isMoving = true;
+                }
+                if (keys["a"] || keys["arrowleft"]) {
+                    movementDirection.x -= 1;
+                    isMoving = true;
+                }
+                if (keys["d"] || keys["arrowright"]) {
+                    movementDirection.x += 1;
+                    isMoving = true;
+                }
+                
+                // Normalize movement direction
+                if (movementDirection.length() > 0) {
+                    movementDirection.normalize();
+                }
+                
+                // Calculate speed (running or walking)
+                const speed = isRunning ? characterSpeed * 2 : characterSpeed;
+                const animSpeed = isRunning ? 2.0 : 1.0;
+                
+                // Update character position
+                characterMesh.position.x += movementDirection.x * speed;
+                characterMesh.position.z += movementDirection.z * speed;
+                
+                // Update character rotation to face movement direction
+                if (isMoving) {
+                    const targetRotation = Math.atan2(movementDirection.x, movementDirection.z);
+                    characterMesh.rotation.y = BABYLON.Scalar.Lerp(
+                        characterMesh.rotation.y, 
+                        targetRotation, 
+                        0.1
+                    );
+                }
+                
+                // Handle jumping
+                if (isJumping) {
+                    const jumpTime = Date.now() - jumpStartTime;
+                    const jumpProgress = Math.min(jumpTime / jumpDuration, 1);
                     
-                    showNotification(`Joined room ${roomCode}`);
+                    // Parabolic jump curve
+                    const jumpY = 4 * jumpHeight * jumpProgress * (1 - jumpProgress);
+                    characterMesh.position.y = 1 + jumpY;
+                    
+                    // End jump
+                    if (jumpProgress >= 1) {
+                        isJumping = false;
+                        characterMesh.position.y = 1;
+                    }
                 }
-            }, 2000);
-        }
-
-        function refreshAvailableRooms() {
-            // Simulate finding available rooms
-            availableRoomsDiv.innerHTML = '';
-            availableRoomsDiv.classList.remove('hidden');
-            
-            Object.keys(availableRooms).forEach(code => {
-                const room = availableRooms[code];
-                if (room.players.length < room.maxPlayers) {
-                    const roomElement = document.createElement('div');
-                    roomElement.className = 'room-item';
-                    roomElement.innerHTML = `
-                        <div>
-                            <div class="room-code">${code}</div>
-                            <div class="room-players">${room.players.length}/${room.maxPlayers} players</div>
-                        </div>
-                        <button class="btn btn-small" onclick="joinRoomFromList('${code}')">Join</button>
-                    `;
-                    availableRoomsDiv.appendChild(roomElement);
-                }
-            });
-            
-            if (availableRoomsDiv.children.length === 1) { // Only has the title div
-                availableRoomsDiv.innerHTML += '<div style="padding: 20px; text-align: center; color: #a5b1c2;">No rooms available</div>';
+                
+                // Ensure character stays within bounds
+                const bounds = 22;
+                characterMesh.position.x = Math.max(-bounds, Math.min(bounds, characterMesh.position.x));
+                characterMesh.position.z = Math.max(-bounds, Math.min(bounds, characterMesh.position.z));
+                
+                // Update camera to follow character
+                camera.target = new BABYLON.Vector3(
+                    characterMesh.position.x,
+                    characterMesh.position.y + 1,
+                    characterMesh.position.z
+                );
+                
+                // Update UI info
+                updateCharacterInfo();
             }
-        }
-
-        function joinRoomFromList(code) {
-            roomCodeInput.value = code;
-            joinRoom();
-        }
-
-        function toggleReady() {
-            const player = gameState.players[gameState.currentPlayerId];
-            player.ready = !player.ready;
             
-            readyBtn.textContent = player.ready ? '❌ Not Ready' : '✅ Ready';
-            readyBtn.style.background = player.ready ? 
-                'linear-gradient(45deg, #ff416c, #ff4b2b)' : 
-                'linear-gradient(45deg, #00b09b, #96c93d)';
-            
-            updatePlayerList();
-            
-            // Check if all players are ready
-            checkAllReady();
-        }
-
-        function checkAllReady() {
-            const players = Object.values(gameState.players);
-            const allReady = players.length > 0 && players.every(p => p.ready);
-            
-            if (allReady && gameState.isHost) {
-                // Start game after 3 seconds
-                readyStatus.textContent = 'All players ready! Starting game...';
-                setTimeout(startGame, 3000);
+            // Update character info display
+            function updateCharacterInfo() {
+                if (!characterMesh) return;
+                
+                document.getElementById("positionX").textContent = characterMesh.position.x.toFixed(1);
+                document.getElementById("positionZ").textContent = characterMesh.position.z.toFixed(1);
+                
+                const speed = isMoving ? (isRunning ? 8.0 : 4.0) : 0.0;
+                document.getElementById("speed").textContent = speed.toFixed(1);
             }
-        }
-
-        function updatePlayerList() {
-            playerList.innerHTML = '';
-            Object.values(gameState.players).forEach(player => {
-                const playerElement = document.createElement('div');
-                playerElement.className = 'player-item';
-                playerElement.innerHTML = `
-                    <div class="player-color" style="background-color: #${player.color.toString(16).padStart(6, '0')}"></div>
-                    <div>${player.name} ${player.isHost ? '👑' : ''}</div>
-                    <div class="player-ready ${player.ready ? '' : 'player-not-ready'}">
-                        ${player.ready ? '✅ Ready' : '❌ Not Ready'}
-                    </div>
-                `;
-                playerList.appendChild(playerElement);
-            });
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.innerHTML = `
-                ${type === 'error' ? '❌' : type === 'success' ? '✅' : '💡'} ${message}
-            `;
-            notificationContainer.appendChild(notification);
             
-            // Remove after 3 seconds
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // Game Functions
-        function startGame() {
-            menuScreen.classList.add('hidden');
-            gameContainer.classList.remove('hidden');
-            
-            init3DScene();
-            startGameLoop();
-            showQuestion();
-            updatePlayerUI();
-            
-            // Show chat
-            document.querySelector('.chat-container').classList.remove('hidden');
-            
-            showNotification('Game started! Good luck!', 'success');
-        }
-
-        function init3DScene() {
-            // Scene
-            scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x0c2461, 10, 100);
-            
-            // Camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 8, 15);
-            camera.lookAt(0, 0, 0);
-            
-            // Renderer
-            renderer = new THREE.WebGLRenderer({
-                canvas: document.getElementById('gameCanvas'),
-                antialias: true,
-                alpha: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 20, 5);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
-            
-            // Create street and environment
+            // Create environment
             createEnvironment();
             
-            // Create initial doors
-            createDoors(CONFIG.LEVELS[0].doors);
+            // Create initial character
+            createCharacter("robot");
             
-            // Create player meshes
-            createPlayerMeshes();
-            
-            // Handle window resize
-            onWindowResize();
-        }
-
-        function createEnvironment() {
-            // Street floor
-            const streetGeometry = new THREE.PlaneGeometry(30, 200);
-            const streetMaterial = new THREE.MeshStandardMaterial({
-                color: 0x1e3799,
-                roughness: 0.8,
-                metalness: 0.1
-            });
-            street = new THREE.Mesh(streetGeometry, streetMaterial);
-            street.rotation.x = -Math.PI / 2;
-            street.receiveShadow = true;
-            scene.add(street);
-            
-            // Street lines
-            for (let z = -90; z < 90; z += 6) {
-                const lineGeometry = new THREE.BoxGeometry(2, 0.1, 0.3);
-                const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
-                const line = new THREE.Mesh(lineGeometry, lineMaterial);
-                line.position.set(0, 0.01, z);
-                scene.add(line);
-            }
-            
-            // Street lights
-            streetLights = new THREE.Group();
-            for (let z = -80; z < 80; z += 20) {
-                // Light pole
-                const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 8);
-                const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
-                const pole = new THREE.Mesh(poleGeometry, poleMaterial);
-                pole.position.set(6, 4, z);
-                pole.castShadow = true;
-                streetLights.add(pole);
-                
-                // Light
-                const lightGeometry = new THREE.SphereGeometry(0.5);
-                const lightMaterial = new THREE.MeshBasicMaterial({ 
-                    color: 0xffcc00,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                const light = new THREE.Mesh(lightGeometry, lightMaterial);
-                light.position.set(6, 8, z);
-                streetLights.add(light);
-                
-                // Light source
-                const pointLight = new THREE.PointLight(0xffcc00, 1, 20);
-                pointLight.position.set(6, 8, z);
-                streetLights.add(pointLight);
-            }
-            scene.add(streetLights);
-            
-            // Background buildings
-            for (let i = 0; i < 10; i++) {
-                const width = 5 + Math.random() * 10;
-                const height = 10 + Math.random() * 20;
-                const depth = 5 + Math.random() * 10;
-                const x = (Math.random() > 0.5 ? 1 : -1) * (15 + width/2);
-                const z = -80 + Math.random() * 160;
-                
-                const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
-                const buildingMaterial = new THREE.MeshStandardMaterial({
-                    color: 0x2c3e50,
-                    roughness: 0.9
-                });
-                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-                building.position.set(x, height/2, z);
-                building.castShadow = true;
-                scene.add(building);
-            }
-        }
-
-        function createDoors(count) {
-            // Remove existing doors
-            doors.forEach(door => scene.remove(door));
-            doors = [];
-            
-            const doorWidth = 2;
-            const doorHeight = 4;
-            const spacing = 3.5;
-            const startX = -((count - 1) * spacing) / 2;
-            
-            for (let i = 0; i < count; i++) {
-                const doorGroup = new THREE.Group();
-                
-                // Door frame
-                const frameGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.3);
-                const frameMaterial = new THREE.MeshStandardMaterial({
-                    color: CONFIG.DOOR_COLORS.DEFAULT,
-                    emissive: CONFIG.DOOR_COLORS.DEFAULT,
-                    emissiveIntensity: 0.1
-                });
-                const frame = new THREE.Mesh(frameGeometry, frameMaterial);
-                frame.castShadow = true;
-                frame.receiveShadow = true;
-                doorGroup.add(frame);
-                
-                // Door panel
-                const panelGeometry = new THREE.BoxGeometry(doorWidth * 0.9, doorHeight * 0.8, 0.1);
-                const panelMaterial = new THREE.MeshStandardMaterial({
-                    color: 0x1a1a2e,
-                    metalness: 0.3,
-                    roughness: 0.7
-                });
-                const panel = new THREE.Mesh(panelGeometry, panelMaterial);
-                panel.position.z = 0.16;
-                doorGroup.add(panel);
-                
-                // Door handle
-                const handleGeometry = new THREE.SphereGeometry(0.08);
-                const handleMaterial = new THREE.MeshStandardMaterial({
-                    color: 0xffcc00,
-                    emissive: 0xffcc00,
-                    emissiveIntensity: 0.2
-                });
-                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
-                handle.position.set(doorWidth/2 - 0.2, 0, 0.2);
-                doorGroup.add(handle);
-                
-                // Answer text placeholder
-                const answerGeometry = new THREE.PlaneGeometry(doorWidth * 0.8, 0.5);
-                const answerMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    transparent: true,
-                    opacity: 0
-                });
-                const answerPlane = new THREE.Mesh(answerGeometry, answerMaterial);
-                answerPlane.position.set(0, 0, 0.17);
-                doorGroup.add(answerPlane);
-                
-                // Position door
-                doorGroup.position.set(startX + i * spacing, doorHeight/2, -8);
-                doorGroup.userData = {
-                    id: i,
-                    isCorrect: false,
-                    answer: ''
-                };
-                
-                scene.add(doorGroup);
-                doors.push(doorGroup);
-            }
-        }
-
-        function createPlayerMeshes() {
-            Object.values(gameState.players).forEach(player => {
-                if (playerMeshes[player.id]) {
-                    scene.remove(playerMeshes[player.id]);
-                }
-                
-                const group = new THREE.Group();
-                
-                // Player body
-                const bodyGeometry = new THREE.CapsuleGeometry(0.4, 1.2, 8, 16);
-                const bodyMaterial = new THREE.MeshStandardMaterial({
-                    color: player.color,
-                    emissive: player.color,
-                    emissiveIntensity: 0.2,
-                    roughness: 0.3,
-                    metalness: 0.2
-                });
-                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-                body.castShadow = true;
-                group.add(body);
-                
-                // Player glow
-                const glowGeometry = new THREE.SphereGeometry(0.8, 16, 16);
-                const glowMaterial = new THREE.MeshBasicMaterial({
-                    color: player.color,
-                    transparent: true,
-                    opacity: 0.2
-                });
-                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-                group.add(glow);
-                
-                // Position
-                group.position.set(player.position.x, player.position.y, player.position.z);
-                scene.add(group);
-                
-                playerMeshes[player.id] = group;
-            });
-        }
-
-        async function showQuestion() {
-            const levelConfig = CONFIG.LEVELS[gameState.currentLevel];
-            
-            // Fetch question based on language distribution
-            const question = await fetchQuestion();
-            if (!question) {
-                showNotification('Failed to load question. Using backup question.', 'error');
-                question = getFallbackQuestion();
-            }
-            
-            gameState.currentQuestion = question;
-            gameState.timeLeft = levelConfig.time;
-            
-            // Update UI
-            questionDisplay.classList.remove('hidden');
-            questionText.textContent = question.question;
-            questionText.className = `question-text question-${question.language}`;
-            categoryIcon.textContent = CONFIG.CATEGORIES[question.category]?.icon || '❓';
-            categoryDisplay.textContent = question.category.toUpperCase();
-            
-            // Reset timer
-            timerFill.style.width = '100%';
-            timerFill.style.transition = 'none';
-            setTimeout(() => {
-                timerFill.style.transition = `width ${gameState.timeLeft}s linear`;
-                timerFill.style.width = '0%';
-            }, 50);
-            
-            // Set correct door
-            const correctDoorIndex = Math.floor(Math.random() * doors.length);
-            const answers = shuffleArray([...question.incorrect_answers, question.correct_answer]);
-            
-            doors.forEach((door, index) => {
-                door.userData.isCorrect = index === correctDoorIndex;
-                door.userData.answer = answers[index];
-                
-                // Reset door color
-                const frame = door.children[0];
-                frame.material.color.setHex(CONFIG.DOOR_COLORS.DEFAULT);
-                frame.material.emissive.setHex(CONFIG.DOOR_COLORS.DEFAULT);
+            // UI Controls
+            document.getElementById("characterType").addEventListener("change", function() {
+                createCharacter(this.value);
             });
             
-            // Start timer
-            startTimer();
-        }
-
-        async function fetchQuestion() {
-            // Determine language based on distribution
-            const rand = Math.random();
-            let language;
-            if (rand < CONFIG.LANGUAGE_DISTRIBUTION.ar) {
-                language = 'ar';
-            } else if (rand < CONFIG.LANGUAGE_DISTRIBUTION.ar + CONFIG.LANGUAGE_DISTRIBUTION.en) {
-                language = 'en';
-            } else {
-                language = 'fr';
-            }
-            
-            try {
-                // For English questions, use Open Trivia DB
-                if (language === 'en') {
-                    const response = await fetch(`https://opentdb.com/api.php?amount=1&type=multiple&encode=url3986`);
-                    const data = await response.json();
-                    
-                    if (data.results && data.results.length > 0) {
-                        const q = data.results[0];
-                        return {
-                            question: decodeURIComponent(q.question),
-                            correct_answer: decodeURIComponent(q.correct_answer),
-                            incorrect_answers: q.incorrect_answers.map(a => decodeURIComponent(a)),
-                            category: q.category.toLowerCase(),
-                            language: 'en'
-                        };
-                    }
-                }
-                
-                // For Arabic and French, use a different approach
-                // Note: In a real implementation, you would need a proper API for these languages
-                // For now, we'll use a mix of pre-defined questions and some translations
-                return getTranslatedQuestion(language);
-                
-            } catch (error) {
-                console.error('Error fetching question:', error);
-                return null;
-            }
-        }
-
-        function getTranslatedQuestion(language) {
-            // This is a simplified version. In reality, you would need:
-            // 1. A proper API for Arabic/French questions
-            // 2. Or a large database of translated questions
-            
-            const baseQuestions = [
-                {
-                    en: "What is the capital of France?",
-                    ar: "ما هي عاصمة فرنسا؟",
-                    fr: "Quelle est la capitale de la France?",
-                    correct: "Paris",
-                    incorrect: ["London", "Berlin", "Madrid"],
-                    category: "geography"
-                },
-                {
-                    en: "Which planet is known as the Red Planet?",
-                    ar: "ما هو الكوكب المعروف باسم الكوكب الأحمر؟",
-                    fr: "Quelle planète est connue sous le nom de Planète Rouge?",
-                    correct: "Mars",
-                    incorrect: ["Venus", "Jupiter", "Saturn"],
-                    category: "science"
-                },
-                {
-                    en: "Who painted the Mona Lisa?",
-                    ar: "من رسم لوحة الموناليزا؟",
-                    fr: "Qui a peint la Joconde?",
-                    correct: "Leonardo da Vinci",
-                    incorrect: ["Pablo Picasso", "Vincent van Gogh", "Michelangelo"],
-                    category: "culture"
-                }
-            ];
-            
-            const q = baseQuestions[Math.floor(Math.random() * baseQuestions.length)];
-            
-            return {
-                question: q[language] || q.en,
-                correct_answer: language === 'ar' ? translateToArabic(q.correct) : 
-                              language === 'fr' ? translateToFrench(q.correct) : q.correct,
-                incorrect_answers: q.incorrect.map(ans => 
-                    language === 'ar' ? translateToArabic(ans) : 
-                    language === 'fr' ? translateToFrench(ans) : ans
-                ),
-                category: q.category,
-                language: language
-            };
-        }
-
-        function translateToArabic(text) {
-            // Simple translation mapping for demo
-            const translations = {
-                "Paris": "باريس",
-                "London": "لندن",
-                "Berlin": "برلين",
-                "Madrid": "مدريد",
-                "Mars": "المريخ",
-                "Venus": "الزهرة",
-                "Jupiter": "المشتري",
-                "Saturn": "زحل",
-                "Leonardo da Vinci": "ليوناردو دا فينشي",
-                "Pablo Picasso": "بابلو بيكاسو",
-                "Vincent van Gogh": "فينسنت فان جوخ",
-                "Michelangelo": "مايكل أنجلو"
-            };
-            return translations[text] || text;
-        }
-
-        function translateToFrench(text) {
-            // Simple translation mapping for demo
-            const translations = {
-                "Paris": "Paris",
-                "London": "Londres",
-                "Berlin": "Berlin",
-                "Madrid": "Madrid",
-                "Mars": "Mars",
-                "Venus": "Vénus",
-                "Jupiter": "Jupiter",
-                "Saturn": "Saturne",
-                "Leonardo da Vinci": "Léonard de Vinci",
-                "Pablo Picasso": "Pablo Picasso",
-                "Vincent van Gogh": "Vincent van Gogh",
-                "Michelangelo": "Michel-Ange"
-            };
-            return translations[text] || text;
-        }
-
-        function getFallbackQuestion() {
-            const questions = [
-                {
-                    question: "What is the largest ocean on Earth?",
-                    correct_answer: "Pacific Ocean",
-                    incorrect_answers: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean"],
-                    category: "geography",
-                    language: "en"
-                }
-            ];
-            return questions[Math.floor(Math.random() * questions.length)];
-        }
-
-        function shuffleArray(array) {
-            const shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        function startTimer() {
-            clearInterval(gameState.timer);
-            
-            gameState.timer = setInterval(() => {
-                gameState.timeLeft--;
-                
-                if (gameState.timeLeft <= 0) {
-                    clearInterval(gameState.timer);
-                    handleTimeOut();
-                }
-            }, 1000);
-        }
-
-        function handleTimeOut() {
-            const player = gameState.players[gameState.currentPlayerId];
-            player.lives--;
-            updatePlayerUI();
-            
-            if (player.lives <= 0) {
-                endGame();
-            } else {
-                showNotification('Time\'s up! You lost a life.', 'error');
-                setTimeout(showQuestion, 2000);
-            }
-        }
-
-        function selectDoor(doorIndex) {
-            if (gameState.selectedDoor !== null) return;
-            
-            gameState.selectedDoor = doorIndex;
-            const door = doors[doorIndex];
-            
-            // Highlight selected door
-            const frame = door.children[0];
-            frame.material.color.setHex(CONFIG.DOOR_COLORS.SELECTED);
-            frame.material.emissive.setHex(CONFIG.DOOR_COLORS.SELECTED);
-            
-            // Check answer after delay
-            setTimeout(() => {
-                checkAnswer(doorIndex);
-            }, 1000);
-        }
-
-        function checkAnswer(doorIndex) {
-            clearInterval(gameState.timer);
-            
-            const door = doors[doorIndex];
-            const isCorrect = door.userData.isCorrect;
-            const player = gameState.players[gameState.currentPlayerId];
-            
-            // Update door color
-            const frame = door.children[0];
-            frame.material.color.setHex(isCorrect ? CONFIG.DOOR_COLORS.CORRECT : CONFIG.DOOR_COLORS.WRONG);
-            frame.material.emissive.setHex(isCorrect ? CONFIG.DOOR_COLORS.CORRECT : CONFIG.DOOR_COLORS.WRONG);
-            
-            if (isCorrect) {
-                // Correct answer
-                const points = CONFIG.LEVELS[gameState.currentLevel].points;
-                player.score += points;
-                updatePlayerUI();
-                
-                showNotification(`Correct! +${points} points`, 'success');
-                
-                // Move to next level
-                setTimeout(() => {
-                    gameState.currentLevel++;
-                    if (gameState.currentLevel >= CONFIG.LEVELS.length) {
-                        // Game completed
-                        player.score += 1000; // Bonus
-                        endGame(true);
-                    } else {
-                        // Create new doors for next level
-                        createDoors(CONFIG.LEVELS[gameState.currentLevel].doors);
-                        gameState.selectedDoor = null;
-                        showQuestion();
-                    }
-                }, 2000);
-            } else {
-                // Wrong answer
-                player.lives--;
-                updatePlayerUI();
-                
-                showNotification(`Wrong answer! The correct was: ${door.userData.answer}`, 'error');
-                
-                if (player.lives <= 0) {
-                    endGame();
-                } else {
-                    setTimeout(() => {
-                        gameState.selectedDoor = null;
-                        showQuestion();
-                    }, 2000);
-                }
-            }
-        }
-
-        function updatePlayerUI() {
-            const players = Object.values(gameState.players);
-            
-            players.forEach((player, index) => {
-                const playerNum = index + 1;
-                const nameEl = document.getElementById(`player${playerNum}Name`);
-                const scoreEl = document.getElementById(`player${playerNum}Score`);
-                const livesEl = document.getElementById(`player${playerNum}Lives`);
-                
-                if (nameEl) nameEl.textContent = player.name;
-                if (scoreEl) scoreEl.textContent = player.score;
-                
-                if (livesEl) {
-                    livesEl.innerHTML = '';
-                    for (let i = 0; i < CONFIG.LIVES; i++) {
-                        const life = document.createElement('div');
-                        life.className = `life ${i >= player.lives ? 'lost' : ''}`;
-                        livesEl.appendChild(life);
-                    }
-                }
-            });
-        }
-
-        function endGame(isVictory = false) {
-            gameState.gameActive = false;
-            clearInterval(gameState.timer);
-            
-            const player = gameState.players[gameState.currentPlayerId];
-            const totalQuestions = gameState.currentLevel + 1;
-            const correctCount = Math.floor(player.score / 100); // Approximation
-            
-            if (isVictory) {
-                resultTitle.textContent = 'VICTORY!';
-                resultTitle.style.background = 'linear-gradient(45deg, #00ff9d, #00b8ff)';
-                showNotification('Congratulations! You completed all levels!', 'success');
-            } else {
-                resultTitle.textContent = 'GAME OVER';
-                resultTitle.style.background = 'linear-gradient(45deg, #ff9a00, #ff5252)';
-                showNotification('Game Over! Try again!', 'error');
-            }
-            
-            finalLevel.textContent = gameState.currentLevel + 1;
-            finalScore.textContent = player.score;
-            correctAnswers.textContent = correctCount;
-            
-            gameOverScreen.classList.remove('hidden');
-        }
-
-        function resetGame() {
-            gameState.currentLevel = 0;
-            gameState.selectedDoor = null;
-            gameState.timeLeft = CONFIG.QUESTION_TIME;
-            
-            Object.values(gameState.players).forEach(player => {
-                player.score = 0;
-                player.lives = CONFIG.LIVES;
-                player.ready = false;
+            document.getElementById("colorPicker").addEventListener("input", function() {
+                characterColor = BABYLON.Color3.FromHexString(this.value);
+                createCharacter(currentCharacterType);
             });
             
-            updatePlayerUI();
-            gameOverScreen.classList.add('hidden');
+            document.getElementById("animSpeed").addEventListener("input", function() {
+                const value = parseFloat(this.value);
+                document.getElementById("animSpeedValue").textContent = value.toFixed(1);
+                characterSpeed = 0.1 * value;
+            });
             
-            createDoors(CONFIG.LEVELS[0].doors);
-            showQuestion();
-        }
-
-        function returnToMenu() {
-            gameOverScreen.classList.add('hidden');
-            gameContainer.classList.add('hidden');
-            menuScreen.classList.remove('hidden');
+            document.getElementById("resetCharacter").addEventListener("click", function() {
+                if (characterMesh) {
+                    characterMesh.position = new BABYLON.Vector3(0, 1, 0);
+                    characterMesh.rotation = new BABYLON.Vector3(0, 0, 0);
+                }
+            });
             
-            // Reset game state
-            gameState.players = {};
-            gameState.readyPlayers.clear();
-            gameState.gameActive = false;
-            
-            // Leave room
-            if (gameState.roomCode && availableRooms[gameState.roomCode]) {
-                delete availableRooms[gameState.roomCode];
-            }
-        }
-
-        function sendChatMessage(message) {
-            const player = gameState.players[gameState.currentPlayerId];
-            const chatMessage = document.createElement('div');
-            chatMessage.className = 'chat-message sent';
-            chatMessage.innerHTML = `<strong>${player.name}:</strong> ${message}`;
-            chatMessages.appendChild(chatMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        // Game Loop
-        function startGameLoop() {
-            function animate() {
-                requestAnimationFrame(animate);
+            document.getElementById("lighting").addEventListener("change", function() {
+                const value = this.value;
                 
-                const delta = clock.getDelta();
+                switch(value) {
+                    case "day":
+                        light.intensity = 0.8;
+                        directionalLight.intensity = 0.5;
+                        scene.clearColor = new BABYLON.Color4(0.6, 0.8, 1.0, 1.0);
+                        break;
+                    case "night":
+                        light.intensity = 0.3;
+                        directionalLight.intensity = 0.2;
+                        scene.clearColor = new BABYLON.Color4(0.05, 0.05, 0.1, 1.0);
+                        break;
+                    case "sunset":
+                        light.intensity = 0.6;
+                        directionalLight.intensity = 0.4;
+                        scene.clearColor = new BABYLON.Color4(0.9, 0.5, 0.3, 1.0);
+                        break;
+                    case "dungeon":
+                        light.intensity = 0.2;
+                        directionalLight.intensity = 0.1;
+                        scene.clearColor = new BABYLON.Color4(0.1, 0.1, 0.1, 1.0);
+                        break;
+                }
+            });
+            
+            let shadowsEnabled = true;
+            document.getElementById("toggleShadows").addEventListener("click", function() {
+                shadowsEnabled = !shadowsEnabled;
+                shadowGenerator.getShadowMap().renderList.forEach(mesh => {
+                    mesh.receiveShadows = shadowsEnabled;
+                });
                 
-                // Animate street lights
-                if (streetLights) {
-                    streetLights.children.forEach((child, index) => {
-                        if (child.type === 'Mesh' && child.geometry.type === 'SphereGeometry') {
-                            // Pulsing glow effect
-                            const scale = 1 + Math.sin(Date.now() * 0.001 + index) * 0.1;
-                            child.scale.setScalar(scale);
+                this.textContent = shadowsEnabled ? "Toggle Shadows: ON" : "Toggle Shadows: OFF";
+            });
+            
+            document.getElementById("envScale").addEventListener("input", function() {
+                const value = parseFloat(this.value);
+                document.getElementById("envScaleValue").textContent = value.toFixed(1);
+                
+                // Scale ground
+                ground.scaling = new BABYLON.Vector3(value, 1, value);
+                
+                // Scale environment elements (simplified)
+                scene.meshes.forEach(mesh => {
+                    if (mesh.name.includes("building") || mesh.name.includes("tree")) {
+                        const originalScale = mesh.metadata?.originalScale || new BABYLON.Vector3(1, 1, 1);
+                        mesh.scaling = originalScale.scale(value);
+                        
+                        if (!mesh.metadata) {
+                            mesh.metadata = {};
                         }
-                    });
-                }
-                
-                // Animate player glow
-                Object.values(playerMeshes).forEach((mesh, index) => {
-                    const glow = mesh.children[1];
-                    if (glow) {
-                        const pulse = 1 + Math.sin(Date.now() * 0.002 + index) * 0.1;
-                        glow.scale.setScalar(pulse);
+                        mesh.metadata.originalScale = originalScale;
                     }
                 });
-                
-                // Animate doors
-                doors.forEach(door => {
-                    door.rotation.y = Math.sin(Date.now() * 0.001 + door.userData.id) * 0.05;
-                });
-                
-                // Update camera position
-                if (camera) {
-                    const player = gameState.players[gameState.currentPlayerId];
-                    if (player) {
-                        const targetZ = player.position.z - 15;
-                        camera.position.z += (targetZ - camera.position.z) * 0.05;
-                    }
-                    
-                    // Gentle camera sway
-                    camera.position.x = Math.sin(Date.now() * 0.0005) * 0.5;
-                }
-                
-                renderer.render(scene, camera);
-            }
-            animate();
-        }
-
-        function handleKeyDown(event) {
-            if (!gameState.gameActive) return;
+            });
             
-            const player = gameState.players[gameState.currentPlayerId];
-            if (!player) return;
+            // Animation loop
+            scene.onBeforeRenderObservable.add(() => {
+                updateCharacter();
+            });
             
-            // Movement
-            switch(event.key.toLowerCase()) {
-                case 'arrowleft':
-                case 'a':
-                    player.position.x = Math.max(-6, player.position.x - 1);
-                    break;
-                case 'arrowright':
-                case 'd':
-                    player.position.x = Math.min(6, player.position.x + 1);
-                    break;
-                case '1':
-                    if (doors.length >= 1) selectDoor(0);
-                    break;
-                case '2':
-                    if (doors.length >= 2) selectDoor(1);
-                    break;
-                case '3':
-                    if (doors.length >= 3) selectDoor(2);
-                    break;
-                case '4':
-                    if (doors.length >= 4) selectDoor(3);
-                    break;
-                case '5':
-                    if (doors.length >= 5) selectDoor(4);
-                    break;
-                case '6':
-                    if (doors.length >= 6) selectDoor(5);
-                    break;
-            }
+            // Resize event
+            window.addEventListener("resize", function() {
+                engine.resize();
+            });
             
-            // Update player mesh position
-            if (playerMeshes[player.id]) {
-                playerMeshes[player.id].position.x = player.position.x;
-            }
-        }
-
-        function onWindowResize() {
-            if (camera && renderer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-        }
-
-        // Initialize the game
-        window.addEventListener('DOMContentLoaded', init);
+            // Run the render loop
+            engine.runRenderLoop(function() {
+                scene.render();
+            });
+        });
     </script>
 </body>
 </html>
