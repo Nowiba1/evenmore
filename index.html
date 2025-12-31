@@ -5,43 +5,1026 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mission Extraction - Local Network Multiplayer</title>
     <style>
-        /* [Le CSS reste exactement le même] */
+        /* Reset & Base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
         
         body {
             background: linear-gradient(135deg, #0c0c1d 0%, #1a1a2e 100%);
             color: #e0e0ff;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden;
+            user-select: none;
         }
         
-        /* ... [Tout le CSS précédent reste identique] ... */
+        /* Screens */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Main Menu */
+        .title {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(76, 201, 240, 0.3);
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            margin-bottom: 30px;
+            text-align: center;
+            color: #a0a0ff;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+        
+        /* Room Controls */
+        .room-controls {
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.9), rgba(10, 10, 25, 0.9));
+            border-radius: 16px;
+            padding: clamp(20px, 4vw, 30px);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4cc9f0;
+            font-size: 0.95rem;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(5, 5, 15, 0.8);
+            border: 1px solid #4361ee;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 15px rgba(76, 201, 240, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 7px 20px rgba(67, 97, 238, 0.4),
+                0 3px 10px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f72585, #b5179e);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        /* File Upload */
+        .file-upload {
+            background: rgba(30, 30, 60, 0.6);
+            border: 2px dashed #4361ee;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-upload::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(76, 201, 240, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: transform 0.6s;
+        }
+        
+        .file-upload:hover::after {
+            transform: rotate(45deg) translate(10%, 10%);
+        }
+        
+        .file-upload:hover {
+            border-color: #4cc9f0;
+            background: rgba(40, 40, 70, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        .file-upload.dragover {
+            border-color: #4ade80;
+            background: rgba(40, 70, 40, 0.6);
+            animation: pulseBorder 1s infinite;
+        }
+        
+        @keyframes pulseBorder {
+            0%, 100% { border-color: #4ade80; }
+            50% { border-color: #4cc9f0; }
+        }
+        
+        .file-upload h3 {
+            color: #4cc9f0;
+            margin-bottom: 8px;
+            font-size: 1.3rem;
+        }
+        
+        .file-upload p {
+            color: #a0a0ff;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+            max-height: 220px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4361ee rgba(20, 20, 40, 0.8);
+        }
+        
+        .file-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .file-list::-webkit-scrollbar-track {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 3px;
+        }
+        
+        .file-list::-webkit-scrollbar-thumb {
+            background: #4361ee;
+            border-radius: 3px;
+        }
+        
+        .file-item {
+            background: linear-gradient(90deg, rgba(20, 20, 40, 0.8), rgba(30, 30, 60, 0.8));
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            border-left: 4px solid #4361ee;
+            transition: all 0.3s ease;
+        }
+        
+        .file-item:hover {
+            transform: translateX(5px);
+            background: linear-gradient(90deg, rgba(30, 30, 60, 0.9), rgba(40, 40, 80, 0.9));
+        }
+        
+        .file-item.required {
+            border-left-color: #f59e0b;
+        }
+        
+        .file-item.loaded {
+            border-left-color: #4ade80;
+        }
+        
+        .file-icon {
+            margin-right: 12px;
+            font-size: 1.5rem;
+            min-width: 30px;
+        }
+        
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .file-size {
+            font-size: 0.85rem;
+            color: #a0a0ff;
+            margin-top: 2px;
+        }
+        
+        .file-status {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(67, 97, 238, 0.2);
+            color: #a0a0ff;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        /* Waiting Room */
+        .players-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 800px;
+            margin: 25px 0;
+        }
+        
+        .player-card {
+            background: linear-gradient(145deg, rgba(30, 30, 60, 0.8), rgba(20, 20, 40, 0.8));
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4361ee, #4cc9f0);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .player-card.ready::before {
+            transform: scaleX(1);
+        }
+        
+        .player-card.ready {
+            border-color: #4ade80;
+            box-shadow: 
+                0 5px 15px rgba(74, 222, 128, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .player-card.host {
+            border-color: #4cc9f0;
+            box-shadow: 
+                0 5px 15px rgba(76, 201, 240, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .player-card.downloading {
+            border-color: #f59e0b;
+            animation: downloadingPulse 2s infinite;
+        }
+        
+        @keyframes downloadingPulse {
+            0%, 100% { box-shadow: 0 0 0 rgba(245, 158, 11, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+        }
+        
+        .player-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-avatar::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+        }
+        
+        .player-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e0e0ff;
+            font-size: 1.1rem;
+        }
+        
+        .player-status {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-ready {
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.2), rgba(74, 222, 128, 0.1));
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+        
+        .status-waiting {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(245, 158, 11, 0.1));
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .status-downloading {
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.2), rgba(67, 97, 238, 0.1));
+            color: #4361ee;
+            border: 1px solid rgba(67, 97, 238, 0.3);
+        }
+        
+        /* Game Screen */
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .ui-panel {
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.85), rgba(10, 10, 25, 0.85));
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            min-width: 220px;
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .ui-panel:hover {
+            transform: translateY(-2px);
+        }
+        
+        .ui-panel h3 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(76, 201, 240, 0.2);
+            padding-bottom: 8px;
+        }
+        
+        .ui-panel p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+            color: #e0e0ff;
+        }
+        
+        .ui-panel p span {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        
+        .mission-list {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.85), rgba(10, 10, 25, 0.85));
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            width: min(350px, 90vw);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .mission-list h3 {
+            color: #4cc9f0;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .mission-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .mission-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .mission-item.completed {
+            color: #4ade80;
+        }
+        
+        .mission-checkbox {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #4361ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .mission-item.completed .mission-checkbox {
+            background: #4ade80;
+            border-color: #4ade80;
+        }
+        
+        .mission-item.completed .mission-checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .extraction-timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.85), rgba(10, 10, 25, 0.85));
+            border-radius: 12px;
+            padding: 15px 30px;
+            border: 1px solid rgba(76, 201, 240, 0.2);
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #4cc9f0;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            min-width: 250px;
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0c0c1d, #1a1a2e);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        
+        .loading-progress-container {
+            width: min(400px, 80vw);
+            margin: 25px 0;
+        }
+        
+        .loading-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid #4361ee;
+        }
+        
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4361ee, #4cc9f0);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        .loading-file {
+            margin-top: 15px;
+            color: #a0a0ff;
+            font-size: 0.95rem;
+            text-align: center;
+            min-height: 20px;
+        }
+        
+        .loading-speed {
+            font-size: 0.85rem;
+            color: #a0a0ff;
+            margin-top: 5px;
+        }
+        
+        /* Notifications */
+        .notification-area {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: min(350px, 90vw);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        
+        .notification {
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.95), rgba(10, 10, 25, 0.95));
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 5px solid #4361ee;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            transform: translateX(400px);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #4cc9f0;
+            font-size: 1rem;
+        }
+        
+        .notification-message {
+            color: #e0e0ff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        /* Code Display */
+        .code-display {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: 15px;
+            text-align: center;
+            background: linear-gradient(145deg, rgba(10, 10, 25, 0.9), rgba(20, 20, 40, 0.9));
+            padding: 25px 40px;
+            border-radius: 16px;
+            margin: 25px 0;
+            color: #4ade80;
+            border: 2px solid #4361ee;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+        }
+        
+        /* Instructions */
+        .instructions {
+            background: linear-gradient(145deg, rgba(20, 20, 40, 0.6), rgba(10, 10, 25, 0.6));
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            border: 1px solid rgba(76, 201, 240, 0.1);
+            max-width: 600px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .instructions h3 {
+            color: #4cc9f0;
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            list-style: none;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .instructions li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: #4361ee;
+            font-size: 0.8rem;
+        }
+        
+        /* Animations */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .bounce {
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid rgba(67, 97, 238, 0.3);
+            border-top: 4px solid #4361ee;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        .loader-small {
+            border: 3px solid rgba(67, 97, 238, 0.3);
+            border-top: 3px solid #4361ee;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .room-controls {
+                padding: 20px;
+            }
+            
+            .players-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .game-ui {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .ui-panel, .mission-list {
+                width: calc(100% - 40px);
+                min-width: unset;
+                transform: scale(0.95);
+                transform-origin: top left;
+            }
+            
+            .extraction-timer {
+                font-size: 1.2rem;
+                padding: 12px 20px;
+                min-width: 200px;
+            }
+            
+            .code-display {
+                font-size: 2.5rem;
+                letter-spacing: 10px;
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                padding: 14px;
+                font-size: 1rem;
+            }
+            
+            .players-list {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Performance Optimizations */
+        .will-change-transform {
+            will-change: transform;
+        }
+        
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
     </style>
 </head>
 <body>
     <!-- Main Menu Screen -->
     <div id="mainMenu" class="screen active">
-        <!-- [Identique] -->
+        <h1 class="title">MISSION EXTRACTION</h1>
+        <p class="subtitle">Local Network Co-op Tactical Operations</p>
+        
+        <div class="room-controls">
+            <div class="input-group">
+                <label for="playerName">YOUR CALL SIGN</label>
+                <input type="text" id="playerName" placeholder="Enter your name" value="Operator" maxlength="12">
+            </div>
+            
+            <button id="createRoomBtn" class="btn">CREATE ROOM</button>
+            <button id="joinRoomBtn" class="btn btn-secondary">JOIN ROOM</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>HOW TO PLAY:</h3>
+            <ul>
+                <li>One player creates a room and uploads game assets</li>
+                <li>Other players join using the 4-digit room code</li>
+                <li>Complete missions: eliminate enemies, secure objectives</li>
+                <li>Meet at extraction point after 2 minutes</li>
+                <li>All players must extract together to win</li>
+            </ul>
+        </div>
     </div>
     
     <!-- Host Room Screen -->
     <div id="hostRoomScreen" class="screen">
-        <!-- [Identique] -->
+        <h1 class="title">HOST ROOM</h1>
+        <p class="subtitle">Upload game assets to create room</p>
+        
+        <div class="room-controls">
+            <div class="input-group">
+                <label>REQUIRED GAME ASSETS</label>
+                <p style="color: #a0a0ff; font-size: 0.9rem; margin-top: 5px;">
+                    Upload these files from your computer:
+                </p>
+            </div>
+            
+            <div class="file-upload" id="fileDropZone">
+                <div class="file-icon">📁</div>
+                <h3>DRAG & DROP FILES HERE</h3>
+                <p>or click to select files</p>
+                <p style="font-size: 0.9rem; color: #f59e0b; margin-top: 10px;">
+                    Required: map.glb, player1.glb, player2.glb, enemy.glb
+                </p>
+                <input type="file" id="fileInput" multiple accept=".glb,.gltf" style="display: none;">
+            </div>
+            
+            <div class="file-list" id="fileList">
+                <div class="file-item required">
+                    <div class="file-icon">🗺️</div>
+                    <div class="file-info">
+                        <div class="file-name">map.glb</div>
+                        <div class="file-size">Required - 3D Map File</div>
+                    </div>
+                    <div class="file-status" id="mapStatus">Missing</div>
+                </div>
+                <div class="file-item required">
+                    <div class="file-icon">👤</div>
+                    <div class="file-info">
+                        <div class="file-name">player1.glb</div>
+                        <div class="file-size">Required - Player 1 Model</div>
+                    </div>
+                    <div class="file-status" id="player1Status">Missing</div>
+                </div>
+                <div class="file-item required">
+                    <div class="file-icon">👤</div>
+                    <div class="file-info">
+                        <div class="file-name">player2.glb</div>
+                        <div class="file-size">Required - Player 2 Model</div>
+                    </div>
+                    <div class="file-status" id="player2Status">Missing</div>
+                </div>
+                <div class="file-item required">
+                    <div class="file-icon">👾</div>
+                    <div class="file-info">
+                        <div class="file-name">enemy.glb</div>
+                        <div class="file-size">Required - Enemy Model</div>
+                    </div>
+                    <div class="file-status" id="enemyStatus">Missing</div>
+                </div>
+            </div>
+            
+            <button id="createRoomWithAssets" class="btn btn-success" disabled>CREATE ROOM WITH ASSETS</button>
+            <button id="backToMainFromHost" class="btn btn-secondary">BACK</button>
+        </div>
     </div>
     
     <!-- Room Created Screen -->
     <div id="roomCreatedScreen" class="screen">
-        <!-- [Identique] -->
+        <h1 class="title">ROOM CREATED</h1>
+        <p class="subtitle">Share this code with other players on your local network</p>
+        
+        <div class="code-display" id="roomCode">----</div>
+        
+        <div class="room-controls">
+            <p style="margin-bottom: 15px;">Waiting for players to join...</p>
+            <p style="color: #4cc9f0; margin: 10px 0; font-size: 1.2rem;">
+                <span id="connectedPlayers">0</span> player(s) connected
+            </p>
+            <div class="loader"></div>
+            <button id="goToWaitingRoom" class="btn btn-success hidden">GO TO WAITING ROOM</button>
+        </div>
     </div>
     
     <!-- Join Room Screen -->
     <div id="joinRoomScreen" class="screen">
-        <!-- [Identique] -->
+        <h1 class="title">JOIN ROOM</h1>
+        <p class="subtitle">Enter the 4-digit room code provided by the host</p>
+        
+        <div class="room-controls">
+            <div class="input-group">
+                <label for="joinCodeInput">ROOM CODE</label>
+                <input type="text" id="joinCodeInput" placeholder="Enter 4-digit code" maxlength="4" pattern="\d{4}">
+            </div>
+            
+            <button id="joinWithCodeBtn" class="btn">JOIN</button>
+            <button id="backToMainBtn" class="btn btn-secondary">BACK</button>
+        </div>
     </div>
     
     <!-- Waiting Room Screen -->
@@ -55,22 +1038,24 @@
         
         <div class="room-controls">
             <div id="playerStatus">
+                <!-- Download status for joining players -->
                 <div id="downloadStatus" class="hidden">
-                    <p style="margin-bottom: 10px; color: #4cc9f0;">
+                    <p style="margin-bottom: 10px; color: #4cc9f0; font-size: 1.1rem;">
                         <span id="downloadProgress">Downloading assets from host...</span>
                         <span class="loader-small"></span>
                     </p>
                     <div class="loading-progress">
                         <div class="loading-bar" id="downloadBar"></div>
                     </div>
+                    <p id="downloadSpeed" class="loading-speed"></p>
                 </div>
                 
-                <!-- Le bouton READY est maintenant visible pour TOUS les joueurs -->
+                <!-- Ready button for ALL players -->
                 <button id="readyBtn" class="btn">READY</button>
                 
-                <!-- Message et bouton seulement pour l'hôte quand tout le monde est prêt -->
+                <!-- Host-only controls (shown when all players are ready) -->
                 <div id="hostControls" class="hidden">
-                    <p id="hostMessage" style="margin: 15px 0; color: #4ade80; text-align: center;">
+                    <p id="hostMessage" style="margin: 15px 0; color: #4ade80; text-align: center; font-size: 1.1rem;">
                         All players are ready!
                     </p>
                     <button id="startMissionBtn" class="btn btn-success">LAUNCH MISSION</button>
@@ -82,16 +1067,65 @@
     
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen hidden">
-        <!-- [Identique] -->
+        <h1 class="title">LOADING GAME</h1>
+        <div class="loading-progress-container">
+            <div class="loading-progress">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+        </div>
+        <div class="loading-file" id="loadingFile">Initializing game engine...</div>
+        <div class="loader"></div>
     </div>
     
     <!-- Game Screen -->
     <div id="gameScreen" class="screen">
-        <!-- [Identique] -->
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Game UI Overlay -->
+        <div class="game-ui">
+            <div class="ui-panel">
+                <h3>OPERATOR STATUS</h3>
+                <p>Player: <span id="uiPlayerName">---</span></p>
+                <p>Health: <span id="uiHealth">100</span></p>
+                <p>Enemies: <span id="uiKills">0</span>/10</p>
+                <p>Objectives: <span id="uiObjectives">0</span>/3</p>
+            </div>
+            
+            <div class="ui-panel">
+                <h3>TEAM STATUS</h3>
+                <div id="teamStatus">
+                    <!-- Team member status will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="extraction-timer">
+            Extraction Available In: <span id="extractionTimer">02:00</span>
+        </div>
+        
+        <div class="mission-list">
+            <h3>ACTIVE MISSIONS</h3>
+            <div class="mission-item" id="mission1">
+                <div class="mission-checkbox"></div>
+                <span>Eliminate 10 enemies (0/10)</span>
+            </div>
+            <div class="mission-item" id="mission2">
+                <div class="mission-checkbox"></div>
+                <span>Secure server room</span>
+            </div>
+            <div class="mission-item" id="mission3">
+                <div class="mission-checkbox"></div>
+                <span>Download intel data</span>
+            </div>
+            <div class="mission-item" id="mission4">
+                <div class="mission-checkbox"></div>
+                <span>Extract with partner</span>
+            </div>
+        </div>
     </div>
     
     <!-- Notification System -->
-    <div id="notificationArea"></div>
+    <div class="notification-area" id="notificationArea"></div>
 
     <!-- Three.js and Game Logic -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -99,58 +1133,79 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     
     <script>
-        // Game State and Configuration
+        // ======================
+        // CONFIGURATION
+        // ======================
         const CONFIG = {
             ROOM_CODE_LENGTH: 4,
             MAX_PLAYERS: 4,
             EXTRACTION_TIME_MINUTES: 2,
             LOCAL_STORAGE_KEY: 'mission_extraction_rooms',
             REQUIRED_ASSETS: ['map', 'player1', 'player2', 'enemy'],
-            CHUNK_SIZE: 16384
+            CHUNK_SIZE: 16384,
+            ASSET_CHECK_INTERVAL: 1000,
+            ROOM_UPDATE_INTERVAL: 1000,
+            GAME_TICK_RATE: 60,
+            DEBUG: false
         };
 
-        // Game State
-        let gameState = {
-            currentScreen: 'mainMenu',
+        // ======================
+        // GAME STATE
+        // ======================
+        const gameState = {
+            // Player State
             playerId: null,
             playerName: 'Operator',
             roomCode: null,
             isHost: false,
             isReady: false,
+            
+            // Room State
+            players: {},
             peerConnections: {},
             dataChannels: {},
-            players: {},
+            
+            // Game State
+            currentScreen: 'mainMenu',
             gameStarted: false,
-            assets: {
-                map: null,
-                player1: null,
-                player2: null,
-                enemy: null
-            },
+            gameTime: 0,
+            frameCount: 0,
+            
+            // Assets
             assetFiles: {},
+            receivedAssets: {},
+            
+            // Missions
             missions: {
                 enemiesKilled: 0,
                 serverSecured: false,
                 intelDownloaded: false,
                 extractionReady: false
             },
+            
+            // Timer
             extractionTimer: CONFIG.EXTRACTION_TIME_MINUTES * 60,
             extractionAvailable: false,
-            gameTime: 0
+            
+            // Performance
+            fps: 0,
+            lastFpsUpdate: 0
         };
 
-        // Three.js variables
+        // ======================
+        // THREE.JS VARIABLES
+        // ======================
         let scene, camera, renderer, controls;
         let mapModel, player1Model, player2Model, enemyModel;
         let playerObjects = {};
         let enemyObjects = [];
         let extractionZone = null;
+        let clock = new THREE.Clock();
+        let deltaTime = 0;
 
-        // File transfer variables
-        let fileTransfers = {};
-        let receivedAssets = {};
-
-        // DOM Elements
+        // ======================
+        // DOM ELEMENTS
+        // ======================
         const screens = {
             mainMenu: document.getElementById('mainMenu'),
             hostRoomScreen: document.getElementById('hostRoomScreen'),
@@ -160,12 +1215,21 @@
             gameScreen: document.getElementById('gameScreen')
         };
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', () => {
+        // ======================
+        // INITIALIZATION
+        // ======================
+        document.addEventListener('DOMContentLoaded', initGame);
+
+        function initGame() {
+            if (CONFIG.DEBUG) console.log('Initializing game...');
+            
             initEventListeners();
             generatePlayerId();
             loadPlayerName();
-        });
+            setupPerformanceMonitoring();
+            
+            if (CONFIG.DEBUG) console.log('Game initialized');
+        }
 
         function initEventListeners() {
             // Main Menu
@@ -173,27 +1237,16 @@
             document.getElementById('joinRoomBtn').addEventListener('click', () => showScreen('joinRoomScreen'));
             
             // Host Room Screen
-            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-            document.getElementById('fileDropZone').addEventListener('click', () => document.getElementById('fileInput').click());
+            const fileInput = document.getElementById('fileInput');
+            const fileDropZone = document.getElementById('fileDropZone');
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            fileDropZone.addEventListener('click', () => fileInput.click());
             document.getElementById('createRoomWithAssets').addEventListener('click', createRoomWithAssets);
             document.getElementById('backToMainFromHost').addEventListener('click', showMainMenu);
             
-            // Drag and drop
-            const dropZone = document.getElementById('fileDropZone');
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('dragover');
-            });
-            
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.classList.remove('dragover');
-            });
-            
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('dragover');
-                handleFileSelect({ target: { files: e.dataTransfer.files } });
-            });
+            // Drag and Drop
+            setupDragAndDrop(fileDropZone);
             
             // Join Room Screen
             document.getElementById('joinWithCodeBtn').addEventListener('click', joinRoom);
@@ -208,15 +1261,70 @@
             document.getElementById('leaveWaitingRoomBtn').addEventListener('click', leaveWaitingRoom);
             document.getElementById('goToWaitingRoom').addEventListener('click', goToWaitingRoom);
             
-            // Player name input
+            // Player Name
             document.getElementById('playerName').addEventListener('input', (e) => {
-                gameState.playerName = e.target.value || 'Operator';
+                gameState.playerName = e.target.value.trim() || 'Operator';
                 localStorage.setItem('playerName', gameState.playerName);
+            });
+            
+            // Window Events
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            
+            // Game Controls
+            setupGameControls();
+        }
+
+        function setupDragAndDrop(dropZone) {
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                handleFileSelect({ target: { files: e.dataTransfer.files } });
             });
         }
 
+        function setupGameControls() {
+            document.addEventListener('keydown', (e) => {
+                if (!gameState.gameStarted) return;
+                
+                // Mission Simulation Controls
+                switch(e.key) {
+                    case '1':
+                        if (window.checkEnemyKill) window.checkEnemyKill();
+                        break;
+                    case '2':
+                        if (window.secureServerRoom) window.secureServerRoom();
+                        break;
+                    case '3':
+                        if (window.downloadIntel) window.downloadIntel();
+                        break;
+                    case '4':
+                        if (gameState.extractionAvailable && window.completeExtraction) {
+                            window.completeExtraction();
+                        }
+                        break;
+                    case 'Escape':
+                        pauseGame();
+                        break;
+                }
+            });
+        }
+
+        // ======================
+        // PLAYER MANAGEMENT
+        // ======================
         function generatePlayerId() {
-            gameState.playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+            gameState.playerId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            if (CONFIG.DEBUG) console.log('Player ID generated:', gameState.playerId);
         }
 
         function loadPlayerName() {
@@ -227,65 +1335,92 @@
             }
         }
 
+        // ======================
+        // SCREEN MANAGEMENT
+        // ======================
         function showScreen(screenName) {
+            if (CONFIG.DEBUG) console.log('Showing screen:', screenName);
+            
+            // Hide all screens
             Object.values(screens).forEach(screen => {
                 screen.classList.remove('active');
             });
             
-            screens[screenName].classList.add('active');
-            gameState.currentScreen = screenName;
-        }
-
-        function showMainMenu() {
-            showScreen('mainMenu');
-        }
-
-        function showLoadingScreen(show = true) {
-            const loadingScreen = document.getElementById('loadingScreen');
-            if (show) {
-                loadingScreen.classList.remove('hidden');
-            } else {
-                loadingScreen.classList.add('hidden');
+            // Show requested screen
+            if (screens[screenName]) {
+                screens[screenName].classList.add('active');
+                gameState.currentScreen = screenName;
+            }
+            
+            // Screen-specific setup
+            switch(screenName) {
+                case 'mainMenu':
+                    updateBackgroundAnimation();
+                    break;
+                case 'gameScreen':
+                    startGameLoop();
+                    break;
             }
         }
 
-        function updateLoadingProgress(percent, message) {
-            document.getElementById('loadingBar').style.width = percent + '%';
-            document.getElementById('loadingFile').textContent = message;
+        function showMainMenu() {
+            resetGameState();
+            showScreen('mainMenu');
         }
 
-        // File Handling
+        function resetGameState() {
+            gameState.roomCode = null;
+            gameState.isHost = false;
+            gameState.isReady = false;
+            gameState.players = {};
+            gameState.assetFiles = {};
+            gameState.receivedAssets = {};
+            gameState.gameStarted = false;
+        }
+
+        // ======================
+        // FILE HANDLING
+        // ======================
         function handleFileSelect(event) {
             const files = Array.from(event.target.files);
             let allRequiredFound = true;
+            
+            if (CONFIG.DEBUG) console.log('Files selected:', files.length);
             
             files.forEach(file => {
                 const fileName = file.name.toLowerCase();
                 let assetType = null;
                 
-                if (fileName.includes('map')) assetType = 'map';
-                else if (fileName.includes('player1')) assetType = 'player1';
-                else if (fileName.includes('player2')) assetType = 'player2';
-                else if (fileName.includes('enemy')) assetType = 'enemy';
+                // Match files to asset types
+                if (fileName.includes('map') || fileName.endsWith('.glb') || fileName.endsWith('.gltf')) {
+                    if (fileName.includes('map')) assetType = 'map';
+                    else if (fileName.includes('player1')) assetType = 'player1';
+                    else if (fileName.includes('player2')) assetType = 'player2';
+                    else if (fileName.includes('enemy')) assetType = 'enemy';
+                    else assetType = 'map'; // Default to map if unsure
+                }
                 
                 if (assetType) {
                     gameState.assetFiles[assetType] = file;
                     updateFileStatus(assetType, 'loaded', formatFileSize(file.size));
+                    showNotification('File Loaded', `${file.name} loaded successfully`, 3000);
                 }
             });
             
-            // Check if all required files are present
+            // Check all required assets
             CONFIG.REQUIRED_ASSETS.forEach(asset => {
                 if (!gameState.assetFiles[asset]) {
                     allRequiredFound = false;
                 }
             });
             
-            // Enable/disable create room button
-            document.getElementById('createRoomWithAssets').disabled = !allRequiredFound;
+            // Update create room button
+            const createBtn = document.getElementById('createRoomWithAssets');
+            createBtn.disabled = !allRequiredFound;
             
             if (allRequiredFound) {
-                showNotification('All Assets Ready', 'All required game files are loaded. You can now create the room.');
+                createBtn.classList.add('pulse');
+                showNotification('All Assets Ready', 'You can now create the room!', 5000);
             }
         }
 
@@ -293,39 +1428,41 @@
             const element = document.getElementById(assetType + 'Status');
             const fileItem = document.querySelector(`#fileList .file-item:nth-child(${CONFIG.REQUIRED_ASSETS.indexOf(assetType) + 1})`);
             
+            if (!element || !fileItem) return;
+            
             element.textContent = status;
             
             if (status === 'loaded') {
-                element.style.background = 'rgba(74, 222, 128, 0.2)';
+                element.style.background = 'linear-gradient(135deg, rgba(74, 222, 128, 0.2), rgba(74, 222, 128, 0.1))';
                 element.style.color = '#4ade80';
+                element.style.border = '1px solid rgba(74, 222, 128, 0.3)';
                 fileItem.classList.add('loaded');
                 
                 if (size) {
                     const sizeElement = fileItem.querySelector('.file-size');
-                    sizeElement.textContent = size;
+                    if (sizeElement) sizeElement.textContent = size;
                 }
-            } else if (status === 'Missing') {
-                element.style.background = 'rgba(245, 158, 11, 0.2)';
-                element.style.color = '#f59e0b';
-                fileItem.classList.remove('loaded');
             }
         }
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            const units = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + units[i];
         }
 
-        // Room Creation with Assets
+        // ======================
+        // ROOM MANAGEMENT
+        // ======================
         function createRoomWithAssets() {
             // Generate room code
             gameState.roomCode = Math.floor(1000 + Math.random() * 9000).toString();
             gameState.isHost = true;
             
-            // Create room data - L'hôte commence avec isReady: false
+            if (CONFIG.DEBUG) console.log('Creating room:', gameState.roomCode);
+            
+            // Create room data
             const roomData = {
                 code: gameState.roomCode,
                 hostId: gameState.playerId,
@@ -333,7 +1470,7 @@
                 players: [{
                     id: gameState.playerId,
                     name: gameState.playerName,
-                    isReady: false, // L'hôte doit aussi cliquer sur READY
+                    isReady: false,
                     isHost: true,
                     assetsLoaded: true
                 }],
@@ -341,11 +1478,13 @@
                     acc[asset] = gameState.assetFiles[asset] ? {
                         name: gameState.assetFiles[asset].name,
                         size: gameState.assetFiles[asset].size,
-                        type: gameState.assetFiles[asset].type
+                        type: gameState.assetFiles[asset].type,
+                        lastModified: gameState.assetFiles[asset].lastModified
                     } : null;
                     return acc;
                 }, {}),
                 gameStarted: false,
+                createdAt: Date.now(),
                 lastUpdated: Date.now()
             };
             
@@ -356,35 +1495,29 @@
             showScreen('roomCreatedScreen');
             
             // Start checking for players
-            checkForPlayers();
+            startRoomMonitoring();
         }
 
-        function checkForPlayers() {
+        function startRoomMonitoring() {
             const interval = setInterval(() => {
                 const roomData = getRoomData(gameState.roomCode);
                 
                 if (!roomData) {
                     clearInterval(interval);
+                    showNotification('Room Error', 'Room data corrupted');
                     return;
                 }
                 
                 // Update connected players count
-                document.getElementById('connectedPlayers').textContent = (roomData.players.length - 1);
+                const playerCount = roomData.players.length - 1;
+                document.getElementById('connectedPlayers').textContent = playerCount;
                 
-                // If there are other players, show waiting room button
-                if (roomData.players.length >= 2) {
+                // Show waiting room button when players join
+                if (playerCount >= 1) {
                     document.getElementById('goToWaitingRoom').classList.remove('hidden');
                     clearInterval(interval);
                 }
-                
-                // Check if any player needs assets
-                roomData.players.forEach(player => {
-                    if (player.id !== gameState.playerId && !player.assetsLoaded) {
-                        // Send assets to this player
-                        sendAssetsToPlayer(player.id);
-                    }
-                });
-            }, 1000);
+            }, CONFIG.ASSET_CHECK_INTERVAL);
         }
 
         function goToWaitingRoom() {
@@ -400,38 +1533,18 @@
             updatePlayersList();
             showScreen('waitingRoomScreen');
             
-            // Mettre à jour l'état du bouton READY pour l'hôte
-            updateReadyButtonState();
-            
-            pollRoomUpdates();
+            // Start polling for room updates
+            startRoomPolling();
         }
 
-        function updateReadyButtonState() {
-            const readyBtn = document.getElementById('readyBtn');
-            if (gameState.isHost) {
-                readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
-            } else {
-                // Pour les joueurs qui rejoignent, ils doivent d'abord télécharger les assets
-                const roomData = getRoomData(gameState.roomCode);
-                if (roomData) {
-                    const player = roomData.players.find(p => p.id === gameState.playerId);
-                    if (player && player.assetsLoaded) {
-                        readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
-                    } else {
-                        readyBtn.textContent = 'WAITING FOR ASSETS';
-                        readyBtn.disabled = true;
-                    }
-                }
-            }
-        }
-
-        // Join Room
         function joinRoom() {
             const codeInput = document.getElementById('joinCodeInput');
             const code = codeInput.value.trim();
             
-            if (code.length !== CONFIG.ROOM_CODE_LENGTH || !/^\d+$/.test(code)) {
+            // Validate code
+            if (code.length !== CONFIG.ROOM_CODE_LENGTH || !/^\d{4}$/.test(code)) {
                 showNotification('Invalid Code', 'Please enter a valid 4-digit room code.');
+                codeInput.focus();
                 return;
             }
             
@@ -446,6 +1559,11 @@
             
             if (roomData.gameStarted) {
                 showNotification('Game In Progress', 'This game has already started.');
+                return;
+            }
+            
+            if (roomData.players.length >= CONFIG.MAX_PLAYERS) {
+                showNotification('Room Full', 'This room has reached maximum players.');
                 return;
             }
             
@@ -474,22 +1592,25 @@
             updatePlayersList();
             showScreen('waitingRoomScreen');
             
-            // Show download status et désactiver le bouton READY
-            document.getElementById('downloadStatus').classList.remove('hidden');
-            document.getElementById('readyBtn').textContent = 'WAITING FOR ASSETS';
-            document.getElementById('readyBtn').disabled = true;
-            
             // Start downloading assets
-            downloadAssetsFromHost(roomData.assets);
-            pollRoomUpdates();
+            startAssetDownload(roomData.assets);
+            startRoomPolling();
         }
 
-        function downloadAssetsFromHost(assets) {
-            showNotification('Downloading Assets', 'Downloading game assets from host...');
+        function startAssetDownload(assets) {
+            showNotification('Downloading Assets', 'Starting download from host...');
             
-            // Simulate asset download
+            const downloadStatus = document.getElementById('downloadStatus');
+            const readyBtn = document.getElementById('readyBtn');
+            
+            downloadStatus.classList.remove('hidden');
+            readyBtn.textContent = 'WAITING FOR ASSETS';
+            readyBtn.disabled = true;
+            
+            // Simulate download progress
             let totalSize = 0;
             let downloadedSize = 0;
+            let startTime = Date.now();
             
             CONFIG.REQUIRED_ASSETS.forEach(asset => {
                 if (assets[asset]) {
@@ -497,37 +1618,46 @@
                 }
             });
             
-            // Simulate download progress
             const simulateDownload = () => {
                 if (downloadedSize < totalSize) {
-                    downloadedSize += totalSize / 100; // 1% increments
+                    // Calculate download speed
+                    const elapsedTime = (Date.now() - startTime) / 1000;
+                    const speed = elapsedTime > 0 ? (downloadedSize / 1024 / elapsedTime).toFixed(1) : 0;
+                    
+                    // Update progress
+                    downloadedSize += totalSize / 50; // 2% increments
                     const percent = Math.min(100, (downloadedSize / totalSize) * 100);
                     
+                    // Update UI
                     document.getElementById('downloadBar').style.width = percent + '%';
                     document.getElementById('downloadProgress').textContent = 
                         `Downloading assets: ${Math.round(percent)}%`;
+                    document.getElementById('downloadSpeed').textContent = 
+                        `${speed} KB/s`;
                     
-                    // Simulate different file downloads
-                    if (percent >= 25 && !receivedAssets.map) {
-                        receivedAssets.map = true;
+                    // Mark assets as downloaded
+                    if (percent >= 25 && !gameState.receivedAssets.map) {
+                        gameState.receivedAssets.map = true;
                         showNotification('Map Downloaded', 'Map asset downloaded successfully.');
                     }
-                    if (percent >= 50 && !receivedAssets.player1) {
-                        receivedAssets.player1 = true;
+                    if (percent >= 50 && !gameState.receivedAssets.player1) {
+                        gameState.receivedAssets.player1 = true;
                         showNotification('Player Model Downloaded', 'Player 1 model downloaded.');
                     }
-                    if (percent >= 75 && !receivedAssets.player2) {
-                        receivedAssets.player2 = true;
+                    if (percent >= 75 && !gameState.receivedAssets.player2) {
+                        gameState.receivedAssets.player2 = true;
                         showNotification('Player Model Downloaded', 'Player 2 model downloaded.');
                     }
-                    if (percent >= 95 && !receivedAssets.enemy) {
-                        receivedAssets.enemy = true;
+                    if (percent >= 95 && !gameState.receivedAssets.enemy) {
+                        gameState.receivedAssets.enemy = true;
                         showNotification('Enemy Model Downloaded', 'Enemy model downloaded.');
                     }
                     
                     if (percent >= 100) {
-                        // All assets downloaded
-                        document.getElementById('downloadStatus').classList.add('hidden');
+                        // Download complete
+                        downloadStatus.classList.add('hidden');
+                        readyBtn.textContent = 'READY';
+                        readyBtn.disabled = false;
                         
                         // Update room data
                         const roomData = getRoomData(gameState.roomCode);
@@ -539,11 +1669,7 @@
                             }
                         }
                         
-                        // Activer le bouton READY
-                        document.getElementById('readyBtn').textContent = 'READY';
-                        document.getElementById('readyBtn').disabled = false;
-                        
-                        showNotification('Assets Ready', 'All game assets downloaded. You can now ready up.');
+                        showNotification('Assets Ready', 'All game assets downloaded! You can now ready up.');
                         return;
                     }
                     
@@ -554,41 +1680,18 @@
             simulateDownload();
         }
 
-        function sendAssetsToPlayer(playerId) {
-            // In a real implementation, this would send files via WebRTC data channels
-            console.log(`Would send assets to player ${playerId}`);
-        }
-
-        // Room Management
-        function saveRoomData(roomData) {
-            const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
-            rooms[roomData.code] = roomData;
-            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(rooms));
-        }
-
-        function getRoomData(code) {
-            const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
-            return rooms[code];
-        }
-
-        function deleteRoomData(code) {
-            const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
-            delete rooms[code];
-            localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(rooms));
-        }
-
-        function pollRoomUpdates() {
+        function startRoomPolling() {
             const interval = setInterval(() => {
                 const roomData = getRoomData(gameState.roomCode);
                 
                 if (!roomData) {
                     clearInterval(interval);
                     showNotification('Room Closed', 'The host has closed the room.');
-                    showMainMenu();
+                    setTimeout(() => showMainMenu(), 2000);
                     return;
                 }
                 
-                // Update players
+                // Update players list
                 gameState.players = roomData.players.reduce((acc, player) => {
                     acc[player.id] = player;
                     return acc;
@@ -596,54 +1699,61 @@
                 
                 updatePlayersList();
                 
-                // Check if ALL players are ready and have assets
-                const allPlayersReady = roomData.players.every(player => player.isReady && player.assetsLoaded);
+                // Check if all players are ready and have assets
+                const allPlayersReady = roomData.players.every(p => p.isReady && p.assetsLoaded);
                 const atLeastTwoPlayers = roomData.players.length >= 2;
                 
-                // Mettre à jour les contrôles pour l'hôte
+                // Update UI based on player role
                 const hostControls = document.getElementById('hostControls');
                 const readyBtn = document.getElementById('readyBtn');
+                const currentPlayer = roomData.players.find(p => p.id === gameState.playerId);
                 
                 if (gameState.isHost) {
                     if (allPlayersReady && atLeastTwoPlayers) {
-                        // Tous les joueurs sont prêts, montrer les contrôles de lancement
+                        // Show launch controls
                         hostControls.classList.remove('hidden');
                         readyBtn.classList.add('hidden');
                     } else {
-                        // Certains joueurs ne sont pas prêts, montrer seulement le bouton READY
+                        // Show ready button
                         hostControls.classList.add('hidden');
                         readyBtn.classList.remove('hidden');
-                        
-                        // Mettre à jour le texte du bouton
                         readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
                     }
                 } else {
-                    // Pour les joueurs normaux, seulement montrer/masquer le bouton READY
-                    const currentPlayer = roomData.players.find(p => p.id === gameState.playerId);
-                    if (currentPlayer && currentPlayer.assetsLoaded) {
+                    // For joining players
+                    if (currentPlayer && !currentPlayer.assetsLoaded) {
+                        readyBtn.textContent = 'WAITING FOR ASSETS';
+                        readyBtn.disabled = true;
+                    } else {
                         readyBtn.disabled = false;
                         readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
                     }
                 }
                 
-                // If game started, initialize game
+                // Check if game started
                 if (roomData.gameStarted && !gameState.gameStarted) {
                     clearInterval(interval);
                     gameState.gameStarted = true;
                     loadGameAssets();
                 }
-            }, 1000);
+            }, CONFIG.ROOM_UPDATE_INTERVAL);
         }
 
         function updatePlayersList() {
             const playersList = document.getElementById('playersList');
+            if (!playersList) return;
+            
             playersList.innerHTML = '';
             
             Object.values(gameState.players).forEach(player => {
                 const playerCard = document.createElement('div');
                 playerCard.className = 'player-card';
+                
                 if (player.isReady) playerCard.classList.add('ready');
                 if (player.isHost) playerCard.classList.add('host');
+                if (!player.assetsLoaded && !player.isHost) {
+                    playerCard.classList.add('downloading');
+                }
                 
                 let status = player.isReady ? 'READY' : 'WAITING';
                 let statusClass = player.isReady ? 'status-ready' : 'status-waiting';
@@ -670,41 +1780,44 @@
             if (!roomData) return;
             
             const playerIndex = roomData.players.findIndex(p => p.id === gameState.playerId);
-            if (playerIndex !== -1) {
-                roomData.players[playerIndex].isReady = !roomData.players[playerIndex].isReady;
-                gameState.isReady = roomData.players[playerIndex].isReady;
-                roomData.lastUpdated = Date.now();
-                
-                saveRoomData(roomData);
-                updatePlayersList();
-                
-                // Mettre à jour le bouton
-                const readyBtn = document.getElementById('readyBtn');
-                readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
-                readyBtn.classList.toggle('btn-secondary', gameState.isReady);
-                
-                // Si l'hôte devient prêt, vérifier si tout le monde est prêt
-                if (gameState.isHost) {
-                    const allPlayersReady = roomData.players.every(player => player.isReady && player.assetsLoaded);
-                    const atLeastTwoPlayers = roomData.players.length >= 2;
-                    
-                    if (allPlayersReady && atLeastTwoPlayers) {
-                        document.getElementById('hostControls').classList.remove('hidden');
-                        readyBtn.classList.add('hidden');
-                    }
-                }
-                
-                showNotification(
-                    gameState.isReady ? 'Ready!' : 'Not Ready',
-                    gameState.isReady ? 'You are ready to play' : 'You are no longer ready'
-                );
-            }
+            if (playerIndex === -1) return;
+            
+            // Toggle ready status
+            roomData.players[playerIndex].isReady = !roomData.players[playerIndex].isReady;
+            gameState.isReady = roomData.players[playerIndex].isReady;
+            roomData.lastUpdated = Date.now();
+            
+            saveRoomData(roomData);
+            updatePlayersList();
+            
+            // Update button
+            const readyBtn = document.getElementById('readyBtn');
+            readyBtn.textContent = gameState.isReady ? 'NOT READY' : 'READY';
+            readyBtn.classList.toggle('btn-secondary', gameState.isReady);
+            
+            // Show notification
+            showNotification(
+                gameState.isReady ? 'Ready!' : 'Not Ready',
+                gameState.isReady ? 'Waiting for other players...' : 'You can ready up when ready'
+            );
         }
 
         function startGame() {
-            const roomData = getRoomData(gameState.roomCode);
-            if (!roomData || !gameState.isHost) return;
+            if (!gameState.isHost) return;
             
+            const roomData = getRoomData(gameState.roomCode);
+            if (!roomData) return;
+            
+            // Verify all conditions
+            const allPlayersReady = roomData.players.every(p => p.isReady && p.assetsLoaded);
+            const atLeastTwoPlayers = roomData.players.length >= 2;
+            
+            if (!allPlayersReady || !atLeastTwoPlayers) {
+                showNotification('Cannot Start', 'Not all players are ready!');
+                return;
+            }
+            
+            // Start the game
             roomData.gameStarted = true;
             roomData.lastUpdated = Date.now();
             saveRoomData(roomData);
@@ -715,8 +1828,10 @@
         function leaveWaitingRoom() {
             const roomData = getRoomData(gameState.roomCode);
             if (roomData) {
+                // Remove player from room
                 roomData.players = roomData.players.filter(p => p.id !== gameState.playerId);
                 
+                // Delete room if empty or host left
                 if (roomData.players.length === 0 || (gameState.isHost && roomData.players.length > 0)) {
                     deleteRoomData(gameState.roomCode);
                 } else {
@@ -724,21 +1839,50 @@
                 }
             }
             
-            gameState.roomCode = null;
-            gameState.isHost = false;
-            gameState.isReady = false;
-            gameState.players = {};
-            gameState.assetFiles = {};
-            
             showMainMenu();
         }
 
-        // Game Initialization
+        // ======================
+        // LOCAL STORAGE MANAGEMENT
+        // ======================
+        function saveRoomData(roomData) {
+            try {
+                const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
+                rooms[roomData.code] = roomData;
+                localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(rooms));
+            } catch (e) {
+                console.error('Failed to save room data:', e);
+            }
+        }
+
+        function getRoomData(code) {
+            try {
+                const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
+                return rooms[code];
+            } catch (e) {
+                console.error('Failed to get room data:', e);
+                return null;
+            }
+        }
+
+        function deleteRoomData(code) {
+            try {
+                const rooms = JSON.parse(localStorage.getItem(CONFIG.LOCAL_STORAGE_KEY) || '{}');
+                delete rooms[code];
+                localStorage.setItem(CONFIG.LOCAL_STORAGE_KEY, JSON.stringify(rooms));
+            } catch (e) {
+                console.error('Failed to delete room data:', e);
+            }
+        }
+
+        // ======================
+        // GAME INITIALIZATION
+        // ======================
         function loadGameAssets() {
             showLoadingScreen(true);
-            updateLoadingProgress(0, 'Loading game assets...');
+            updateLoadingProgress(0, 'Initializing game engine...');
             
-            // Simulate loading assets
+            // Simulate asset loading
             const assetsToLoad = CONFIG.REQUIRED_ASSETS;
             let loadedCount = 0;
             
@@ -749,18 +1893,21 @@
                     
                     updateLoadingProgress(percent, `Loading ${asset}.glb...`);
                     
-                    // Simulate loading time
+                    // Simulate loading time based on file size
+                    const roomData = getRoomData(gameState.roomCode);
+                    const assetSize = roomData?.assets[asset]?.size || 1000000;
+                    const loadTime = Math.min(1000, Math.max(300, assetSize / 100000));
+                    
                     setTimeout(() => {
                         loadedCount++;
-                        showNotification('Asset Loaded', `${asset}.glb loaded successfully`);
                         loadNextAsset();
-                    }, 500);
+                    }, loadTime);
                 } else {
                     updateLoadingProgress(100, 'All assets loaded!');
                     setTimeout(() => {
                         showLoadingScreen(false);
                         initializeGame();
-                    }, 1000);
+                    }, 500);
                 }
             };
             
@@ -770,124 +1917,214 @@
         function initializeGame() {
             showScreen('gameScreen');
             
-            // Update UI
-            document.getElementById('uiPlayerName').textContent = gameState.playerName;
-            updateTeamStatus();
-            
             // Initialize Three.js
             initThreeJS();
-            startGameLoop();
-            startExtractionTimer();
-            initializeMissions();
             
-            // Start game simulation
-            simulateGameEvents();
+            // Setup game systems
+            initGameWorld();
+            initPlayers();
+            initEnemies();
+            initMissions();
+            
+            // Start game systems
+            startExtractionTimer();
+            startGameLoop();
+            startGameSimulation();
+            
+            // Show game instructions
+            showNotification('Game Started!', 'Use keys 1-4 to simulate mission progress', 5000);
         }
 
         function initThreeJS() {
+            // Create scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x050510);
+            scene.fog = new THREE.Fog(0x050510, 10, 200);
             
+            // Create camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 10, 20);
+            camera.position.set(0, 15, 30);
+            camera.lookAt(0, 0, 0);
             
+            // Create renderer
             renderer = new THREE.WebGLRenderer({ 
-                canvas: document.getElementById('gameCanvas'), 
-                antialias: true 
+                canvas: document.getElementById('gameCanvas'),
+                antialias: true,
+                alpha: false,
+                powerPreference: "high-performance"
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1;
             
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            // Add lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
             scene.add(ambientLight);
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 20, 5);
+            directionalLight.position.set(10, 30, 10);
             directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.left = -50;
+            directionalLight.shadow.camera.right = 50;
+            directionalLight.shadow.camera.top = 50;
+            directionalLight.shadow.camera.bottom = -50;
             scene.add(directionalLight);
             
-            // Create game world
-            createGameWorld();
-            
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize);
+            // Add hemisphere light for better ambient
+            const hemisphereLight = new THREE.HemisphereLight(0x4361ee, 0x0c0c1d, 0.3);
+            scene.add(hemisphereLight);
         }
 
-        function createGameWorld() {
+        function initGameWorld() {
             // Ground
-            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundGeometry = new THREE.PlaneGeometry(200, 200, 50, 50);
             const groundMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x2a2a4a,
+                color: 0x1a1a2e,
                 roughness: 0.8,
-                metalness: 0.2
+                metalness: 0.1,
+                side: THREE.DoubleSide
             });
             const ground = new THREE.Mesh(groundGeometry, groundMaterial);
             ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -0.5;
             ground.receiveShadow = true;
             scene.add(ground);
             
-            // Buildings
-            const buildings = [
-                { x: -30, z: 20, w: 15, h: 10, d: 15, color: 0x3a3a6a, name: 'Server Room' },
-                { x: 25, z: -25, w: 12, h: 8, d: 12, color: 0x5a3a3a, name: 'Intel Building' },
-                { x: -20, z: -30, w: 10, h: 6, d: 10, color: 0x3a5a5a, name: 'Warehouse' },
-                { x: 30, z: 20, w: 8, h: 5, d: 8, color: 0x5a5a3a, name: 'Guard Post' }
-            ];
+            // Add grid helper for debugging
+            if (CONFIG.DEBUG) {
+                const gridHelper = new THREE.GridHelper(200, 50, 0x4361ee, 0x1a1a2e);
+                gridHelper.position.y = 0.1;
+                scene.add(gridHelper);
+            }
             
-            buildings.forEach(building => {
-                const geometry = new THREE.BoxGeometry(building.w, building.h, building.d);
-                const material = new THREE.MeshStandardMaterial({ 
-                    color: building.color,
-                    roughness: 0.7
-                });
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(building.x, building.h / 2, building.z);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                scene.add(mesh);
-                
-                // Add label
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 64;
-                ctx.fillStyle = 'rgba(20, 20, 40, 0.8)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.font = 'bold 20px Arial';
-                ctx.fillStyle = '#e0e0ff';
-                ctx.textAlign = 'center';
-                ctx.fillText(building.name, canvas.width/2, canvas.height/2 + 8);
-                
-                const texture = new THREE.CanvasTexture(canvas);
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(spriteMaterial);
-                sprite.position.set(building.x, building.h + 2, building.z);
-                sprite.scale.set(10, 2.5, 1);
-                scene.add(sprite);
-            });
-            
-            // Create players
-            createPlayers();
-            
-            // Create enemies
-            createEnemies();
+            // Create buildings
+            createBuildings();
             
             // Create extraction zone
             createExtractionZone();
         }
 
-        function createPlayers() {
+        function createBuildings() {
+            const buildingData = [
+                // Server Room (Mission 1)
+                {
+                    position: [-40, 5, 30],
+                    size: [15, 10, 15],
+                    color: 0x1a6a3a,
+                    name: 'Server Room',
+                    mission: 'secureServerRoom'
+                },
+                // Intel Building (Mission 2)
+                {
+                    position: [40, 6, -30],
+                    size: [12, 12, 12],
+                    color: 0x6a3a1a,
+                    name: 'Intel Building',
+                    mission: 'downloadIntel'
+                },
+                // Warehouse
+                {
+                    position: [-30, 4, -25],
+                    size: [20, 8, 15],
+                    color: 0x3a3a6a,
+                    name: 'Warehouse'
+                },
+                // Guard Tower 1
+                {
+                    position: [25, 8, 25],
+                    size: [6, 16, 6],
+                    color: 0x5a3a3a,
+                    name: 'Guard Tower'
+                },
+                // Guard Tower 2
+                {
+                    position: [-25, 8, -30],
+                    size: [6, 16, 6],
+                    color: 0x5a3a3a,
+                    name: 'Guard Tower'
+                }
+            ];
+            
+            buildingData.forEach((data, index) => {
+                // Create building mesh
+                const geometry = new THREE.BoxGeometry(...data.size);
+                const material = new THREE.MeshStandardMaterial({ 
+                    color: data.color,
+                    roughness: 0.7,
+                    metalness: 0.2
+                });
+                const building = new THREE.Mesh(geometry, material);
+                building.position.set(...data.position);
+                building.castShadow = true;
+                building.receiveShadow = true;
+                building.userData = { type: 'building', mission: data.mission };
+                scene.add(building);
+                
+                // Add emissive windows
+                for (let i = 0; i < 4; i++) {
+                    const windowGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.1);
+                    const windowMaterial = new THREE.MeshStandardMaterial({ 
+                        color: 0xffffaa,
+                        emissive: 0xffff00,
+                        emissiveIntensity: 0.5
+                    });
+                    const window = new THREE.Mesh(windowGeometry, windowMaterial);
+                    
+                    const offset = (data.size[0] / 2) - 0.5;
+                    const height = -data.size[1]/2 + 2 + (i * 3);
+                    
+                    window.position.set(
+                        data.position[0] + (Math.random() > 0.5 ? offset : -offset),
+                        data.position[1] + height,
+                        data.position[2] + (Math.random() > 0.5 ? data.size[2]/2 : -data.size[2]/2)
+                    );
+                    scene.add(window);
+                }
+            });
+        }
+
+        function createExtractionZone() {
+            const geometry = new THREE.CylinderGeometry(8, 8, 0.1, 32);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: 0x4ade80,
+                emissive: 0x4ade80,
+                emissiveIntensity: 0.5,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            
+            extractionZone = new THREE.Mesh(geometry, material);
+            extractionZone.position.set(0, 0.05, 0);
+            extractionZone.rotation.x = Math.PI / 2;
+            extractionZone.userData = { type: 'extraction', active: false };
+            scene.add(extractionZone);
+            
+            // Add pulsing effect
+            extractionZone.userData.pulseSpeed = 0.02;
+            extractionZone.userData.pulseDirection = 1;
+            extractionZone.userData.originalOpacity = 0.6;
+        }
+
+        function initPlayers() {
             const playerGeometry = new THREE.CapsuleGeometry(0.5, 2, 4, 8);
             const playerColors = [0x4361ee, 0xf72585, 0x4ade80, 0xf59e0b];
             
-            // Current player
+            // Create current player
             const playerMaterial = new THREE.MeshStandardMaterial({ 
                 color: playerColors[0],
                 emissive: playerColors[0],
-                emissiveIntensity: 0.2
+                emissiveIntensity: 0.2,
+                roughness: 0.5,
+                metalness: 0.5
             });
+            
             const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
             playerMesh.position.set(0, 1, 0);
             playerMesh.castShadow = true;
@@ -897,10 +2134,18 @@
                 mesh: playerMesh,
                 name: gameState.playerName,
                 health: 100,
-                position: { x: 0, y: 1, z: 0 }
+                maxHealth: 100,
+                position: { x: 0, y: 1, z: 0 },
+                rotation: 0,
+                speed: 5,
+                isMoving: false
             };
             
-            // Other players
+            // Update UI
+            document.getElementById('uiPlayerName').textContent = gameState.playerName;
+            document.getElementById('uiHealth').textContent = '100';
+            
+            // Create other players
             const otherPlayers = Object.values(gameState.players).filter(p => p.id !== gameState.playerId);
             otherPlayers.forEach((player, index) => {
                 const material = new THREE.MeshStandardMaterial({ 
@@ -908,14 +2153,16 @@
                     emissive: playerColors[(index + 1) % playerColors.length],
                     emissiveIntensity: 0.2
                 });
+                
                 const mesh = new THREE.Mesh(playerGeometry, material);
                 
+                // Position other players around the map
                 const positions = [
-                    { x: 20, z: 0 },
-                    { x: -20, z: 0 },
-                    { x: 0, z: 20 }
+                    { x: 20, z: 10 },
+                    { x: -20, z: 10 },
+                    { x: 10, z: -20 }
                 ];
-                const pos = positions[index] || { x: 10, z: 10 };
+                const pos = positions[index] || { x: 0, z: 0 };
                 
                 mesh.position.set(pos.x, 1, pos.z);
                 mesh.castShadow = true;
@@ -925,59 +2172,45 @@
                     mesh: mesh,
                     name: player.name,
                     health: 100,
-                    position: { x: pos.x, y: 1, z: pos.z }
+                    maxHealth: 100,
+                    position: { x: pos.x, y: 1, z: pos.z },
+                    rotation: 0,
+                    speed: 5,
+                    isMoving: false
                 };
             });
             
-            addPlayerLabels();
+            updateTeamStatus();
         }
 
-        function addPlayerLabels() {
-            Object.values(playerObjects).forEach(playerObj => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 64;
-                
-                ctx.fillStyle = 'rgba(20, 20, 40, 0.8)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.font = 'bold 20px Arial';
-                ctx.fillStyle = '#e0e0ff';
-                ctx.textAlign = 'center';
-                ctx.fillText(playerObj.name, canvas.width/2, canvas.height/2);
-                
-                const texture = new THREE.CanvasTexture(canvas);
-                const material = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(material);
-                sprite.position.set(0, 3, 0);
-                sprite.scale.set(5, 1.25, 1);
-                
-                playerObj.mesh.add(sprite);
-                playerObj.label = sprite;
-            });
-        }
-
-        function createEnemies() {
+        function initEnemies() {
             const enemyGeometry = new THREE.ConeGeometry(0.6, 2, 8);
             const enemyMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0xaa3333,
                 emissive: 0xaa3333,
-                emissiveIntensity: 0.1
+                emissiveIntensity: 0.1,
+                roughness: 0.7
             });
+            
+            enemyObjects = [];
             
             for (let i = 0; i < 12; i++) {
                 const enemyMesh = new THREE.Mesh(enemyGeometry, enemyMaterial);
                 
+                // Distribute enemies around objectives
                 let x, z;
                 if (i < 4) {
-                    x = -30 + (Math.random() - 0.5) * 10;
-                    z = 20 + (Math.random() - 0.5) * 10;
+                    // Around server room
+                    x = -40 + (Math.random() - 0.5) * 20;
+                    z = 30 + (Math.random() - 0.5) * 20;
                 } else if (i < 8) {
-                    x = 25 + (Math.random() - 0.5) * 10;
-                    z = -25 + (Math.random() - 0.5) * 10;
+                    // Around intel building
+                    x = 40 + (Math.random() - 0.5) * 20;
+                    z = -30 + (Math.random() - 0.5) * 20;
                 } else {
+                    // Random patrol
                     const angle = Math.random() * Math.PI * 2;
-                    const radius = 15 + Math.random() * 20;
+                    const radius = 20 + Math.random() * 30;
                     x = Math.cos(angle) * radius;
                     z = Math.sin(angle) * radius;
                 }
@@ -989,57 +2222,24 @@
                 enemyObjects.push({
                     mesh: enemyMesh,
                     health: 100,
+                    maxHealth: 100,
                     position: { x, y: 1, z },
-                    alive: true
+                    rotation: 0,
+                    alive: true,
+                    patrolAngle: Math.random() * Math.PI * 2,
+                    patrolSpeed: 0.5 + Math.random(),
+                    detectionRange: 15,
+                    attackRange: 5,
+                    state: 'patrol' // patrol, chase, attack
                 });
             }
         }
 
-        function createExtractionZone() {
-            const extractionGeometry = new THREE.CylinderGeometry(8, 8, 0.2, 32);
-            const extractionMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x4ade80,
-                emissive: 0x4ade80,
-                emissiveIntensity: 0.3,
-                transparent: true,
-                opacity: 0.5
-            });
-            
-            extractionZone = new THREE.Mesh(extractionGeometry, extractionMaterial);
-            extractionZone.position.set(0, 0.1, 0);
-            scene.add(extractionZone);
-            
-            extractionZone.userData.pulseDirection = 1;
-            extractionZone.userData.originalOpacity = 0.5;
-        }
-
-        function startExtractionTimer() {
-            const timerElement = document.getElementById('extractionTimer');
-            
-            const timerInterval = setInterval(() => {
-                gameState.extractionTimer--;
-                
-                const minutes = Math.floor(gameState.extractionTimer / 60);
-                const seconds = gameState.extractionTimer % 60;
-                
-                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                
-                if (gameState.extractionTimer <= 30) {
-                    timerElement.classList.add('pulse');
-                }
-                
-                if (gameState.extractionTimer <= 0) {
-                    clearInterval(timerInterval);
-                    gameState.extractionAvailable = true;
-                    timerElement.textContent = 'EXTRACTION READY';
-                    showNotification('Extraction Available', 'Meet your partner at the extraction zone!');
-                    document.getElementById('mission4').classList.remove('hidden');
-                }
-            }, 1000);
-        }
-
-        function initializeMissions() {
+        function initMissions() {
+            // Mission 1: Eliminate enemies
             window.checkEnemyKill = function() {
+                if (!gameState.gameStarted) return;
+                
                 gameState.missions.enemiesKilled++;
                 document.getElementById('uiKills').textContent = gameState.missions.enemiesKilled;
                 
@@ -1049,25 +2249,52 @@
                 
                 if (gameState.missions.enemiesKilled >= 10) {
                     missionElement.classList.add('completed');
-                    showNotification('Mission Complete', 'Enemy elimination objective completed!');
+                    showNotification('Mission Complete!', 'Enemy elimination objective completed!', 5000);
+                }
+                
+                // Update enemy count
+                const aliveEnemies = enemyObjects.filter(e => e.alive).length;
+                if (aliveEnemies === 0) {
+                    showNotification('All Enemies Defeated!', 'Area secured!', 3000);
                 }
             };
             
+            // Mission 2: Secure server room
             window.secureServerRoom = function() {
-                if (!gameState.missions.serverSecured) {
-                    gameState.missions.serverSecured = true;
-                    document.getElementById('mission2').classList.add('completed');
-                    updateObjectivesCount();
-                    showNotification('Server Secured', 'Server room has been secured!');
-                }
+                if (!gameState.gameStarted || gameState.missions.serverSecured) return;
+                
+                gameState.missions.serverSecured = true;
+                document.getElementById('mission2').classList.add('completed');
+                updateObjectivesCount();
+                showNotification('Server Room Secured!', 'Critical data protected', 5000);
             };
             
+            // Mission 3: Download intel
             window.downloadIntel = function() {
-                if (!gameState.missions.intelDownloaded) {
-                    gameState.missions.intelDownloaded = true;
-                    document.getElementById('mission3').classList.add('completed');
-                    updateObjectivesCount();
-                    showNotification('Intel Downloaded', 'Critical intelligence data acquired!');
+                if (!gameState.gameStarted || gameState.missions.intelDownloaded) return;
+                
+                gameState.missions.intelDownloaded = true;
+                document.getElementById('mission3').classList.add('completed');
+                updateObjectivesCount();
+                showNotification('Intel Downloaded!', 'Critical intelligence acquired', 5000);
+            };
+            
+            // Mission 4: Extract
+            window.completeExtraction = function() {
+                if (!gameState.gameStarted || !gameState.extractionAvailable) return;
+                
+                const allPlayersAtExtraction = checkPlayersAtExtraction();
+                if (allPlayersAtExtraction) {
+                    gameState.missions.extractionReady = true;
+                    document.getElementById('mission4').classList.add('completed');
+                    showNotification('Extraction Complete!', 'Mission accomplished! Well done, team!', 10000);
+                    
+                    // Game over - victory
+                    setTimeout(() => {
+                        showNotification('VICTORY', 'All missions completed successfully!', 0);
+                    }, 2000);
+                } else {
+                    showNotification('Need All Players', 'All players must be at the extraction point!', 3000);
                 }
             };
             
@@ -1077,108 +2304,223 @@
                 document.getElementById('uiObjectives').textContent = count;
             }
             
-            // Demo controls
-            document.addEventListener('keydown', (e) => {
-                if (e.key === '1') window.checkEnemyKill();
-                if (e.key === '2') window.secureServerRoom();
-                if (e.key === '3') window.downloadIntel();
-                if (e.key === '4' && gameState.extractionAvailable) {
-                    document.getElementById('mission4').classList.add('completed');
-                    showNotification('Extraction Complete', 'Mission accomplished! Well done, team.');
-                }
-            });
-            
-            showNotification('Controls', 'Press 1-4 to simulate mission progress');
+            function checkPlayersAtExtraction() {
+                // Simplified check - in real game, would check positions
+                return Object.keys(playerObjects).length >= 2;
+            }
         }
 
         function updateTeamStatus() {
             const teamStatus = document.getElementById('teamStatus');
+            if (!teamStatus) return;
+            
             teamStatus.innerHTML = '';
             
             Object.values(playerObjects).forEach(player => {
                 const div = document.createElement('div');
                 div.className = 'team-member';
+                div.style.marginBottom = '8px';
+                div.style.padding = '8px';
+                div.style.background = 'rgba(20, 20, 40, 0.5)';
+                div.style.borderRadius = '6px';
+                div.style.borderLeft = `3px solid ${player.health > 50 ? '#4ade80' : player.health > 20 ? '#f59e0b' : '#ef4444'}`;
+                
                 div.innerHTML = `
-                    <strong>${player.name}</strong><br>
-                    Health: ${player.health}<br>
-                    Status: ${player.health > 0 ? 'ACTIVE' : 'DOWN'}
+                    <strong style="color: #4cc9f0;">${player.name}</strong><br>
+                    <span style="font-size: 0.9rem;">Health: ${player.health}%</span><br>
+                    <span style="font-size: 0.8rem; color: ${player.health > 0 ? '#4ade80' : '#ef4444'}">
+                        ${player.health > 0 ? 'ACTIVE' : 'DOWN'}
+                    </span>
                 `;
+                
                 teamStatus.appendChild(div);
             });
         }
 
+        // ======================
+        // GAME LOOP
+        // ======================
         function startGameLoop() {
+            if (gameState.gameLoopRunning) return;
+            gameState.gameLoopRunning = true;
+            
             function animate() {
+                if (!gameState.gameStarted) return;
+                
                 requestAnimationFrame(animate);
                 
-                gameState.gameTime += 0.016;
+                // Calculate delta time
+                deltaTime = clock.getDelta();
+                gameState.gameTime += deltaTime;
+                gameState.frameCount++;
                 
-                // Pulse extraction zone
-                if (extractionZone) {
-                    extractionZone.material.opacity += 0.02 * extractionZone.userData.pulseDirection;
-                    if (extractionZone.material.opacity >= 0.7 || extractionZone.material.opacity <= 0.3) {
-                        extractionZone.userData.pulseDirection *= -1;
-                    }
-                }
+                // Update performance metrics
+                updatePerformanceMetrics();
                 
-                // Rotate enemies
-                enemyObjects.forEach(enemy => {
-                    if (enemy.alive) {
-                        enemy.mesh.rotation.y += 0.01;
-                    }
-                });
+                // Update game systems
+                updateExtractionZone();
+                updateEnemies();
+                updatePlayers();
                 
-                // Rotate players
-                Object.values(playerObjects).forEach(player => {
-                    player.mesh.rotation.y += 0.005;
-                });
-                
+                // Render scene
                 renderer.render(scene, camera);
+                
+                // Update game state every 60 frames
+                if (gameState.frameCount % 60 === 0) {
+                    saveGameState();
+                }
             }
             
             animate();
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+        function updateExtractionZone() {
+            if (!extractionZone || !extractionZone.userData) return;
+            
+            // Pulse effect
+            if (extractionZone.userData.active) {
+                extractionZone.material.opacity += extractionZone.userData.pulseSpeed * extractionZone.userData.pulseDirection;
+                
+                if (extractionZone.material.opacity >= 0.8 || extractionZone.material.opacity <= 0.4) {
+                    extractionZone.userData.pulseDirection *= -1;
+                }
+                
+                // Rotate slowly
+                extractionZone.rotation.z += 0.002;
+            }
         }
 
-        function simulateGameEvents() {
-            // Simulate enemy kills
-            let killCount = 0;
-            const killInterval = setInterval(() => {
-                if (killCount < 10 && gameState.gameStarted) {
-                    window.checkEnemyKill();
-                    killCount++;
-                    
-                    // Random damage to players
-                    Object.values(playerObjects).forEach(player => {
-                        if (Math.random() > 0.7 && player.health > 0) {
-                            player.health -= Math.floor(Math.random() * 20) + 5;
-                            if (player.health < 0) player.health = 0;
-                            document.getElementById('uiHealth').textContent = playerObjects[gameState.playerId].health;
-                            updateTeamStatus();
-                        }
-                    });
-                } else {
-                    clearInterval(killInterval);
+        function updateEnemies() {
+            enemyObjects.forEach(enemy => {
+                if (!enemy.alive) return;
+                
+                // Simple patrol behavior
+                enemy.patrolAngle += enemy.patrolSpeed * deltaTime;
+                enemy.mesh.position.x = enemy.position.x + Math.cos(enemy.patrolAngle) * 3;
+                enemy.mesh.position.z = enemy.position.z + Math.sin(enemy.patrolAngle) * 3;
+                
+                // Look at movement direction
+                enemy.mesh.rotation.y = enemy.patrolAngle + Math.PI / 2;
+                
+                // Bob up and down
+                enemy.mesh.position.y = enemy.position.y + Math.sin(gameState.gameTime * 2 + enemy.patrolAngle) * 0.1;
+            });
+        }
+
+        function updatePlayers() {
+            Object.values(playerObjects).forEach(player => {
+                // Simple idle animation
+                player.mesh.position.y = player.position.y + Math.sin(gameState.gameTime * 2) * 0.05;
+                
+                // Rotate slowly
+                player.mesh.rotation.y += 0.01;
+            });
+        }
+
+        function startExtractionTimer() {
+            const timerElement = document.getElementById('extractionTimer');
+            if (!timerElement) return;
+            
+            let remainingTime = gameState.extractionTimer;
+            
+            const timerInterval = setInterval(() => {
+                if (!gameState.gameStarted) {
+                    clearInterval(timerInterval);
+                    return;
                 }
+                
+                remainingTime--;
+                
+                const minutes = Math.floor(remainingTime / 60);
+                const seconds = remainingTime % 60;
+                
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Visual feedback
+                if (remainingTime <= 30) {
+                    timerElement.classList.add('pulse');
+                }
+                
+                if (remainingTime <= 10) {
+                    timerElement.style.color = '#ef4444';
+                }
+                
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    gameState.extractionAvailable = true;
+                    extractionZone.userData.active = true;
+                    timerElement.textContent = 'EXTRACTION READY';
+                    showNotification('Extraction Available!', 'Meet at the extraction zone!', 10000);
+                    document.getElementById('mission4').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function startGameSimulation() {
+            // Simulate random events
+            setInterval(() => {
+                if (!gameState.gameStarted) return;
+                
+                // Random enemy kills (for demo)
+                if (Math.random() > 0.8 && gameState.missions.enemiesKilled < 10) {
+                    window.checkEnemyKill();
+                }
+                
+                // Random damage to players
+                Object.values(playerObjects).forEach(player => {
+                    if (Math.random() > 0.9 && player.health > 0) {
+                        const damage = Math.floor(Math.random() * 15) + 5;
+                        player.health = Math.max(0, player.health - damage);
+                        
+                        if (player.id === gameState.playerId) {
+                            document.getElementById('uiHealth').textContent = player.health;
+                            updateTeamStatus();
+                            
+                            if (player.health <= 30 && player.health > 0) {
+                                showNotification('Low Health!', 'Find cover and recover!', 3000);
+                            }
+                        }
+                    }
+                });
             }, 3000);
             
-            // Simulate mission completions
+            // Auto-complete missions after time (for demo)
             setTimeout(() => {
-                if (gameState.gameStarted) window.secureServerRoom();
-            }, 8000);
+                if (gameState.gameStarted && !gameState.missions.serverSecured) {
+                    window.secureServerRoom();
+                }
+            }, 10000);
             
             setTimeout(() => {
-                if (gameState.gameStarted) window.downloadIntel();
-            }, 15000);
+                if (gameState.gameStarted && !gameState.missions.intelDownloaded) {
+                    window.downloadIntel();
+                }
+            }, 20000);
+        }
+
+        // ======================
+        // UTILITY FUNCTIONS
+        // ======================
+        function showLoadingScreen(show) {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (show) {
+                loadingScreen.classList.remove('hidden');
+            } else {
+                loadingScreen.classList.add('hidden');
+            }
+        }
+
+        function updateLoadingProgress(percent, message) {
+            const loadingBar = document.getElementById('loadingBar');
+            const loadingFile = document.getElementById('loadingFile');
+            
+            if (loadingBar) loadingBar.style.width = percent + '%';
+            if (loadingFile) loadingFile.textContent = message;
         }
 
         function showNotification(title, message, duration = 5000) {
             const notificationArea = document.getElementById('notificationArea');
+            if (!notificationArea) return;
             
             const notification = document.createElement('div');
             notification.className = 'notification';
@@ -1189,17 +2531,115 @@
             
             notificationArea.appendChild(notification);
             
+            // Animate in
             setTimeout(() => notification.classList.add('show'), 10);
             
-            setTimeout(() => {
-                notification.classList.remove('show');
+            // Remove after duration
+            if (duration > 0) {
                 setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 500);
-            }, duration);
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 400);
+                }, duration);
+            }
         }
+
+        function onWindowResize() {
+            if (!camera || !renderer) return;
+            
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            // Update pixel ratio for performance
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }
+
+        function handleBeforeUnload(e) {
+            if (gameState.gameStarted || gameState.roomCode) {
+                e.preventDefault();
+                e.returnValue = 'Are you sure you want to leave? Your game progress will be lost.';
+                
+                // Clean up room if leaving
+                if (gameState.roomCode && gameState.isHost) {
+                    deleteRoomData(gameState.roomCode);
+                }
+            }
+        }
+
+        function pauseGame() {
+            // Placeholder for pause functionality
+            showNotification('Game Paused', 'Press ESC to resume', 0);
+        }
+
+        function saveGameState() {
+            // Save game state to localStorage for persistence
+            try {
+                const gameSave = {
+                    playerId: gameState.playerId,
+                    missions: gameState.missions,
+                    extractionTimer: gameState.extractionTimer,
+                    gameTime: gameState.gameTime,
+                    savedAt: Date.now()
+                };
+                localStorage.setItem('mission_extraction_game_save', JSON.stringify(gameSave));
+            } catch (e) {
+                console.error('Failed to save game state:', e);
+            }
+        }
+
+        function setupPerformanceMonitoring() {
+            if (!CONFIG.DEBUG) return;
+            
+            setInterval(() => {
+                const now = performance.now();
+                const elapsed = now - gameState.lastFpsUpdate;
+                
+                if (elapsed >= 1000) {
+                    gameState.fps = Math.round((gameState.frameCount * 1000) / elapsed);
+                    gameState.lastFpsUpdate = now;
+                    gameState.frameCount = 0;
+                    
+                    console.log(`FPS: ${gameState.fps}, Game Time: ${gameState.gameTime.toFixed(1)}s`);
+                }
+            }, 1000);
+        }
+
+        function updatePerformanceMetrics() {
+            // Update FPS counter if debugging
+            if (CONFIG.DEBUG) {
+                const now = performance.now();
+                if (!gameState.lastFpsUpdate) gameState.lastFpsUpdate = now;
+                
+                const elapsed = now - gameState.lastFpsUpdate;
+                if (elapsed >= 1000) {
+                    gameState.fps = Math.round((gameState.frameCount * 1000) / elapsed);
+                    gameState.lastFpsUpdate = now;
+                    gameState.frameCount = 0;
+                }
+            }
+        }
+
+        function updateBackgroundAnimation() {
+            // Simple background animation for main menu
+            const colors = ['#0c0c1d', '#1a1a2e', '#2a2a4a'];
+            let currentIndex = 0;
+            
+            setInterval(() => {
+                if (gameState.currentScreen !== 'mainMenu') return;
+                
+                currentIndex = (currentIndex + 1) % colors.length;
+                document.body.style.background = `linear-gradient(135deg, ${colors[currentIndex]} 0%, ${colors[(currentIndex + 1) % colors.length]} 100%)`;
+            }, 5000);
+        }
+
+        // ======================
+        // INITIALIZE GAME
+        // ======================
+        // Game is already initialized by DOMContentLoaded event
     </script>
 </body>
 </html>
