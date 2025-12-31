@@ -3,140 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Door of Destiny - 3D Co-op Quiz</title>
+    <title>🚪 Door of Destiny - 3D Co-op Quiz Game</title>
     <style>
+        /* Reset & Base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 50%, #4a69bd 100%);
             color: white;
             overflow: hidden;
             height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
-        
-        #gameContainer {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        
-        /* Menu Styles */
+
+        /* Menu Screen */
         #menuScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            background: radial-gradient(circle at center, rgba(12, 36, 97, 0.95) 0%, rgba(30, 55, 153, 0.9) 100%);
+            z-index: 1000;
             padding: 20px;
-            text-align: center;
-            background: radial-gradient(circle at center, #0f3460 0%, #16213e 100%);
-            z-index: 100;
-            position: relative;
+            backdrop-filter: blur(5px);
         }
-        
-        .hidden {
-            display: none !important;
-        }
-        
+
         .game-title {
-            font-size: 4rem;
-            background: linear-gradient(45deg, #ff9a00, #ff5252);
+            font-size: 3.5rem;
+            background: linear-gradient(45deg, #ff9a00, #ff5252, #00ff9d);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 30px rgba(255, 82, 82, 0.5);
-            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+            text-shadow: 0 0 40px rgba(255, 154, 0, 0.3);
+            animation: titleGlow 3s ease-in-out infinite alternate;
         }
-        
-        @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(255, 154, 0, 0.5); }
-            to { text-shadow: 0 0 30px rgba(255, 82, 82, 0.8); }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 20px rgba(255, 154, 0, 0.3); }
+            100% { text-shadow: 0 0 40px rgba(0, 255, 157, 0.3); }
         }
-        
+
         .subtitle {
-            font-size: 1.2rem;
-            color: #8f9bba;
-            margin-bottom: 3rem;
-            max-width: 600px;
-        }
-        
-        .menu-section {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 2rem;
-            margin: 1rem 0;
-            width: 90%;
-            max-width: 500px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .menu-btn {
-            background: linear-gradient(45deg, #4a00e0, #8e2de2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
             font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px 0;
+            color: #a5b1c2;
+            margin-bottom: 40px;
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .menu-container {
+            display: flex;
+            gap: 30px;
+            max-width: 1000px;
             width: 100%;
-            max-width: 300px;
-            font-weight: 600;
-            letter-spacing: 1px;
+            margin-top: 20px;
         }
-        
-        .menu-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(142, 45, 226, 0.4);
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
+            flex: 1;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
         }
-        
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #ffcc00;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 1.3rem;
+        }
+
         .input-group {
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
-        
-        input[type="text"], select {
+
+        input, select {
+            width: 100%;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
             color: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            width: 100%;
-            margin: 5px 0;
             font-size: 1rem;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
         }
-        
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00ff9d;
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+        }
+
         input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.6);
         }
-        
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(45deg, #4a00e0, #8e2de2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(142, 45, 226, 0.4);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .rooms-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .room-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .room-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .room-code {
+            font-weight: bold;
+            color: #00ff9d;
+            font-size: 1.2rem;
+        }
+
+        .room-players {
+            color: #ffcc00;
+            font-size: 0.9rem;
+        }
+
         .player-list {
             margin-top: 20px;
         }
-        
+
         .player-item {
-            background: rgba(255, 255, 255, 0.05);
             padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            margin-bottom: 8px;
             border-radius: 8px;
-            margin: 5px 0;
             display: flex;
             align-items: center;
+            gap: 10px;
         }
-        
+
         .player-color {
-            width: 15px;
-            height: 15px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            margin-right: 10px;
         }
-        
+
+        .player-ready {
+            margin-left: auto;
+            color: #00ff9d;
+            font-size: 0.9rem;
+        }
+
+        .player-not-ready {
+            color: #ff5252;
+        }
+
         /* Game UI */
         #gameUI {
             position: absolute;
@@ -144,160 +236,281 @@
             left: 0;
             width: 100%;
             padding: 20px;
-            z-index: 10;
+            z-index: 100;
             pointer-events: none;
         }
-        
-        .ui-container {
+
+        .stats-container {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
         }
-        
-        .player-stats {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            min-width: 200px;
+
+        .player-card {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 25px;
+            border-radius: 15px;
+            min-width: 250px;
             pointer-events: all;
-            border-left: 4px solid;
+            border: 2px solid;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
         }
-        
-        .player1-stats { border-color: #00ff9d; }
-        .player2-stats { border-color: #00b8ff; }
-        
+
+        .player1-card {
+            border-color: #00ff9d;
+        }
+
+        .player2-card {
+            border-color: #00b8ff;
+        }
+
         .player-name {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
             margin-bottom: 5px;
-        }
-        
-        .player-score {
-            font-size: 1.5rem;
-            color: #ffcc00;
-        }
-        
-        .lives {
             display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-name::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .player1-card .player-name::before {
+            background: #00ff9d;
+        }
+
+        .player2-card .player-name::before {
+            background: #00b8ff;
+        }
+
+        .player-score {
+            font-size: 1.8rem;
+            color: #ffcc00;
+            margin: 10px 0;
+        }
+
+        .lives-container {
+            display: flex;
+            gap: 8px;
             margin-top: 10px;
         }
-        
+
         .life {
-            width: 15px;
-            height: 15px;
+            width: 20px;
+            height: 20px;
             background: #ff5252;
             border-radius: 50%;
-            margin-right: 5px;
+            position: relative;
+            animation: pulse 2s infinite;
         }
-        
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .life.lost {
             background: rgba(255, 82, 82, 0.3);
+            animation: none;
         }
-        
-        #questionDisplay {
-            background: rgba(0, 0, 0, 0.85);
-            padding: 20px;
-            border-radius: 15px;
-            max-width: 600px;
-            margin: 0 auto;
-            text-align: center;
+
+        .life::after {
+            content: '❤';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            color: white;
+        }
+
+        .question-display {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(30, 55, 153, 0.9) 100%);
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 800px;
+            margin: 20px auto;
             pointer-events: all;
             border: 2px solid #4a00e0;
-            box-shadow: 0 0 30px rgba(74, 0, 224, 0.5);
+            box-shadow: 0 10px 40px rgba(74, 0, 224, 0.4);
+            backdrop-filter: blur(10px);
         }
-        
-        #category {
+
+        .question-category {
             color: #8e2de2;
             font-size: 1rem;
-            margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        #questionText {
-            font-size: 1.3rem;
+
+        .question-text {
+            font-size: 1.5rem;
             line-height: 1.5;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
         }
-        
-        #timer {
+
+        .question-arabic {
+            font-size: 1.8rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+        }
+
+        .question-french {
+            font-style: italic;
+        }
+
+        .timer-container {
+            margin-top: 20px;
+        }
+
+        .timer-bar {
             width: 100%;
-            height: 5px;
+            height: 8px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            margin-top: 10px;
+            border-radius: 4px;
             overflow: hidden;
         }
-        
-        #timerBar {
+
+        .timer-fill {
             height: 100%;
             background: linear-gradient(90deg, #00ff9d, #00b8ff);
-            width: 100%;
-            transition: width 1s linear;
+            transition: width 0.3s ease;
         }
-        
-        #chatBox {
+
+        /* Chat */
+        .chat-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 300px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
+            width: 350px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 15px;
             overflow: hidden;
             pointer-events: all;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
-        
-        #chatMessages {
+
+        .chat-header {
+            background: linear-gradient(45deg, #4a00e0, #8e2de2);
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-messages {
             height: 200px;
             overflow-y: auto;
-            padding: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
         }
-        
+
         .chat-message {
-            margin: 5px 0;
-            padding: 8px;
-            border-radius: 5px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        #chatInput {
-            width: 100%;
+            margin-bottom: 10px;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            animation: messageSlide 0.3s ease;
         }
-        
-        /* Game Over Screen */
-        #gameOverScreen {
+
+        @keyframes messageSlide {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .chat-message.sent {
+            background: rgba(0, 255, 157, 0.1);
+            border-left: 3px solid #00ff9d;
+        }
+
+        .chat-message.received {
+            background: rgba(0, 184, 255, 0.1);
+            border-left: 3px solid #00b8ff;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #00ff9d;
+        }
+
+        /* Game Over */
+        .game-over-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.95) 0%, rgba(30, 55, 153, 0.9) 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
+            z-index: 200;
+            padding: 20px;
+            text-align: center;
         }
-        
+
         .result-title {
-            font-size: 3rem;
-            margin-bottom: 2rem;
-            background: linear-gradient(45deg, #ff9a00, #ff5252);
+            font-size: 4rem;
+            background: linear-gradient(45deg, #ff9a00, #ff5252, #00ff9d);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 154, 0, 0.3);
+            animation: resultGlow 2s ease-in-out infinite alternate;
         }
-        
-        .final-score {
-            font-size: 2rem;
+
+        @keyframes resultGlow {
+            0% { text-shadow: 0 0 20px rgba(255, 154, 0, 0.3); }
+            100% { text-shadow: 0 0 40px rgba(0, 255, 157, 0.3), 0 0 60px rgba(255, 82, 82, 0.2); }
+        }
+
+        .result-stats {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #a5b1c2;
+        }
+
+        .result-stats span {
             color: #ffcc00;
-            margin-bottom: 2rem;
+            font-weight: bold;
         }
-        
+
         /* Canvas */
         #gameCanvas {
             position: absolute;
@@ -307,88 +520,221 @@
             height: 100%;
             z-index: 1;
         }
-        
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(12, 36, 97, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00ff9d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Responsive */
+        @media (max-width: 1024px) {
+            .menu-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .game-title {
+                font-size: 2.5rem;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .player-card {
+                min-width: 200px;
+            }
+            
+            .chat-container {
+                width: 300px;
+            }
+        }
+
         @media (max-width: 768px) {
-            .game-title { font-size: 2.5rem; }
-            .ui-container { flex-direction: column; }
-            .player-stats { margin-bottom: 10px; }
-            #questionDisplay { padding: 15px; font-size: 0.9rem; }
-            #chatBox { width: 250px; }
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .question-text {
+                font-size: 1.2rem;
+            }
+            
+            .chat-container {
+                width: 250px;
+                right: 10px;
+                bottom: 10px;
+            }
+            
+            .result-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Hidden utility */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #4a00e0, #8e2de2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading hidden">
+        <div class="loading-spinner"></div>
+        <div id="loadingText">Loading game assets...</div>
+    </div>
+
     <!-- Menu Screen -->
     <div id="menuScreen">
         <h1 class="game-title">🚪 DOOR OF DESTINY</h1>
-        <p class="subtitle">Answer quiz questions correctly to survive. Choose the wrong door and face the consequences. Cooperate to win!</p>
+        <p class="subtitle">Answer quiz questions correctly to survive. Choose wrong door and face consequences. Work together to reach highest level!</p>
         
-        <div class="menu-section">
-            <h2>🎮 Game Setup</h2>
-            <div class="input-group">
-                <input type="text" id="playerName" placeholder="Enter your name" maxlength="15">
-                <select id="languageSelect">
-                    <option value="en">English</option>
-                    <option value="fr">French</option>
-                    <option value="ar">Arabic</option>
-                </select>
+        <div class="menu-container">
+            <!-- Host Section -->
+            <div class="menu-card">
+                <h2 class="card-title">🎮 Create Room</h2>
+                <div class="input-group">
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="15" value="Player">
+                    <select id="languageSelect">
+                        <option value="en">English Interface</option>
+                        <option value="ar">Arabic Interface</option>
+                        <option value="fr">French Interface</option>
+                    </select>
+                </div>
+                <button id="createRoomBtn" class="btn btn-primary">
+                    🏠 Create New Room
+                </button>
+                
+                <div id="roomInfo" class="hidden">
+                    <div style="margin: 20px 0; padding: 15px; background: rgba(0, 255, 157, 0.1); border-radius: 10px;">
+                        <div style="font-size: 0.9rem; color: #a5b1c2;">Share this code with your friend:</div>
+                        <div id="roomCodeDisplay" style="font-size: 2.5rem; font-weight: bold; color: #00ff9d; letter-spacing: 5px; margin: 10px 0;"></div>
+                        <div style="font-size: 0.9rem; color: #a5b1c2;">Players in room:</div>
+                    </div>
+                    
+                    <div id="playerList" class="player-list">
+                        <!-- Players will appear here -->
+                    </div>
+                    
+                    <div id="readySection" class="hidden">
+                        <button id="readyBtn" class="btn btn-primary">
+                            ✅ Ready
+                        </button>
+                        <div id="readyStatus" style="margin-top: 10px; color: #ffcc00;"></div>
+                    </div>
+                </div>
             </div>
-            <button class="menu-btn" id="createRoomBtn">🏠 Create Room</button>
-            <div class="input-group" id="joinRoomGroup" style="display:none;">
-                <input type="text" id="roomCode" placeholder="Enter room code">
-                <button class="menu-btn" id="joinRoomBtn">🔗 Join Room</button>
+
+            <!-- Joiner Section -->
+            <div class="menu-card">
+                <h2 class="card-title">🔗 Join Room</h2>
+                <div class="input-group">
+                    <input type="text" id="roomCodeInput" placeholder="Enter 4-digit room code" maxlength="4" pattern="[A-Za-z0-9]{4}">
+                </div>
+                <button id="joinRoomBtn" class="btn">
+                    🔗 Join Room
+                </button>
+                <button id="refreshRoomsBtn" class="btn btn-small">
+                    🔄 Refresh Rooms
+                </button>
+                
+                <div id="availableRooms" class="rooms-list hidden">
+                    <div style="margin-bottom: 10px; color: #a5b1c2;">Available Rooms:</div>
+                    <!-- Rooms will appear here -->
+                </div>
+                
+                <div id="joinRequest" class="hidden" style="margin-top: 20px; padding: 15px; background: rgba(255, 204, 0, 0.1); border-radius: 10px;">
+                    <div style="margin-bottom: 10px;">Join request sent to host...</div>
+                    <div id="requestStatus" style="color: #ffcc00;"></div>
+                </div>
             </div>
-            <button class="menu-btn" id="toggleJoinBtn">🔗 Join Existing Room</button>
-        </div>
-        
-        <div class="menu-section" id="roomInfo" style="display:none;">
-            <h2>👥 Room: <span id="roomCodeDisplay"></span></h2>
-            <p>Share this code with your friend:</p>
-            <h2 id="shareCode" style="color:#00ff9d; font-size:2rem;"></h2>
-            <div class="player-list" id="playerList">
-                <!-- Players will appear here -->
-            </div>
-            <button class="menu-btn" id="startGameBtn" style="background:linear-gradient(45deg, #00b09b, #96c93d);">🚀 Start Game</button>
-        </div>
-        
-        <div class="menu-section">
-            <h2>📖 How to Play</h2>
-            <p>• 2-4 players can play together</p>
-            <p>• Questions appear above doors</p>
-            <p>• Choose correct door to survive</p>
-            <p>• Wrong door = lose a life</p>
-            <p>• Work together to reach the highest level!</p>
         </div>
     </div>
-    
+
     <!-- Game Container -->
     <div id="gameContainer" class="hidden">
         <!-- Game UI -->
         <div id="gameUI">
-            <div class="ui-container">
-                <div class="player-stats player1-stats">
+            <div class="stats-container">
+                <div id="player1Card" class="player-card player1-card">
                     <div class="player-name" id="player1Name">Player 1</div>
                     <div class="player-score">Score: <span id="player1Score">0</span></div>
-                    <div class="lives" id="player1Lives">
+                    <div class="lives-container" id="player1Lives">
                         <div class="life"></div>
                         <div class="life"></div>
                         <div class="life"></div>
                     </div>
                 </div>
                 
-                <div id="questionDisplay" class="hidden">
-                    <div id="category">Geography</div>
-                    <div id="questionText">Which country has the largest population?</div>
-                    <div id="timer"><div id="timerBar"></div></div>
+                <div id="questionDisplay" class="question-display hidden">
+                    <div class="question-category">
+                        <span id="categoryIcon">🌍</span>
+                        <span id="category">Geography</span>
+                    </div>
+                    <div class="question-text" id="questionText">
+                        Which country has the largest population?
+                    </div>
+                    <div class="timer-container">
+                        <div class="timer-bar">
+                            <div id="timerFill" class="timer-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="player-stats player2-stats">
+                <div id="player2Card" class="player-card player2-card">
                     <div class="player-name" id="player2Name">Player 2</div>
                     <div class="player-score">Score: <span id="player2Score">0</span></div>
-                    <div class="lives" id="player2Lives">
+                    <div class="lives-container" id="player2Lives">
                         <div class="life"></div>
                         <div class="life"></div>
                         <div class="life"></div>
@@ -396,49 +742,77 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Chat Box -->
-        <div id="chatBox">
-            <div id="chatMessages"></div>
-            <input type="text" id="chatInput" placeholder="Type message...">
+
+        <!-- Chat -->
+        <div class="chat-container hidden">
+            <div class="chat-header">
+                💬 Game Chat
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type message...">
+            </div>
         </div>
-        
-        <!-- Game Canvas -->
+
+        <!-- Canvas -->
         <canvas id="gameCanvas"></canvas>
-        
+
         <!-- Game Over Screen -->
-        <div id="gameOverScreen" class="hidden">
-            <h1 class="result-title">GAME OVER</h1>
-            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
-            <div class="final-score">Level Reached: <span id="finalLevel">1</span></div>
-            <button class="menu-btn" id="playAgainBtn">🔄 Play Again</button>
-            <button class="menu-btn" id="backToMenuBtn">🏠 Back to Menu</button>
+        <div id="gameOverScreen" class="game-over-screen hidden">
+            <h1 class="result-title" id="resultTitle">GAME OVER</h1>
+            <div class="result-stats">
+                Level Reached: <span id="finalLevel">1</span><br>
+                Final Score: <span id="finalScore">0</span><br>
+                Correct Answers: <span id="correctAnswers">0</span>
+            </div>
+            <button id="playAgainBtn" class="btn btn-primary" style="width: 200px; margin-bottom: 10px;">
+                🔄 Play Again
+            </button>
+            <button id="backToMenuBtn" class="btn" style="width: 200px;">
+                🏠 Back to Menu
+            </button>
         </div>
     </div>
 
+    <!-- Notification Container -->
+    <div id="notificationContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // Game Configuration
         const CONFIG = {
+            VERSION: '1.0.0',
             LIVES: 3,
+            MAX_PLAYERS: 4,
+            ROOM_CODE_LENGTH: 4,
             QUESTION_TIME: 30,
             LEVELS: [
                 { doors: 3, time: 30, points: 100 },
                 { doors: 3, time: 25, points: 150 },
                 { doors: 4, time: 25, points: 200 },
                 { doors: 4, time: 20, points: 250 },
-                { doors: 5, time: 20, points: 300 }
+                { doors: 5, time: 20, points: 300 },
+                { doors: 5, time: 15, points: 400 },
+                { doors: 6, time: 15, points: 500 }
             ],
-            PLAYER_COLORS: [
-                0x00ff9d, // Green
-                0x00b8ff, // Blue
-                0xff5252, // Red
-                0xff9a00  // Orange
-            ],
+            PLAYER_COLORS: [0x00ff9d, 0x00b8ff, 0xff5252, 0xff9a00],
             DOOR_COLORS: {
-                DEFAULT: 0x8e2de2,
+                DEFAULT: 0x4a69bd,
                 CORRECT: 0x00ff9d,
                 WRONG: 0xff5252,
-                SELECTED: 0x00b8ff
+                SELECTED: 0x00b8ff,
+                HIGHLIGHT: 0xffcc00
+            },
+            LANGUAGE_DISTRIBUTION: { ar: 0.7, en: 0.2, fr: 0.1 },
+            CATEGORIES: {
+                geography: { icon: '🌍', color: '#00b8ff' },
+                history: { icon: '🏛️', color: '#ff9a00' },
+                science: { icon: '🔬', color: '#00ff9d' },
+                culture: { icon: '🎭', color: '#ff5252' },
+                flags: { icon: '🏁', color: '#8e2de2' }
             }
         };
 
@@ -453,264 +827,397 @@
             currentQuestion: null,
             selectedDoor: null,
             timer: null,
-            timeLeft: CONFIG.QUESTION_TIME
+            timeLeft: CONFIG.QUESTION_TIME,
+            readyPlayers: new Set(),
+            peerConnections: {},
+            dataChannels: {}
         };
 
-        // Three.js Variables
+        // Available rooms (simulated - in real implementation would be from signaling server)
+        let availableRooms = {};
+
+        // Three.js variables
         let scene, camera, renderer, controls;
         let doors = [];
         let playerMeshes = {};
-        let street, streetLines;
+        let street, streetLights;
+        let clock = new THREE.Clock();
 
         // DOM Elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingText = document.getElementById('loadingText');
         const menuScreen = document.getElementById('menuScreen');
         const gameContainer = document.getElementById('gameContainer');
         const playerNameInput = document.getElementById('playerName');
         const languageSelect = document.getElementById('languageSelect');
         const createRoomBtn = document.getElementById('createRoomBtn');
-        const joinRoomGroup = document.getElementById('joinRoomGroup');
-        const toggleJoinBtn = document.getElementById('toggleJoinBtn');
-        const roomCodeInput = document.getElementById('roomCode');
-        const joinRoomBtn = document.getElementById('joinRoomBtn');
         const roomInfo = document.getElementById('roomInfo');
         const roomCodeDisplay = document.getElementById('roomCodeDisplay');
-        const shareCode = document.getElementById('shareCode');
         const playerList = document.getElementById('playerList');
-        const startGameBtn = document.getElementById('startGameBtn');
+        const readySection = document.getElementById('readySection');
+        const readyBtn = document.getElementById('readyBtn');
+        const readyStatus = document.getElementById('readyStatus');
+        const roomCodeInput = document.getElementById('roomCodeInput');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const refreshRoomsBtn = document.getElementById('refreshRoomsBtn');
+        const availableRoomsDiv = document.getElementById('availableRooms');
+        const joinRequest = document.getElementById('joinRequest');
+        const requestStatus = document.getElementById('requestStatus');
         const questionDisplay = document.getElementById('questionDisplay');
         const questionText = document.getElementById('questionText');
+        const categoryIcon = document.getElementById('categoryIcon');
         const categoryDisplay = document.getElementById('category');
-        const timerBar = document.getElementById('timerBar');
+        const timerFill = document.getElementById('timerFill');
         const chatMessages = document.getElementById('chatMessages');
         const chatInput = document.getElementById('chatInput');
         const gameOverScreen = document.getElementById('gameOverScreen');
+        const resultTitle = document.getElementById('resultTitle');
+        const finalLevel = document.getElementById('finalLevel');
+        const finalScore = document.getElementById('finalScore');
+        const correctAnswers = document.getElementById('correctAnswers');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const backToMenuBtn = document.getElementById('backToMenuBtn');
-
-        // WebRTC for Multiplayer
-        let peerConnection = null;
-        let dataChannel = null;
-        let isHost = false;
+        const notificationContainer = document.getElementById('notificationContainer');
 
         // Initialize
-        function init() {
+        async function init() {
+            showLoading('Initializing game...');
+            
+            // Generate random player name
+            generateRandomName();
+            
+            // Setup event listeners
             setupEventListeners();
-            generateDefaultPlayerName();
+            
+            // Initialize WebRTC (simulated for demo)
+            initWebRTC();
+            
+            hideLoading();
         }
 
-        function generateDefaultPlayerName() {
-            const adjectives = ['Brave', 'Clever', 'Swift', 'Wise', 'Bold'];
-            const nouns = ['Explorer', 'Scholar', 'Hero', 'Champion', 'Traveler'];
+        function generateRandomName() {
+            const adjectives = ['Brave', 'Clever', 'Swift', 'Wise', 'Bold', 'Mighty', 'Royal', 'Epic'];
+            const nouns = ['Explorer', 'Champion', 'Hero', 'Warrior', 'Master', 'Legend', 'Knight', 'Wizard'];
             const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
             const noun = nouns[Math.floor(Math.random() * nouns.length)];
-            playerNameInput.value = `${adj} ${noun}`;
+            const num = Math.floor(Math.random() * 100);
+            playerNameInput.value = `${adj}${noun}${num}`;
+        }
+
+        function showLoading(text) {
+            loadingScreen.classList.remove('hidden');
+            loadingText.textContent = text;
+        }
+
+        function hideLoading() {
+            loadingScreen.classList.add('hidden');
         }
 
         function setupEventListeners() {
+            // Menu buttons
             createRoomBtn.addEventListener('click', createRoom);
-            toggleJoinBtn.addEventListener('click', () => {
-                joinRoomGroup.style.display = joinRoomGroup.style.display === 'none' ? 'block' : 'none';
-            });
+            readyBtn.addEventListener('click', toggleReady);
             joinRoomBtn.addEventListener('click', joinRoom);
-            startGameBtn.addEventListener('click', startGame);
+            refreshRoomsBtn.addEventListener('click', refreshAvailableRooms);
+            playAgainBtn.addEventListener('click', resetGame);
+            backToMenuBtn.addEventListener('click', returnToMenu);
+            
+            // Chat
             chatInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter' && chatInput.value.trim()) {
                     sendChatMessage(chatInput.value);
                     chatInput.value = '';
                 }
             });
-            playAgainBtn.addEventListener('click', resetGame);
-            backToMenuBtn.addEventListener('click', () => {
-                gameOverScreen.classList.add('hidden');
-                menuScreen.classList.remove('hidden');
-                gameContainer.classList.add('hidden');
-                disconnectMultiplayer();
+            
+            // Room code input formatting
+            roomCodeInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             });
-
+            
+            // Keyboard controls
+            document.addEventListener('keydown', handleKeyDown);
+            
             // Window resize
             window.addEventListener('resize', onWindowResize);
         }
 
-        // Multiplayer Functions
+        // Multiplayer System
+        function initWebRTC() {
+            // In a real implementation, this would initialize WebRTC with STUN/TURN servers
+            // For demo purposes, we'll simulate connections
+            console.log('WebRTC initialized (simulated)');
+        }
+
         function createRoom() {
             const playerName = playerNameInput.value.trim() || 'Player';
             const language = languageSelect.value;
             
-            gameState.currentPlayerId = generatePlayerId();
-            gameState.isHost = true;
-            gameState.roomCode = generateRoomCode();
+            // Generate room code
+            const roomCode = generateRoomCode();
             
-            // Add host player
-            gameState.players[gameState.currentPlayerId] = {
-                id: gameState.currentPlayerId,
+            // Create player
+            const playerId = 'player_' + Date.now();
+            gameState.currentPlayerId = playerId;
+            gameState.isHost = true;
+            gameState.roomCode = roomCode;
+            
+            gameState.players[playerId] = {
+                id: playerId,
                 name: playerName,
                 color: CONFIG.PLAYER_COLORS[0],
                 score: 0,
                 lives: CONFIG.LIVES,
                 language: language,
-                position: { x: -2, y: 0.5, z: 0 }
+                position: { x: -2, y: 0.5, z: 0 },
+                ready: false,
+                isHost: true
             };
             
-            updateRoomDisplay();
-            setupWebRTCAsHost();
-            
-            menuScreen.classList.add('hidden');
-            roomInfo.classList.remove('hidden');
-        }
-
-        function joinRoom() {
-            const playerName = playerNameInput.value.trim() || 'Player';
-            const language = languageSelect.value;
-            const code = roomCodeInput.value.trim().toUpperCase();
-            
-            if (!code || code.length !== 6) {
-                alert('Please enter a valid 6-character room code');
-                return;
-            }
-            
-            gameState.currentPlayerId = generatePlayerId();
-            gameState.isHost = false;
-            gameState.roomCode = code;
-            
-            gameState.players[gameState.currentPlayerId] = {
-                id: gameState.currentPlayerId,
-                name: playerName,
-                color: CONFIG.PLAYER_COLORS[Object.keys(gameState.players).length],
-                score: 0,
-                lives: CONFIG.LIVES,
-                language: language,
-                position: { x: 2, y: 0.5, z: 0 }
+            // Add room to available rooms
+            availableRooms[roomCode] = {
+                code: roomCode,
+                host: playerId,
+                players: [playerId],
+                created: Date.now(),
+                maxPlayers: CONFIG.MAX_PLAYERS
             };
             
-            updateRoomDisplay();
-            setupWebRTCAsClient();
-            
-            menuScreen.classList.add('hidden');
+            // Update UI
+            roomCodeDisplay.textContent = roomCode;
+            updatePlayerList();
             roomInfo.classList.remove('hidden');
+            readySection.classList.remove('hidden');
+            
+            showNotification(`Room created! Code: ${roomCode}`);
         }
 
         function generateRoomCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing characters
+            let code = '';
+            for (let i = 0; i < CONFIG.ROOM_CODE_LENGTH; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
         }
 
-        function generatePlayerId() {
-            return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function updateRoomDisplay() {
-            roomCodeDisplay.textContent = gameState.roomCode;
-            shareCode.textContent = gameState.roomCode;
+        function joinRoom() {
+            const roomCode = roomCodeInput.value.trim().toUpperCase();
+            const playerName = playerNameInput.value.trim() || 'Player';
+            const language = languageSelect.value;
             
-            // Update player list
+            if (!roomCode || roomCode.length !== CONFIG.ROOM_CODE_LENGTH) {
+                showNotification('Please enter a valid 4-character room code');
+                return;
+            }
+            
+            // Check if room exists
+            const room = availableRooms[roomCode];
+            if (!room) {
+                showNotification('Room not found');
+                return;
+            }
+            
+            if (room.players.length >= room.maxPlayers) {
+                showNotification('Room is full');
+                return;
+            }
+            
+            // Create player
+            const playerId = 'player_' + Date.now();
+            gameState.currentPlayerId = playerId;
+            gameState.isHost = false;
+            gameState.roomCode = roomCode;
+            
+            gameState.players[playerId] = {
+                id: playerId,
+                name: playerName,
+                color: CONFIG.PLAYER_COLORS[room.players.length],
+                score: 0,
+                lives: CONFIG.LIVES,
+                language: language,
+                position: { x: 2, y: 0.5, z: 0 },
+                ready: false,
+                isHost: false
+            };
+            
+            // Add to room
+            room.players.push(playerId);
+            
+            // Show join request status
+            joinRequest.classList.remove('hidden');
+            requestStatus.textContent = 'Waiting for host to accept...';
+            
+            // Simulate host acceptance after 2 seconds
+            setTimeout(() => {
+                if (availableRooms[roomCode]) {
+                    requestStatus.textContent = 'Joined successfully!';
+                    
+                    // Update UI
+                    roomCodeDisplay.textContent = roomCode;
+                    updatePlayerList();
+                    roomInfo.classList.remove('hidden');
+                    readySection.classList.remove('hidden');
+                    joinRequest.classList.add('hidden');
+                    
+                    showNotification(`Joined room ${roomCode}`);
+                }
+            }, 2000);
+        }
+
+        function refreshAvailableRooms() {
+            // Simulate finding available rooms
+            availableRoomsDiv.innerHTML = '';
+            availableRoomsDiv.classList.remove('hidden');
+            
+            Object.keys(availableRooms).forEach(code => {
+                const room = availableRooms[code];
+                if (room.players.length < room.maxPlayers) {
+                    const roomElement = document.createElement('div');
+                    roomElement.className = 'room-item';
+                    roomElement.innerHTML = `
+                        <div>
+                            <div class="room-code">${code}</div>
+                            <div class="room-players">${room.players.length}/${room.maxPlayers} players</div>
+                        </div>
+                        <button class="btn btn-small" onclick="joinRoomFromList('${code}')">Join</button>
+                    `;
+                    availableRoomsDiv.appendChild(roomElement);
+                }
+            });
+            
+            if (availableRoomsDiv.children.length === 1) { // Only has the title div
+                availableRoomsDiv.innerHTML += '<div style="padding: 20px; text-align: center; color: #a5b1c2;">No rooms available</div>';
+            }
+        }
+
+        function joinRoomFromList(code) {
+            roomCodeInput.value = code;
+            joinRoom();
+        }
+
+        function toggleReady() {
+            const player = gameState.players[gameState.currentPlayerId];
+            player.ready = !player.ready;
+            
+            readyBtn.textContent = player.ready ? '❌ Not Ready' : '✅ Ready';
+            readyBtn.style.background = player.ready ? 
+                'linear-gradient(45deg, #ff416c, #ff4b2b)' : 
+                'linear-gradient(45deg, #00b09b, #96c93d)';
+            
+            updatePlayerList();
+            
+            // Check if all players are ready
+            checkAllReady();
+        }
+
+        function checkAllReady() {
+            const players = Object.values(gameState.players);
+            const allReady = players.length > 0 && players.every(p => p.ready);
+            
+            if (allReady && gameState.isHost) {
+                // Start game after 3 seconds
+                readyStatus.textContent = 'All players ready! Starting game...';
+                setTimeout(startGame, 3000);
+            }
+        }
+
+        function updatePlayerList() {
             playerList.innerHTML = '';
-            Object.values(gameState.players).forEach((player, index) => {
+            Object.values(gameState.players).forEach(player => {
                 const playerElement = document.createElement('div');
                 playerElement.className = 'player-item';
                 playerElement.innerHTML = `
                     <div class="player-color" style="background-color: #${player.color.toString(16).padStart(6, '0')}"></div>
-                    ${player.name} ${player.id === gameState.currentPlayerId ? '(You)' : ''}
+                    <div>${player.name} ${player.isHost ? '👑' : ''}</div>
+                    <div class="player-ready ${player.ready ? '' : 'player-not-ready'}">
+                        ${player.ready ? '✅ Ready' : '❌ Not Ready'}
+                    </div>
                 `;
                 playerList.appendChild(playerElement);
             });
         }
 
-        // WebRTC Setup (Simplified - In real implementation, use proper signaling)
-        function setupWebRTCAsHost() {
-            // Simplified - In production, use proper WebRTC with STUN/TURN
-            console.log('Host setup - would connect via WebRTC in production');
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                ${type === 'error' ? '❌' : type === 'success' ? '✅' : '💡'} ${message}
+            `;
+            notificationContainer.appendChild(notification);
             
-            // Simulate another player joining for demo
+            // Remove after 3 seconds
             setTimeout(() => {
-                if (!gameState.players['demo_player']) {
-                    gameState.players['demo_player'] = {
-                        id: 'demo_player',
-                        name: 'Demo Player',
-                        color: CONFIG.PLAYER_COLORS[1],
-                        score: 0,
-                        lives: CONFIG.LIVES,
-                        language: 'en',
-                        position: { x: 2, y: 0.5, z: 0 }
-                    };
-                    updateRoomDisplay();
-                }
-            }, 1000);
-        }
-
-        function setupWebRTCAsClient() {
-            console.log('Client setup - would connect via WebRTC in production');
-        }
-
-        function sendGameState() {
-            // In production, send via WebRTC data channel
-            console.log('Sending game state to other players');
-        }
-
-        function disconnectMultiplayer() {
-            // Clean up WebRTC connections
-            gameState.players = {};
+                notification.remove();
+            }, 3000);
         }
 
         // Game Functions
         function startGame() {
-            roomInfo.classList.add('hidden');
+            menuScreen.classList.add('hidden');
             gameContainer.classList.remove('hidden');
             
             init3DScene();
             startGameLoop();
             showQuestion();
+            updatePlayerUI();
+            
+            // Show chat
+            document.querySelector('.chat-container').classList.remove('hidden');
+            
+            showNotification('Game started! Good luck!', 'success');
         }
 
         function init3DScene() {
-            // Scene setup
+            // Scene
             scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x16213e, 10, 50);
+            scene.fog = new THREE.Fog(0x0c2461, 10, 100);
             
-            // Camera setup
+            // Camera
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 5, 10);
+            camera.position.set(0, 8, 15);
             camera.lookAt(0, 0, 0);
             
-            // Renderer setup
-            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('gameCanvas'),
+                antialias: true,
+                alpha: true
+            });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
             
             const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
             directionalLight.position.set(10, 20, 5);
             directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
             scene.add(directionalLight);
             
-            // Street
-            createStreet();
+            // Create street and environment
+            createEnvironment();
             
-            // Initial doors
+            // Create initial doors
             createDoors(CONFIG.LEVELS[0].doors);
             
             // Create player meshes
             createPlayerMeshes();
             
-            // Controls (for debugging - disable in production)
-            // controls = new THREE.OrbitControls(camera, renderer.domElement);
-            
             // Handle window resize
             onWindowResize();
         }
 
-        function createStreet() {
+        function createEnvironment() {
             // Street floor
-            const streetGeometry = new THREE.PlaneGeometry(20, 100);
-            const streetMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x1a1a2e,
+            const streetGeometry = new THREE.PlaneGeometry(30, 200);
+            const streetMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1e3799,
                 roughness: 0.8,
-                metalness: 0.2
+                metalness: 0.1
             });
             street = new THREE.Mesh(streetGeometry, streetMaterial);
             street.rotation.x = -Math.PI / 2;
@@ -718,43 +1225,58 @@
             scene.add(street);
             
             // Street lines
-            const lineGeometry = new THREE.BoxGeometry(2, 0.1, 0.2);
-            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-            
-            streetLines = new THREE.Group();
-            for (let i = -40; i < 40; i += 4) {
+            for (let z = -90; z < 90; z += 6) {
+                const lineGeometry = new THREE.BoxGeometry(2, 0.1, 0.3);
+                const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
                 const line = new THREE.Mesh(lineGeometry, lineMaterial);
-                line.position.set(0, 0.01, i);
-                streetLines.add(line);
+                line.position.set(0, 0.01, z);
+                scene.add(line);
             }
-            scene.add(streetLines);
             
-            // Street borders
-            const borderGeometry = new THREE.BoxGeometry(0.5, 0.5, 100);
-            const borderMaterial = new THREE.MeshStandardMaterial({ color: 0x8e2de2 });
-            
-            const leftBorder = new THREE.Mesh(borderGeometry, borderMaterial);
-            leftBorder.position.set(-4.5, 0.25, 0);
-            leftBorder.castShadow = true;
-            scene.add(leftBorder);
-            
-            const rightBorder = new THREE.Mesh(borderGeometry, borderMaterial);
-            rightBorder.position.set(4.5, 0.25, 0);
-            rightBorder.castShadow = true;
-            scene.add(rightBorder);
-            
-            // Background buildings (simple)
-            for (let i = -3; i <= 3; i += 2) {
-                if (i === 0) continue;
+            // Street lights
+            streetLights = new THREE.Group();
+            for (let z = -80; z < 80; z += 20) {
+                // Light pole
+                const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 8);
+                const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+                const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+                pole.position.set(6, 4, z);
+                pole.castShadow = true;
+                streetLights.add(pole);
                 
-                const buildingGeometry = new THREE.BoxGeometry(3, Math.random() * 10 + 5, 2);
-                const buildingMaterial = new THREE.MeshStandardMaterial({ 
-                    color: 0x2a2a4a,
+                // Light
+                const lightGeometry = new THREE.SphereGeometry(0.5);
+                const lightMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xffcc00,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const light = new THREE.Mesh(lightGeometry, lightMaterial);
+                light.position.set(6, 8, z);
+                streetLights.add(light);
+                
+                // Light source
+                const pointLight = new THREE.PointLight(0xffcc00, 1, 20);
+                pointLight.position.set(6, 8, z);
+                streetLights.add(pointLight);
+            }
+            scene.add(streetLights);
+            
+            // Background buildings
+            for (let i = 0; i < 10; i++) {
+                const width = 5 + Math.random() * 10;
+                const height = 10 + Math.random() * 20;
+                const depth = 5 + Math.random() * 10;
+                const x = (Math.random() > 0.5 ? 1 : -1) * (15 + width/2);
+                const z = -80 + Math.random() * 160;
+                
+                const buildingGeometry = new THREE.BoxGeometry(width, height, depth);
+                const buildingMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x2c3e50,
                     roughness: 0.9
                 });
-                
                 const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-                building.position.set(i * 3, buildingGeometry.parameters.height / 2, -15);
+                building.position.set(x, height/2, z);
                 building.castShadow = true;
                 scene.add(building);
             }
@@ -765,41 +1287,61 @@
             doors.forEach(door => scene.remove(door));
             doors = [];
             
-            const doorWidth = 1.5;
-            const spacing = 3;
+            const doorWidth = 2;
+            const doorHeight = 4;
+            const spacing = 3.5;
             const startX = -((count - 1) * spacing) / 2;
             
             for (let i = 0; i < count; i++) {
                 const doorGroup = new THREE.Group();
                 
                 // Door frame
-                const frameGeometry = new THREE.BoxGeometry(doorWidth, 3, 0.2);
-                const frameMaterial = new THREE.MeshStandardMaterial({ 
+                const frameGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.3);
+                const frameMaterial = new THREE.MeshStandardMaterial({
                     color: CONFIG.DOOR_COLORS.DEFAULT,
-                    emissive: 0x222222,
-                    emissiveIntensity: 0.2
+                    emissive: CONFIG.DOOR_COLORS.DEFAULT,
+                    emissiveIntensity: 0.1
                 });
                 const frame = new THREE.Mesh(frameGeometry, frameMaterial);
                 frame.castShadow = true;
                 frame.receiveShadow = true;
                 doorGroup.add(frame);
                 
-                // Door handle
-                const handleGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-                const handleMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
-                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
-                handle.position.set(doorWidth / 2 - 0.1, 0, 0.11);
-                doorGroup.add(handle);
-                
-                // Question panel above door
-                const panelGeometry = new THREE.BoxGeometry(doorWidth, 0.5, 0.1);
-                const panelMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                // Door panel
+                const panelGeometry = new THREE.BoxGeometry(doorWidth * 0.9, doorHeight * 0.8, 0.1);
+                const panelMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x1a1a2e,
+                    metalness: 0.3,
+                    roughness: 0.7
+                });
                 const panel = new THREE.Mesh(panelGeometry, panelMaterial);
-                panel.position.set(0, 2, 0.11);
+                panel.position.z = 0.16;
                 doorGroup.add(panel);
                 
+                // Door handle
+                const handleGeometry = new THREE.SphereGeometry(0.08);
+                const handleMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xffcc00,
+                    emissive: 0xffcc00,
+                    emissiveIntensity: 0.2
+                });
+                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+                handle.position.set(doorWidth/2 - 0.2, 0, 0.2);
+                doorGroup.add(handle);
+                
+                // Answer text placeholder
+                const answerGeometry = new THREE.PlaneGeometry(doorWidth * 0.8, 0.5);
+                const answerMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0
+                });
+                const answerPlane = new THREE.Mesh(answerGeometry, answerMaterial);
+                answerPlane.position.set(0, 0, 0.17);
+                doorGroup.add(answerPlane);
+                
                 // Position door
-                doorGroup.position.set(startX + i * spacing, 1.5, -5);
+                doorGroup.position.set(startX + i * spacing, doorHeight/2, -8);
                 doorGroup.userData = {
                     id: i,
                     isCorrect: false,
@@ -813,48 +1355,36 @@
 
         function createPlayerMeshes() {
             Object.values(gameState.players).forEach(player => {
-                // Player capsule
+                if (playerMeshes[player.id]) {
+                    scene.remove(playerMeshes[player.id]);
+                }
+                
                 const group = new THREE.Group();
                 
-                // Body
-                const bodyGeometry = new THREE.CapsuleGeometry(0.3, 0.8, 4, 8);
-                const bodyMaterial = new THREE.MeshStandardMaterial({ 
+                // Player body
+                const bodyGeometry = new THREE.CapsuleGeometry(0.4, 1.2, 8, 16);
+                const bodyMaterial = new THREE.MeshStandardMaterial({
                     color: player.color,
                     emissive: player.color,
-                    emissiveIntensity: 0.2
+                    emissiveIntensity: 0.2,
+                    roughness: 0.3,
+                    metalness: 0.2
                 });
                 const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
                 body.castShadow = true;
                 group.add(body);
                 
-                // Glow effect
-                const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                // Player glow
+                const glowGeometry = new THREE.SphereGeometry(0.8, 16, 16);
                 const glowMaterial = new THREE.MeshBasicMaterial({
                     color: player.color,
                     transparent: true,
-                    opacity: 0.3
+                    opacity: 0.2
                 });
                 const glow = new THREE.Mesh(glowGeometry, glowMaterial);
                 group.add(glow);
                 
-                // Name label
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = 256;
-                canvas.height = 64;
-                
-                context.fillStyle = `#${player.color.toString(16).padStart(6, '0')}`;
-                context.font = '24px Arial';
-                context.textAlign = 'center';
-                context.fillText(player.name, 128, 40);
-                
-                const texture = new THREE.CanvasTexture(canvas);
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(spriteMaterial);
-                sprite.position.y = 1.5;
-                sprite.scale.set(2, 0.5, 1);
-                group.add(sprite);
-                
+                // Position
                 group.position.set(player.position.x, player.position.y, player.position.z);
                 scene.add(group);
                 
@@ -862,107 +1392,198 @@
             });
         }
 
-        function showQuestion() {
-            // Fetch question from API
-            fetchQuestion().then(question => {
-                if (!question) {
-                    // Fallback questions if API fails
-                    question = getFallbackQuestion();
-                }
+        async function showQuestion() {
+            const levelConfig = CONFIG.LEVELS[gameState.currentLevel];
+            
+            // Fetch question based on language distribution
+            const question = await fetchQuestion();
+            if (!question) {
+                showNotification('Failed to load question. Using backup question.', 'error');
+                question = getFallbackQuestion();
+            }
+            
+            gameState.currentQuestion = question;
+            gameState.timeLeft = levelConfig.time;
+            
+            // Update UI
+            questionDisplay.classList.remove('hidden');
+            questionText.textContent = question.question;
+            questionText.className = `question-text question-${question.language}`;
+            categoryIcon.textContent = CONFIG.CATEGORIES[question.category]?.icon || '❓';
+            categoryDisplay.textContent = question.category.toUpperCase();
+            
+            // Reset timer
+            timerFill.style.width = '100%';
+            timerFill.style.transition = 'none';
+            setTimeout(() => {
+                timerFill.style.transition = `width ${gameState.timeLeft}s linear`;
+                timerFill.style.width = '0%';
+            }, 50);
+            
+            // Set correct door
+            const correctDoorIndex = Math.floor(Math.random() * doors.length);
+            const answers = shuffleArray([...question.incorrect_answers, question.correct_answer]);
+            
+            doors.forEach((door, index) => {
+                door.userData.isCorrect = index === correctDoorIndex;
+                door.userData.answer = answers[index];
                 
-                gameState.currentQuestion = question;
-                gameState.timeLeft = CONFIG.LEVELS[gameState.currentLevel].time;
-                
-                // Update UI
-                questionDisplay.classList.remove('hidden');
-                questionText.textContent = question.question;
-                categoryDisplay.textContent = question.category;
-                
-                // Reset timer bar
-                timerBar.style.width = '100%';
-                
-                // Set correct door
-                const correctDoorIndex = Math.floor(Math.random() * doors.length);
-                doors.forEach((door, index) => {
-                    door.userData.isCorrect = index === correctDoorIndex;
-                    door.userData.answer = index === correctDoorIndex ? 
-                        question.correct_answer : question.incorrect_answers[index] || `Option ${index + 1}`;
-                    
-                    // Update door color
-                    const frame = door.children[0];
-                    frame.material.color.setHex(CONFIG.DOOR_COLORS.DEFAULT);
-                });
-                
-                // Start timer
-                startTimer();
+                // Reset door color
+                const frame = door.children[0];
+                frame.material.color.setHex(CONFIG.DOOR_COLORS.DEFAULT);
+                frame.material.emissive.setHex(CONFIG.DOOR_COLORS.DEFAULT);
             });
+            
+            // Start timer
+            startTimer();
         }
 
         async function fetchQuestion() {
-            try {
-                // Try Open Trivia DB first
-                const response = await fetch('https://opentdb.com/api.php?amount=1&type=multiple');
-                const data = await response.json();
-                
-                if (data.results && data.results.length > 0) {
-                    const question = data.results[0];
-                    
-                    // Decode HTML entities
-                    const decodeHTML = (html) => {
-                        const txt = document.createElement('textarea');
-                        txt.innerHTML = html;
-                        return txt.value;
-                    };
-                    
-                    return {
-                        question: decodeHTML(question.question),
-                        correct_answer: decodeHTML(question.correct_answer),
-                        incorrect_answers: question.incorrect_answers.map(decodeHTML),
-                        category: question.category
-                    };
-                }
-            } catch (error) {
-                console.log('Using fallback questions');
+            // Determine language based on distribution
+            const rand = Math.random();
+            let language;
+            if (rand < CONFIG.LANGUAGE_DISTRIBUTION.ar) {
+                language = 'ar';
+            } else if (rand < CONFIG.LANGUAGE_DISTRIBUTION.ar + CONFIG.LANGUAGE_DISTRIBUTION.en) {
+                language = 'en';
+            } else {
+                language = 'fr';
             }
             
-            return null;
+            try {
+                // For English questions, use Open Trivia DB
+                if (language === 'en') {
+                    const response = await fetch(`https://opentdb.com/api.php?amount=1&type=multiple&encode=url3986`);
+                    const data = await response.json();
+                    
+                    if (data.results && data.results.length > 0) {
+                        const q = data.results[0];
+                        return {
+                            question: decodeURIComponent(q.question),
+                            correct_answer: decodeURIComponent(q.correct_answer),
+                            incorrect_answers: q.incorrect_answers.map(a => decodeURIComponent(a)),
+                            category: q.category.toLowerCase(),
+                            language: 'en'
+                        };
+                    }
+                }
+                
+                // For Arabic and French, use a different approach
+                // Note: In a real implementation, you would need a proper API for these languages
+                // For now, we'll use a mix of pre-defined questions and some translations
+                return getTranslatedQuestion(language);
+                
+            } catch (error) {
+                console.error('Error fetching question:', error);
+                return null;
+            }
+        }
+
+        function getTranslatedQuestion(language) {
+            // This is a simplified version. In reality, you would need:
+            // 1. A proper API for Arabic/French questions
+            // 2. Or a large database of translated questions
+            
+            const baseQuestions = [
+                {
+                    en: "What is the capital of France?",
+                    ar: "ما هي عاصمة فرنسا؟",
+                    fr: "Quelle est la capitale de la France?",
+                    correct: "Paris",
+                    incorrect: ["London", "Berlin", "Madrid"],
+                    category: "geography"
+                },
+                {
+                    en: "Which planet is known as the Red Planet?",
+                    ar: "ما هو الكوكب المعروف باسم الكوكب الأحمر؟",
+                    fr: "Quelle planète est connue sous le nom de Planète Rouge?",
+                    correct: "Mars",
+                    incorrect: ["Venus", "Jupiter", "Saturn"],
+                    category: "science"
+                },
+                {
+                    en: "Who painted the Mona Lisa?",
+                    ar: "من رسم لوحة الموناليزا؟",
+                    fr: "Qui a peint la Joconde?",
+                    correct: "Leonardo da Vinci",
+                    incorrect: ["Pablo Picasso", "Vincent van Gogh", "Michelangelo"],
+                    category: "culture"
+                }
+            ];
+            
+            const q = baseQuestions[Math.floor(Math.random() * baseQuestions.length)];
+            
+            return {
+                question: q[language] || q.en,
+                correct_answer: language === 'ar' ? translateToArabic(q.correct) : 
+                              language === 'fr' ? translateToFrench(q.correct) : q.correct,
+                incorrect_answers: q.incorrect.map(ans => 
+                    language === 'ar' ? translateToArabic(ans) : 
+                    language === 'fr' ? translateToFrench(ans) : ans
+                ),
+                category: q.category,
+                language: language
+            };
+        }
+
+        function translateToArabic(text) {
+            // Simple translation mapping for demo
+            const translations = {
+                "Paris": "باريس",
+                "London": "لندن",
+                "Berlin": "برلين",
+                "Madrid": "مدريد",
+                "Mars": "المريخ",
+                "Venus": "الزهرة",
+                "Jupiter": "المشتري",
+                "Saturn": "زحل",
+                "Leonardo da Vinci": "ليوناردو دا فينشي",
+                "Pablo Picasso": "بابلو بيكاسو",
+                "Vincent van Gogh": "فينسنت فان جوخ",
+                "Michelangelo": "مايكل أنجلو"
+            };
+            return translations[text] || text;
+        }
+
+        function translateToFrench(text) {
+            // Simple translation mapping for demo
+            const translations = {
+                "Paris": "Paris",
+                "London": "Londres",
+                "Berlin": "Berlin",
+                "Madrid": "Madrid",
+                "Mars": "Mars",
+                "Venus": "Vénus",
+                "Jupiter": "Jupiter",
+                "Saturn": "Saturne",
+                "Leonardo da Vinci": "Léonard de Vinci",
+                "Pablo Picasso": "Pablo Picasso",
+                "Vincent van Gogh": "Vincent van Gogh",
+                "Michelangelo": "Michel-Ange"
+            };
+            return translations[text] || text;
         }
 
         function getFallbackQuestion() {
             const questions = [
                 {
-                    question: "What is the capital of France?",
-                    correct_answer: "Paris",
-                    incorrect_answers: ["London", "Berlin", "Madrid"],
-                    category: "Geography"
-                },
-                {
-                    question: "Which planet is known as the Red Planet?",
-                    correct_answer: "Mars",
-                    incorrect_answers: ["Venus", "Jupiter", "Saturn"],
-                    category: "Science"
-                },
-                {
                     question: "What is the largest ocean on Earth?",
                     correct_answer: "Pacific Ocean",
                     incorrect_answers: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean"],
-                    category: "Geography"
-                },
-                {
-                    question: "Who painted the Mona Lisa?",
-                    correct_answer: "Leonardo da Vinci",
-                    incorrect_answers: ["Pablo Picasso", "Vincent van Gogh", "Michelangelo"],
-                    category: "Art"
-                },
-                {
-                    question: "What is the chemical symbol for gold?",
-                    correct_answer: "Au",
-                    incorrect_answers: ["Ag", "Fe", "Cu"],
-                    category: "Science"
+                    category: "geography",
+                    language: "en"
                 }
             ];
-            
             return questions[Math.floor(Math.random() * questions.length)];
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
         }
 
         function startTimer() {
@@ -970,8 +1591,6 @@
             
             gameState.timer = setInterval(() => {
                 gameState.timeLeft--;
-                const percentage = (gameState.timeLeft / CONFIG.LEVELS[gameState.currentLevel].time) * 100;
-                timerBar.style.width = `${percentage}%`;
                 
                 if (gameState.timeLeft <= 0) {
                     clearInterval(gameState.timer);
@@ -981,14 +1600,14 @@
         }
 
         function handleTimeOut() {
-            // Time's up - wrong answer
-            const currentPlayer = gameState.players[gameState.currentPlayerId];
-            currentPlayer.lives--;
+            const player = gameState.players[gameState.currentPlayerId];
+            player.lives--;
             updatePlayerUI();
             
-            if (currentPlayer.lives <= 0) {
+            if (player.lives <= 0) {
                 endGame();
             } else {
+                showNotification('Time\'s up! You lost a life.', 'error');
                 setTimeout(showQuestion, 2000);
             }
         }
@@ -1002,6 +1621,7 @@
             // Highlight selected door
             const frame = door.children[0];
             frame.material.color.setHex(CONFIG.DOOR_COLORS.SELECTED);
+            frame.material.emissive.setHex(CONFIG.DOOR_COLORS.SELECTED);
             
             // Check answer after delay
             setTimeout(() => {
@@ -1014,23 +1634,27 @@
             
             const door = doors[doorIndex];
             const isCorrect = door.userData.isCorrect;
-            const currentPlayer = gameState.players[gameState.currentPlayerId];
+            const player = gameState.players[gameState.currentPlayerId];
             
             // Update door color
             const frame = door.children[0];
             frame.material.color.setHex(isCorrect ? CONFIG.DOOR_COLORS.CORRECT : CONFIG.DOOR_COLORS.WRONG);
+            frame.material.emissive.setHex(isCorrect ? CONFIG.DOOR_COLORS.CORRECT : CONFIG.DOOR_COLORS.WRONG);
             
             if (isCorrect) {
                 // Correct answer
-                currentPlayer.score += CONFIG.LEVELS[gameState.currentLevel].points;
+                const points = CONFIG.LEVELS[gameState.currentLevel].points;
+                player.score += points;
                 updatePlayerUI();
+                
+                showNotification(`Correct! +${points} points`, 'success');
                 
                 // Move to next level
                 setTimeout(() => {
                     gameState.currentLevel++;
                     if (gameState.currentLevel >= CONFIG.LEVELS.length) {
                         // Game completed
-                        currentPlayer.score += 1000; // Bonus
+                        player.score += 1000; // Bonus
                         endGame(true);
                     } else {
                         // Create new doors for next level
@@ -1041,10 +1665,12 @@
                 }, 2000);
             } else {
                 // Wrong answer
-                currentPlayer.lives--;
+                player.lives--;
                 updatePlayerUI();
                 
-                if (currentPlayer.lives <= 0) {
+                showNotification(`Wrong answer! The correct was: ${door.userData.answer}`, 'error');
+                
+                if (player.lives <= 0) {
                     endGame();
                 } else {
                     setTimeout(() => {
@@ -1056,18 +1682,24 @@
         }
 
         function updatePlayerUI() {
-            Object.values(gameState.players).forEach((player, index) => {
+            const players = Object.values(gameState.players);
+            
+            players.forEach((player, index) => {
                 const playerNum = index + 1;
-                document.getElementById(`player${playerNum}Name`).textContent = player.name;
-                document.getElementById(`player${playerNum}Score`).textContent = player.score;
+                const nameEl = document.getElementById(`player${playerNum}Name`);
+                const scoreEl = document.getElementById(`player${playerNum}Score`);
+                const livesEl = document.getElementById(`player${playerNum}Lives`);
                 
-                const livesContainer = document.getElementById(`player${playerNum}Lives`);
-                livesContainer.innerHTML = '';
+                if (nameEl) nameEl.textContent = player.name;
+                if (scoreEl) scoreEl.textContent = player.score;
                 
-                for (let i = 0; i < CONFIG.LIVES; i++) {
-                    const life = document.createElement('div');
-                    life.className = `life ${i >= player.lives ? 'lost' : ''}`;
-                    livesContainer.appendChild(life);
+                if (livesEl) {
+                    livesEl.innerHTML = '';
+                    for (let i = 0; i < CONFIG.LIVES; i++) {
+                        const life = document.createElement('div');
+                        life.className = `life ${i >= player.lives ? 'lost' : ''}`;
+                        livesEl.appendChild(life);
+                    }
                 }
             });
         }
@@ -1076,18 +1708,25 @@
             gameState.gameActive = false;
             clearInterval(gameState.timer);
             
-            document.getElementById('finalScore').textContent = 
-                gameState.players[gameState.currentPlayerId].score;
-            document.getElementById('finalLevel').textContent = 
-                gameState.currentLevel + 1;
-            
-            gameOverScreen.classList.remove('hidden');
+            const player = gameState.players[gameState.currentPlayerId];
+            const totalQuestions = gameState.currentLevel + 1;
+            const correctCount = Math.floor(player.score / 100); // Approximation
             
             if (isVictory) {
-                document.querySelector('.result-title').textContent = 'VICTORY!';
-                document.querySelector('.result-title').style.background = 
-                    'linear-gradient(45deg, #00ff9d, #00b8ff)';
+                resultTitle.textContent = 'VICTORY!';
+                resultTitle.style.background = 'linear-gradient(45deg, #00ff9d, #00b8ff)';
+                showNotification('Congratulations! You completed all levels!', 'success');
+            } else {
+                resultTitle.textContent = 'GAME OVER';
+                resultTitle.style.background = 'linear-gradient(45deg, #ff9a00, #ff5252)';
+                showNotification('Game Over! Try again!', 'error');
             }
+            
+            finalLevel.textContent = gameState.currentLevel + 1;
+            finalScore.textContent = player.score;
+            correctAnswers.textContent = correctCount;
+            
+            gameOverScreen.classList.remove('hidden');
         }
 
         function resetGame() {
@@ -1098,6 +1737,7 @@
             Object.values(gameState.players).forEach(player => {
                 player.score = 0;
                 player.lives = CONFIG.LIVES;
+                player.ready = false;
             });
             
             updatePlayerUI();
@@ -1107,15 +1747,29 @@
             showQuestion();
         }
 
+        function returnToMenu() {
+            gameOverScreen.classList.add('hidden');
+            gameContainer.classList.add('hidden');
+            menuScreen.classList.remove('hidden');
+            
+            // Reset game state
+            gameState.players = {};
+            gameState.readyPlayers.clear();
+            gameState.gameActive = false;
+            
+            // Leave room
+            if (gameState.roomCode && availableRooms[gameState.roomCode]) {
+                delete availableRooms[gameState.roomCode];
+            }
+        }
+
         function sendChatMessage(message) {
             const player = gameState.players[gameState.currentPlayerId];
             const chatMessage = document.createElement('div');
-            chatMessage.className = 'chat-message';
+            chatMessage.className = 'chat-message sent';
             chatMessage.innerHTML = `<strong>${player.name}:</strong> ${message}`;
             chatMessages.appendChild(chatMessage);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            // In production, send via WebRTC to other players
         }
 
         // Game Loop
@@ -1123,27 +1777,43 @@
             function animate() {
                 requestAnimationFrame(animate);
                 
-                // Animate street lines
-                if (streetLines) {
-                    streetLines.position.z += 0.1;
-                    if (streetLines.position.z > 4) {
-                        streetLines.position.z = -40;
-                    }
+                const delta = clock.getDelta();
+                
+                // Animate street lights
+                if (streetLights) {
+                    streetLights.children.forEach((child, index) => {
+                        if (child.type === 'Mesh' && child.geometry.type === 'SphereGeometry') {
+                            // Pulsing glow effect
+                            const scale = 1 + Math.sin(Date.now() * 0.001 + index) * 0.1;
+                            child.scale.setScalar(scale);
+                        }
+                    });
                 }
                 
                 // Animate player glow
-                Object.values(playerMeshes).forEach(mesh => {
+                Object.values(playerMeshes).forEach((mesh, index) => {
                     const glow = mesh.children[1];
-                    glow.scale.x = 1 + Math.sin(Date.now() * 0.002) * 0.1;
-                    glow.scale.y = 1 + Math.sin(Date.now() * 0.002) * 0.1;
-                    glow.scale.z = 1 + Math.sin(Date.now() * 0.002) * 0.1;
+                    if (glow) {
+                        const pulse = 1 + Math.sin(Date.now() * 0.002 + index) * 0.1;
+                        glow.scale.setScalar(pulse);
+                    }
                 });
                 
-                // Update camera to follow player
-                const currentPlayer = gameState.players[gameState.currentPlayerId];
-                if (currentPlayer && camera) {
-                    const targetZ = currentPlayer.position.z - 10;
-                    camera.position.z += (targetZ - camera.position.z) * 0.05;
+                // Animate doors
+                doors.forEach(door => {
+                    door.rotation.y = Math.sin(Date.now() * 0.001 + door.userData.id) * 0.05;
+                });
+                
+                // Update camera position
+                if (camera) {
+                    const player = gameState.players[gameState.currentPlayerId];
+                    if (player) {
+                        const targetZ = player.position.z - 15;
+                        camera.position.z += (targetZ - camera.position.z) * 0.05;
+                    }
+                    
+                    // Gentle camera sway
+                    camera.position.x = Math.sin(Date.now() * 0.0005) * 0.5;
                 }
                 
                 renderer.render(scene, camera);
@@ -1151,7 +1821,48 @@
             animate();
         }
 
-        // Handle Window Resize
+        function handleKeyDown(event) {
+            if (!gameState.gameActive) return;
+            
+            const player = gameState.players[gameState.currentPlayerId];
+            if (!player) return;
+            
+            // Movement
+            switch(event.key.toLowerCase()) {
+                case 'arrowleft':
+                case 'a':
+                    player.position.x = Math.max(-6, player.position.x - 1);
+                    break;
+                case 'arrowright':
+                case 'd':
+                    player.position.x = Math.min(6, player.position.x + 1);
+                    break;
+                case '1':
+                    if (doors.length >= 1) selectDoor(0);
+                    break;
+                case '2':
+                    if (doors.length >= 2) selectDoor(1);
+                    break;
+                case '3':
+                    if (doors.length >= 3) selectDoor(2);
+                    break;
+                case '4':
+                    if (doors.length >= 4) selectDoor(3);
+                    break;
+                case '5':
+                    if (doors.length >= 5) selectDoor(4);
+                    break;
+                case '6':
+                    if (doors.length >= 6) selectDoor(5);
+                    break;
+            }
+            
+            // Update player mesh position
+            if (playerMeshes[player.id]) {
+                playerMeshes[player.id].position.x = player.position.x;
+            }
+        }
+
         function onWindowResize() {
             if (camera && renderer) {
                 camera.aspect = window.innerWidth / window.innerHeight;
@@ -1160,50 +1871,8 @@
             }
         }
 
-        // Handle Keyboard Input
-        document.addEventListener('keydown', (event) => {
-            if (!gameState.gameActive) return;
-            
-            const currentPlayer = gameState.players[gameState.currentPlayerId];
-            if (!currentPlayer) return;
-            
-            // Move player
-            switch(event.key) {
-                case 'ArrowLeft':
-                case 'a':
-                    currentPlayer.position.x = Math.max(-4, currentPlayer.position.x - 1);
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                    currentPlayer.position.x = Math.min(4, currentPlayer.position.x + 1);
-                    break;
-                case '1':
-                    selectDoor(0);
-                    break;
-                case '2':
-                    selectDoor(1);
-                    break;
-                case '3':
-                    selectDoor(2);
-                    break;
-                case '4':
-                    selectDoor(3);
-                    break;
-                case '5':
-                    selectDoor(4);
-                    break;
-            }
-            
-            // Update player mesh position
-            if (playerMeshes[currentPlayer.id]) {
-                playerMeshes[currentPlayer.id].position.x = currentPlayer.position.x;
-            }
-            
-            // In production, send position updates to other players
-        });
-
-        // Initialize game
-        init();
+        // Initialize the game
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
