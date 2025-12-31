@@ -3,30 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔥 APOCALYPSE SURVIVORS - Zombie Survival Co-op</title>
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Cannon.js for physics -->
-    <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
+    <title>Door of Destiny - 3D Co-op Quiz</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none;
         }
-
+        
         body {
-            background: #000;
-            color: #fff;
-            font-family: 'Arial Black', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
             overflow: hidden;
             height: 100vh;
-            width: 100vw;
-            position: fixed;
         }
-
+        
         #gameContainer {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Menu Styles */
+        #menuScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            padding: 20px;
+            text-align: center;
+            background: radial-gradient(circle at center, #0f3460 0%, #16213e 100%);
+            z-index: 100;
+            position: relative;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .game-title {
+            font-size: 4rem;
+            background: linear-gradient(45deg, #ff9a00, #ff5252);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(255, 82, 82, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 154, 0, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 82, 82, 0.8); }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8f9bba;
+            margin-bottom: 3rem;
+            max-width: 600px;
+        }
+        
+        .menu-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1rem 0;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-btn {
+            background: linear-gradient(45deg, #4a00e0, #8e2de2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(142, 45, 226, 0.4);
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        input[type="text"], select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            width: 100%;
+            margin: 5px 0;
+            font-size: 1rem;
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .player-list {
+            margin-top: 20px;
+        }
+        
+        .player-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .player-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        /* Game UI */
+        #gameUI {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .ui-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .player-stats {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 200px;
+            pointer-events: all;
+            border-left: 4px solid;
+        }
+        
+        .player1-stats { border-color: #00ff9d; }
+        .player2-stats { border-color: #00b8ff; }
+        
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .player-score {
+            font-size: 1.5rem;
+            color: #ffcc00;
+        }
+        
+        .lives {
+            display: flex;
+            margin-top: 10px;
+        }
+        
+        .life {
+            width: 15px;
+            height: 15px;
+            background: #ff5252;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .life.lost {
+            background: rgba(255, 82, 82, 0.3);
+        }
+        
+        #questionDisplay {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            pointer-events: all;
+            border: 2px solid #4a00e0;
+            box-shadow: 0 0 30px rgba(74, 0, 224, 0.5);
+        }
+        
+        #category {
+            color: #8e2de2;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        #questionText {
+            font-size: 1.3rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        #timer {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        #timerBar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff9d, #00b8ff);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
+        #chatBox {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+            pointer-events: all;
+        }
+        
+        #chatMessages {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .chat-message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        #chatInput {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+        }
+        
+        /* Game Over Screen */
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .result-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #ff9a00, #ff5252);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .final-score {
+            font-size: 2rem;
+            color: #ffcc00;
+            margin-bottom: 2rem;
+        }
+        
+        /* Canvas */
+        #gameCanvas {
             position: absolute;
             top: 0;
             left: 0;
@@ -34,1708 +307,903 @@
             height: 100%;
             z-index: 1;
         }
-
-        #gameCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        /* HUD Elements */
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        .health-bar {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 300px;
-            height: 30px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 3px solid #ff0000;
-            border-radius: 15px;
-            overflow: hidden;
-        }
-
-        .health-fill {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #ff0000, #ff4500);
-            transition: width 0.3s;
-        }
-
-        .ammo-counter {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 2rem;
-            color: #00ff00;
-            text-shadow: 0 0 10px #00ff00;
-            font-weight: bold;
-        }
-
-        .wave-counter {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.8rem;
-            color: #ffff00;
-            text-shadow: 0 0 10px #ffff00;
-        }
-
-        .player-info {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #0088ff;
-            min-width: 200px;
-        }
-
-        .kill-counter {
-            position: absolute;
-            top: 80px;
-            left: 20px;
-            font-size: 1.5rem;
-            color: #ff4444;
-        }
-
-        /* Game Menu Overlay */
-        #gameMenu {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(20,0,40,0.95) 0%, rgba(0,0,0,0.98) 100%);
-            z-index: 200;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 30px;
-            padding: 20px;
-        }
-
-        .game-title {
-            font-size: 5rem;
-            text-align: center;
-            background: linear-gradient(45deg, #ff0000, #ff8800, #ff0000);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
-            margin-bottom: 20px;
-            letter-spacing: 3px;
-        }
-
-        .game-subtitle {
-            font-size: 1.5rem;
-            color: #00ffff;
-            text-align: center;
-            margin-bottom: 40px;
-            text-shadow: 0 0 10px #00ffff;
-        }
-
-        .room-section {
-            background: rgba(0, 20, 40, 0.9);
-            padding: 30px;
-            border-radius: 20px;
-            border: 3px solid #0088ff;
-            min-width: 500px;
-            text-align: center;
-        }
-
-        .room-code {
-            font-size: 4rem;
-            font-family: monospace;
-            letter-spacing: 15px;
-            color: #00ff00;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 10px;
-            border: 3px solid #00ff00;
-            text-shadow: 0 0 20px #00ff00;
-        }
-
-        .player-list {
-            margin: 20px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .player-item {
-            background: rgba(30, 30, 60, 0.8);
-            padding: 15px 25px;
-            border-radius: 10px;
-            min-width: 300px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 2px solid;
-            transition: all 0.3s;
-        }
-
-        .player-item.ready {
-            border-color: #00ff00;
-            background: rgba(0, 60, 0, 0.5);
-        }
-
-        .player-stats {
-            display: flex;
-            gap: 15px;
-        }
-
-        .player-stat {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-        }
-
-        /* Buttons */
-        .btn {
-            background: linear-gradient(45deg, #ff0000, #ff8800);
-            color: white;
-            border: none;
-            padding: 20px 40px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 10px;
-            min-width: 250px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
-        }
-
-        .btn:active {
-            transform: scale(0.95);
-        }
-
-        .btn-green {
-            background: linear-gradient(45deg, #00aa00, #00ff00);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-        }
-
-        .btn-blue {
-            background: linear-gradient(45deg, #0088ff, #00ffff);
-            box-shadow: 0 0 20px rgba(0, 136, 255, 0.5);
-        }
-
-        .btn-disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-disabled:hover {
-            transform: none;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
-        }
-
-        /* Controls */
-        .controls-info {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #ffff00;
-            font-size: 0.9rem;
-        }
-
-        .key {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px 10px;
-            margin: 0 3px;
-            border-radius: 5px;
-            border: 1px solid #ffff00;
-            font-family: monospace;
-        }
-
-        /* Game Messages */
-        #gameMessage {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3rem;
-            color: #ffff00;
-            text-shadow: 0 0 20px #ffff00;
-            text-align: center;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 150;
-        }
-
-        /* Loading Screen */
-        #loadingScreen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .loader {
-            width: 80px;
-            height: 80px;
-            border: 8px solid #333;
-            border-top: 8px solid #ff0000;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 30px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Crosshair */
-        #crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 30px;
-            height: 30px;
-            pointer-events: none;
-            z-index: 120;
-        }
-
-        .crosshair-dot {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            background: #00ff00;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .crosshair-line {
-            position: absolute;
-            background: #00ff00;
-        }
-
-        .line-h {
-            width: 20px;
-            height: 2px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .line-v {
-            width: 2px;
-            height: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .line-left { left: calc(50% - 15px); }
-        .line-right { left: calc(50% + 15px); }
-        .line-top { top: calc(50% - 15px); }
-        .line-bottom { top: calc(50% + 15px); }
-
-        /* Mobile Controls */
-        #mobileControls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 200px;
-            display: none;
-            z-index: 110;
-        }
-
-        .joystick {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            bottom: 30px;
-            left: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .joystick-handle {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .action-buttons {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .action-btn {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 0, 0, 0.5);
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-        }
-
+        
         /* Responsive */
         @media (max-width: 768px) {
-            #mobileControls {
-                display: block;
-            }
-            
-            .game-title {
-                font-size: 3rem;
-            }
-            
-            .room-section {
-                min-width: 90%;
-                padding: 20px;
-            }
-            
-            .room-code {
-                font-size: 2.5rem;
-                letter-spacing: 10px;
-                padding: 15px;
-            }
-            
-            .btn {
-                padding: 15px 25px;
-                font-size: 1.1rem;
-                min-width: 200px;
-            }
-        }
-
-        /* Hidden class */
-        .hidden {
-            display: none !important;
+            .game-title { font-size: 2.5rem; }
+            .ui-container { flex-direction: column; }
+            .player-stats { margin-bottom: 10px; }
+            #questionDisplay { padding: 15px; font-size: 0.9rem; }
+            #chatBox { width: 250px; }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
 </head>
 <body>
-    <div id="loadingScreen">
-        <h1 style="color: #ff0000; font-size: 3rem; margin-bottom: 20px;">🔥 LOADING APOCALYPSE...</h1>
-        <div class="loader"></div>
-        <p style="color: #ffff00; margin-top: 20px;">Preparing zombie horde...</p>
+    <!-- Menu Screen -->
+    <div id="menuScreen">
+        <h1 class="game-title">🚪 DOOR OF DESTINY</h1>
+        <p class="subtitle">Answer quiz questions correctly to survive. Choose the wrong door and face the consequences. Cooperate to win!</p>
+        
+        <div class="menu-section">
+            <h2>🎮 Game Setup</h2>
+            <div class="input-group">
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="15">
+                <select id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
+                    <option value="ar">Arabic</option>
+                </select>
+            </div>
+            <button class="menu-btn" id="createRoomBtn">🏠 Create Room</button>
+            <div class="input-group" id="joinRoomGroup" style="display:none;">
+                <input type="text" id="roomCode" placeholder="Enter room code">
+                <button class="menu-btn" id="joinRoomBtn">🔗 Join Room</button>
+            </div>
+            <button class="menu-btn" id="toggleJoinBtn">🔗 Join Existing Room</button>
+        </div>
+        
+        <div class="menu-section" id="roomInfo" style="display:none;">
+            <h2>👥 Room: <span id="roomCodeDisplay"></span></h2>
+            <p>Share this code with your friend:</p>
+            <h2 id="shareCode" style="color:#00ff9d; font-size:2rem;"></h2>
+            <div class="player-list" id="playerList">
+                <!-- Players will appear here -->
+            </div>
+            <button class="menu-btn" id="startGameBtn" style="background:linear-gradient(45deg, #00b09b, #96c93d);">🚀 Start Game</button>
+        </div>
+        
+        <div class="menu-section">
+            <h2>📖 How to Play</h2>
+            <p>• 2-4 players can play together</p>
+            <p>• Questions appear above doors</p>
+            <p>• Choose correct door to survive</p>
+            <p>• Wrong door = lose a life</p>
+            <p>• Work together to reach the highest level!</p>
+        </div>
     </div>
-
-    <div id="gameContainer">
+    
+    <!-- Game Container -->
+    <div id="gameContainer" class="hidden">
+        <!-- Game UI -->
+        <div id="gameUI">
+            <div class="ui-container">
+                <div class="player-stats player1-stats">
+                    <div class="player-name" id="player1Name">Player 1</div>
+                    <div class="player-score">Score: <span id="player1Score">0</span></div>
+                    <div class="lives" id="player1Lives">
+                        <div class="life"></div>
+                        <div class="life"></div>
+                        <div class="life"></div>
+                    </div>
+                </div>
+                
+                <div id="questionDisplay" class="hidden">
+                    <div id="category">Geography</div>
+                    <div id="questionText">Which country has the largest population?</div>
+                    <div id="timer"><div id="timerBar"></div></div>
+                </div>
+                
+                <div class="player-stats player2-stats">
+                    <div class="player-name" id="player2Name">Player 2</div>
+                    <div class="player-score">Score: <span id="player2Score">0</span></div>
+                    <div class="lives" id="player2Lives">
+                        <div class="life"></div>
+                        <div class="life"></div>
+                        <div class="life"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Box -->
+        <div id="chatBox">
+            <div id="chatMessages"></div>
+            <input type="text" id="chatInput" placeholder="Type message...">
+        </div>
+        
+        <!-- Game Canvas -->
         <canvas id="gameCanvas"></canvas>
         
-        <!-- Crosshair -->
-        <div id="crosshair">
-            <div class="crosshair-dot"></div>
-            <div class="crosshair-line line-h line-left"></div>
-            <div class="crosshair-line line-h line-right"></div>
-            <div class="crosshair-line line-v line-top"></div>
-            <div class="crosshair-line line-v line-bottom"></div>
-        </div>
-
-        <!-- HUD -->
-        <div id="hud">
-            <div class="health-bar">
-                <div class="health-fill" id="healthFill"></div>
-            </div>
-            <div class="ammo-counter" id="ammoCounter">∞ / ∞</div>
-            <div class="wave-counter" id="waveCounter">WAVE: 1</div>
-            <div class="kill-counter" id="killCounter">ZOMBIES: 0</div>
-            <div class="player-info" id="playerInfo">
-                <div>PLAYER: <span id="playerName">SURVIVOR</span></div>
-                <div>SCORE: <span id="playerScore">0</span></div>
-                <div>TEAMMATES: <span id="teamCount">1</span></div>
-            </div>
-        </div>
-
-        <!-- Mobile Controls -->
-        <div id="mobileControls">
-            <div class="joystick" id="joystick">
-                <div class="joystick-handle" id="joystickHandle"></div>
-            </div>
-            <div class="action-buttons">
-                <div class="action-btn" id="shootBtn">🔫</div>
-                <div class="action-btn" id="reloadBtn">↻</div>
-            </div>
-        </div>
-
-        <!-- Game Message Display -->
-        <div id="gameMessage"></div>
-    </div>
-
-    <!-- Game Menu -->
-    <div id="gameMenu">
-        <h1 class="game-title">🔥 APOCALYPSE SURVIVORS</h1>
-        <p class="game-subtitle">Zombie Survival Co-op • Survive Together or Die Alone</p>
-        
-        <div class="room-section" id="joinSection">
-            <h2 style="color: #00ffff; margin-bottom: 20px;">JOIN THE SURVIVAL</h2>
-            <input type="text" id="roomInput" placeholder="ENTER 4-DIGIT CODE" maxlength="4" style="
-                background: rgba(0,0,0,0.8);
-                border: 3px solid #00ff00;
-                color: #00ff00;
-                padding: 15px;
-                font-size: 2rem;
-                text-align: center;
-                width: 80%;
-                margin-bottom: 20px;
-                border-radius: 10px;
-                font-family: monospace;
-                letter-spacing: 10px;
-            ">
-            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                <button class="btn btn-blue" id="joinBtn">🎮 JOIN SQUAD</button>
-                <button class="btn btn-green" id="createBtn">🔥 CREATE SQUAD</button>
-            </div>
-        </div>
-
-        <div class="room-section hidden" id="lobbySection">
-            <h2 style="color: #00ff00;">SQUAD READY ROOM</h2>
-            <div class="room-code" id="roomCode">0000</div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                <button class="btn btn-blue" id="copyBtn">📋 COPY CODE</button>
-                <button class="btn" id="startBtn">💀 START SURVIVAL</button>
-            </div>
-            
-            <div class="player-list" id="playerList">
-                <!-- Players will be added here -->
-            </div>
-        </div>
-
-        <div class="controls-info">
-            <div style="color: #ffff00; margin-bottom: 10px;">CONTROLS:</div>
-            <div>WASD = MOVE | MOUSE = AIM | LEFT CLICK = SHOOT</div>
-            <div>R = RELOAD | SPACE = JUMP | SHIFT = SPRINT</div>
-            <div>1-3 = SWITCH WEAPONS | TAB = SHOW SCORE</div>
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="hidden">
+            <h1 class="result-title">GAME OVER</h1>
+            <div class="final-score">Final Score: <span id="finalScore">0</span></div>
+            <div class="final-score">Level Reached: <span id="finalLevel">1</span></div>
+            <button class="menu-btn" id="playAgainBtn">🔄 Play Again</button>
+            <button class="menu-btn" id="backToMenuBtn">🏠 Back to Menu</button>
         </div>
     </div>
 
     <script>
-        // ==================== GAME STATE ====================
-        const GameState = {
-            roomCode: null,
-            players: {},
-            playerId: null,
-            isHost: false,
-            gameStarted: false,
-            wave: 1,
-            zombies: [],
-            zombiesKilled: 0,
-            playerHealth: 100,
-            playerAmmo: {
-                pistol: { current: 12, max: 12 },
-                shotgun: { current: 8, max: 8 },
-                rifle: { current: 30, max: 30 }
-            },
-            currentWeapon: 'pistol',
-            score: 0,
-            playerPosition: { x: 0, y: 1, z: 0 },
-            playerRotation: { x: 0, y: 0 }
+        // Game Configuration
+        const CONFIG = {
+            LIVES: 3,
+            QUESTION_TIME: 30,
+            LEVELS: [
+                { doors: 3, time: 30, points: 100 },
+                { doors: 3, time: 25, points: 150 },
+                { doors: 4, time: 25, points: 200 },
+                { doors: 4, time: 20, points: 250 },
+                { doors: 5, time: 20, points: 300 }
+            ],
+            PLAYER_COLORS: [
+                0x00ff9d, // Green
+                0x00b8ff, // Blue
+                0xff5252, // Red
+                0xff9a00  // Orange
+            ],
+            DOOR_COLORS: {
+                DEFAULT: 0x8e2de2,
+                CORRECT: 0x00ff9d,
+                WRONG: 0xff5252,
+                SELECTED: 0x00b8ff
+            }
         };
 
-        // ==================== THREE.JS SETUP ====================
-        let scene, camera, renderer, canvas;
-        let playerMesh, weaponMesh, zombieMeshes = [], bulletMeshes = [], buildingMeshes = [];
-        let keys = {};
-        let mouse = { x: 0, y: 0, down: false };
-        let joystickActive = false;
-        let joystickPosition = { x: 0, y: 0 };
+        // Game State
+        let gameState = {
+            players: {},
+            currentPlayerId: null,
+            roomCode: null,
+            isHost: false,
+            gameActive: false,
+            currentLevel: 0,
+            currentQuestion: null,
+            selectedDoor: null,
+            timer: null,
+            timeLeft: CONFIG.QUESTION_TIME
+        };
 
-        // ==================== NETWORK SYSTEM ====================
-        class ApocalypseNetwork {
-            constructor() {
-                this.localId = 'survivor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                this.currentRoom = null;
-                this.isHost = false;
-                this.peers = {};
-                
-                this.setupNetwork();
-            }
+        // Three.js Variables
+        let scene, camera, renderer, controls;
+        let doors = [];
+        let playerMeshes = {};
+        let street, streetLines;
 
-            setupNetwork() {
-                // Simple WebSocket-like system using BroadcastChannel
-                try {
-                    this.channel = new BroadcastChannel('apocalypse_survivors');
-                    this.channel.onmessage = (e) => this.handleMessage(e.data);
-                } catch (e) {
-                    console.log("Using fallback networking");
-                }
-            }
+        // DOM Elements
+        const menuScreen = document.getElementById('menuScreen');
+        const gameContainer = document.getElementById('gameContainer');
+        const playerNameInput = document.getElementById('playerName');
+        const languageSelect = document.getElementById('languageSelect');
+        const createRoomBtn = document.getElementById('createRoomBtn');
+        const joinRoomGroup = document.getElementById('joinRoomGroup');
+        const toggleJoinBtn = document.getElementById('toggleJoinBtn');
+        const roomCodeInput = document.getElementById('roomCode');
+        const joinRoomBtn = document.getElementById('joinRoomBtn');
+        const roomInfo = document.getElementById('roomInfo');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const shareCode = document.getElementById('shareCode');
+        const playerList = document.getElementById('playerList');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const questionDisplay = document.getElementById('questionDisplay');
+        const questionText = document.getElementById('questionText');
+        const categoryDisplay = document.getElementById('category');
+        const timerBar = document.getElementById('timerBar');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
 
-            sendMessage(data) {
-                data.roomCode = this.currentRoom;
-                data.playerId = this.localId;
-                data.timestamp = Date.now();
-                
-                if (this.channel) {
-                    this.channel.postMessage(data);
-                }
-            }
+        // WebRTC for Multiplayer
+        let peerConnection = null;
+        let dataChannel = null;
+        let isHost = false;
 
-            handleMessage(data) {
-                if (data.roomCode !== this.currentRoom) return;
-                if (data.playerId === this.localId) return;
-
-                switch(data.type) {
-                    case 'roomCreated':
-                        if (!this.isHost) this.handleRoomFound(data);
-                        break;
-                    case 'playerJoin':
-                        if (this.isHost) this.addPlayer(data);
-                        break;
-                    case 'playerUpdate':
-                        this.updatePlayer(data);
-                        break;
-                    case 'gameState':
-                        this.updateGameState(data);
-                        break;
-                    case 'zombieUpdate':
-                        this.updateZombies(data);
-                        break;
-                    case 'shoot':
-                        this.handleShoot(data);
-                        break;
-                }
-            }
-
-            createRoom() {
-                const roomCode = this.generateRoomCode();
-                this.currentRoom = roomCode;
-                this.isHost = true;
-                GameState.roomCode = roomCode;
-                GameState.playerId = this.localId;
-                GameState.isHost = true;
-
-                GameState.players[this.localId] = {
-                    id: this.localId,
-                    name: 'Squad Leader',
-                    health: 100,
-                    position: { x: 0, y: 1, z: 0 },
-                    kills: 0,
-                    ready: true
-                };
-
-                this.sendMessage({
-                    type: 'roomCreated',
-                    roomCode: roomCode,
-                    hostId: this.localId
-                });
-
-                this.updatePlayerList();
-                return roomCode;
-            }
-
-            joinRoom(roomCode) {
-                if (!/^\d{4}$/.test(roomCode)) {
-                    this.showMessage("INVALID CODE! USE 4 DIGITS", 'error');
-                    return false;
-                }
-
-                this.currentRoom = roomCode;
-                this.isHost = false;
-                GameState.roomCode = roomCode;
-                GameState.playerId = this.localId;
-                GameState.isHost = false;
-
-                GameState.players[this.localId] = {
-                    id: this.localId,
-                    name: 'Survivor ' + Math.floor(Math.random() * 100),
-                    health: 100,
-                    position: { x: 5, y: 1, z: 5 },
-                    kills: 0,
-                    ready: false
-                };
-
-                this.sendMessage({
-                    type: 'playerJoin',
-                    roomCode: roomCode,
-                    playerData: GameState.players[this.localId]
-                });
-
-                this.updatePlayerList();
-                return true;
-            }
-
-            handleRoomFound(data) {
-                this.showMessage("SQUAD FOUND! JOINING...", 'info');
-            }
-
-            addPlayer(data) {
-                GameState.players[data.playerId] = data.playerData;
-                this.updatePlayerList();
-                
-                // Send current game state to new player
-                this.sendMessage({
-                    type: 'gameState',
-                    state: GameState
-                });
-            }
-
-            updatePlayer(data) {
-                if (GameState.players[data.playerId]) {
-                    GameState.players[data.playerId] = { ...GameState.players[data.playerId], ...data.playerData };
-                }
-            }
-
-            updateGameState(data) {
-                Object.assign(GameState, data.state);
-                this.updatePlayerList();
-                updateHUD();
-            }
-
-            updateZombies(data) {
-                GameState.zombies = data.zombies;
-            }
-
-            handleShoot(data) {
-                // Create bullet effect for other player
-                createBulletEffect(data.position, data.direction);
-            }
-
-            sendPlayerUpdate() {
-                this.sendMessage({
-                    type: 'playerUpdate',
-                    playerData: {
-                        health: GameState.playerHealth,
-                        position: GameState.playerPosition,
-                        kills: GameState.zombiesKilled
-                    }
-                });
-            }
-
-            sendGameState() {
-                this.sendMessage({
-                    type: 'gameState',
-                    state: GameState
-                });
-            }
-
-            sendShoot(position, direction) {
-                this.sendMessage({
-                    type: 'shoot',
-                    position: position,
-                    direction: direction
-                });
-            }
-
-            generateRoomCode() {
-                return Math.floor(1000 + Math.random() * 9000).toString();
-            }
-
-            updatePlayerList() {
-                const playerList = document.getElementById('playerList');
-                if (!playerList) return;
-
-                playerList.innerHTML = '';
-                
-                Object.values(GameState.players).forEach(player => {
-                    const playerItem = document.createElement('div');
-                    playerItem.className = `player-item ${player.ready ? 'ready' : ''}`;
-                    playerItem.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="
-                                width: 30px;
-                                height: 30px;
-                                background: ${player.id === GameState.playerId ? '#00ff00' : '#ff0000'};
-                                border-radius: 50%;
-                            "></div>
-                            <div>
-                                <div style="font-weight: bold; font-size: 1.2rem;">${player.name}</div>
-                                <div style="font-size: 0.8rem; color: #cccccc;">${player.id === GameState.playerId ? 'YOU' : 'TEAMMATE'}</div>
-                            </div>
-                        </div>
-                        <div class="player-stats">
-                            <div class="player-stat">❤️ ${player.health}</div>
-                            <div class="player-stat">💀 ${player.kills || 0}</div>
-                        </div>
-                    `;
-                    playerList.appendChild(playerItem);
-                });
-
-                // Update team count
-                document.getElementById('teamCount').textContent = Object.keys(GameState.players).length;
-                
-                // Update start button
-                const startBtn = document.getElementById('startBtn');
-                if (startBtn) {
-                    const playerCount = Object.keys(GameState.players).length;
-                    startBtn.disabled = playerCount < 1;
-                    startBtn.className = playerCount >= 1 ? 'btn btn-green' : 'btn btn-disabled';
-                    startBtn.textContent = playerCount >= 1 ? '💀 START SURVIVAL' : 'WAITING FOR PLAYERS...';
-                }
-            }
-
-            showMessage(text, type = 'info') {
-                const messageDiv = document.getElementById('gameMessage');
-                messageDiv.textContent = text;
-                messageDiv.style.color = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#ffff00';
-                messageDiv.style.opacity = 1;
-                
-                setTimeout(() => {
-                    messageDiv.style.opacity = 0;
-                }, 2000);
-            }
+        // Initialize
+        function init() {
+            setupEventListeners();
+            generateDefaultPlayerName();
         }
 
-        const network = new ApocalypseNetwork();
+        function generateDefaultPlayerName() {
+            const adjectives = ['Brave', 'Clever', 'Swift', 'Wise', 'Bold'];
+            const nouns = ['Explorer', 'Scholar', 'Hero', 'Champion', 'Traveler'];
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            playerNameInput.value = `${adj} ${noun}`;
+        }
 
-        // ==================== GAME INITIALIZATION ====================
-        function initGame() {
-            // Hide loading screen
-            document.getElementById('loadingScreen').classList.add('hidden');
+        function setupEventListeners() {
+            createRoomBtn.addEventListener('click', createRoom);
+            toggleJoinBtn.addEventListener('click', () => {
+                joinRoomGroup.style.display = joinRoomGroup.style.display === 'none' ? 'block' : 'none';
+            });
+            joinRoomBtn.addEventListener('click', joinRoom);
+            startGameBtn.addEventListener('click', startGame);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && chatInput.value.trim()) {
+                    sendChatMessage(chatInput.value);
+                    chatInput.value = '';
+                }
+            });
+            playAgainBtn.addEventListener('click', resetGame);
+            backToMenuBtn.addEventListener('click', () => {
+                gameOverScreen.classList.add('hidden');
+                menuScreen.classList.remove('hidden');
+                gameContainer.classList.add('hidden');
+                disconnectMultiplayer();
+            });
+
+            // Window resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // Multiplayer Functions
+        function createRoom() {
+            const playerName = playerNameInput.value.trim() || 'Player';
+            const language = languageSelect.value;
             
-            // Setup Three.js
-            canvas = document.getElementById('gameCanvas');
+            gameState.currentPlayerId = generatePlayerId();
+            gameState.isHost = true;
+            gameState.roomCode = generateRoomCode();
             
-            if (typeof THREE === 'undefined') {
-                alert("ERROR: Three.js failed to load! Please refresh.");
+            // Add host player
+            gameState.players[gameState.currentPlayerId] = {
+                id: gameState.currentPlayerId,
+                name: playerName,
+                color: CONFIG.PLAYER_COLORS[0],
+                score: 0,
+                lives: CONFIG.LIVES,
+                language: language,
+                position: { x: -2, y: 0.5, z: 0 }
+            };
+            
+            updateRoomDisplay();
+            setupWebRTCAsHost();
+            
+            menuScreen.classList.add('hidden');
+            roomInfo.classList.remove('hidden');
+        }
+
+        function joinRoom() {
+            const playerName = playerNameInput.value.trim() || 'Player';
+            const language = languageSelect.value;
+            const code = roomCodeInput.value.trim().toUpperCase();
+            
+            if (!code || code.length !== 6) {
+                alert('Please enter a valid 6-character room code');
                 return;
             }
-
-            // Create scene
-            scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x000000, 10, 100);
-
-            // Create camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 2, 5);
-
-            // Create renderer
-            renderer = new THREE.WebGLRenderer({ 
-                canvas: canvas,
-                antialias: true,
-                alpha: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-            // Setup lights
-            setupLights();
             
-            // Create game world
-            createWorld();
+            gameState.currentPlayerId = generatePlayerId();
+            gameState.isHost = false;
+            gameState.roomCode = code;
             
-            // Create player
-            createPlayer();
+            gameState.players[gameState.currentPlayerId] = {
+                id: gameState.currentPlayerId,
+                name: playerName,
+                color: CONFIG.PLAYER_COLORS[Object.keys(gameState.players).length],
+                score: 0,
+                lives: CONFIG.LIVES,
+                language: language,
+                position: { x: 2, y: 0.5, z: 0 }
+            };
             
-            // Create weapon
-            createWeapon();
+            updateRoomDisplay();
+            setupWebRTCAsClient();
             
-            // Setup controls
-            setupControls();
-            
-            // Start game loop
-            gameLoop();
-            
-            // Show menu
-            showMenu();
+            menuScreen.classList.add('hidden');
+            roomInfo.classList.remove('hidden');
         }
 
-        function setupLights() {
-            // Ambient light
-            const ambientLight = new THREE.AmbientLight(0x444444);
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function generatePlayerId() {
+            return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function updateRoomDisplay() {
+            roomCodeDisplay.textContent = gameState.roomCode;
+            shareCode.textContent = gameState.roomCode;
+            
+            // Update player list
+            playerList.innerHTML = '';
+            Object.values(gameState.players).forEach((player, index) => {
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-item';
+                playerElement.innerHTML = `
+                    <div class="player-color" style="background-color: #${player.color.toString(16).padStart(6, '0')}"></div>
+                    ${player.name} ${player.id === gameState.currentPlayerId ? '(You)' : ''}
+                `;
+                playerList.appendChild(playerElement);
+            });
+        }
+
+        // WebRTC Setup (Simplified - In real implementation, use proper signaling)
+        function setupWebRTCAsHost() {
+            // Simplified - In production, use proper WebRTC with STUN/TURN
+            console.log('Host setup - would connect via WebRTC in production');
+            
+            // Simulate another player joining for demo
+            setTimeout(() => {
+                if (!gameState.players['demo_player']) {
+                    gameState.players['demo_player'] = {
+                        id: 'demo_player',
+                        name: 'Demo Player',
+                        color: CONFIG.PLAYER_COLORS[1],
+                        score: 0,
+                        lives: CONFIG.LIVES,
+                        language: 'en',
+                        position: { x: 2, y: 0.5, z: 0 }
+                    };
+                    updateRoomDisplay();
+                }
+            }, 1000);
+        }
+
+        function setupWebRTCAsClient() {
+            console.log('Client setup - would connect via WebRTC in production');
+        }
+
+        function sendGameState() {
+            // In production, send via WebRTC data channel
+            console.log('Sending game state to other players');
+        }
+
+        function disconnectMultiplayer() {
+            // Clean up WebRTC connections
+            gameState.players = {};
+        }
+
+        // Game Functions
+        function startGame() {
+            roomInfo.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            
+            init3DScene();
+            startGameLoop();
+            showQuestion();
+        }
+
+        function init3DScene() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x16213e, 10, 50);
+            
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 10);
+            camera.lookAt(0, 0, 0);
+            
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
             scene.add(ambientLight);
             
-            // Directional light (moon)
-            const directionalLight = new THREE.DirectionalLight(0x00aaff, 0.5);
-            directionalLight.position.set(50, 100, 50);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 5);
             directionalLight.castShadow = true;
             directionalLight.shadow.mapSize.width = 2048;
             directionalLight.shadow.mapSize.height = 2048;
             scene.add(directionalLight);
             
-            // Red emergency lights
-            for (let i = 0; i < 4; i++) {
-                const light = new THREE.PointLight(0xff0000, 1, 20);
-                light.position.set(
-                    (Math.random() - 0.5) * 100,
-                    5,
-                    (Math.random() - 0.5) * 100
-                );
-                light.intensity = 0.5;
-                scene.add(light);
-            }
+            // Street
+            createStreet();
+            
+            // Initial doors
+            createDoors(CONFIG.LEVELS[0].doors);
+            
+            // Create player meshes
+            createPlayerMeshes();
+            
+            // Controls (for debugging - disable in production)
+            // controls = new THREE.OrbitControls(camera, renderer.domElement);
+            
+            // Handle window resize
+            onWindowResize();
         }
 
-        function createWorld() {
-            // Ground
-            const groundGeometry = new THREE.PlaneGeometry(200, 200);
-            const groundMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x333333,
-                side: THREE.DoubleSide
+        function createStreet() {
+            // Street floor
+            const streetGeometry = new THREE.PlaneGeometry(20, 100);
+            const streetMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a1a2e,
+                roughness: 0.8,
+                metalness: 0.2
             });
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-            ground.rotation.x = Math.PI / 2;
-            ground.position.y = -0.5;
-            ground.receiveShadow = true;
-            scene.add(ground);
-
-            // Road
-            const roadGeometry = new THREE.PlaneGeometry(20, 200);
-            const roadMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x222222
-            });
-            const road = new THREE.Mesh(roadGeometry, roadMaterial);
-            road.rotation.x = Math.PI / 2;
-            road.position.y = -0.4;
-            road.receiveShadow = true;
-            scene.add(road);
-
-            // Create buildings
-            for (let i = 0; i < 20; i++) {
-                createBuilding();
+            street = new THREE.Mesh(streetGeometry, streetMaterial);
+            street.rotation.x = -Math.PI / 2;
+            street.receiveShadow = true;
+            scene.add(street);
+            
+            // Street lines
+            const lineGeometry = new THREE.BoxGeometry(2, 0.1, 0.2);
+            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            
+            streetLines = new THREE.Group();
+            for (let i = -40; i < 40; i += 4) {
+                const line = new THREE.Mesh(lineGeometry, lineMaterial);
+                line.position.set(0, 0.01, i);
+                streetLines.add(line);
             }
-
-            // Create abandoned cars
-            for (let i = 0; i < 10; i++) {
-                createCar();
-            }
-
-            // Create fences and barricades
-            for (let i = 0; i < 30; i++) {
-                createBarricade();
-            }
-        }
-
-        function createBuilding() {
-            const width = 10 + Math.random() * 20;
-            const height = 10 + Math.random() * 30;
-            const depth = 10 + Math.random() * 20;
+            scene.add(streetLines);
             
-            const geometry = new THREE.BoxGeometry(width, height, depth);
-            const material = new THREE.MeshPhongMaterial({ 
-                color: 0x555555,
-                emissive: 0x111111
-            });
-            const building = new THREE.Mesh(geometry, material);
+            // Street borders
+            const borderGeometry = new THREE.BoxGeometry(0.5, 0.5, 100);
+            const borderMaterial = new THREE.MeshStandardMaterial({ color: 0x8e2de2 });
             
-            building.position.set(
-                (Math.random() - 0.5) * 180,
-                height / 2,
-                (Math.random() - 0.5) * 180
-            );
+            const leftBorder = new THREE.Mesh(borderGeometry, borderMaterial);
+            leftBorder.position.set(-4.5, 0.25, 0);
+            leftBorder.castShadow = true;
+            scene.add(leftBorder);
             
-            building.castShadow = true;
-            building.receiveShadow = true;
+            const rightBorder = new THREE.Mesh(borderGeometry, borderMaterial);
+            rightBorder.position.set(4.5, 0.25, 0);
+            rightBorder.castShadow = true;
+            scene.add(rightBorder);
             
-            scene.add(building);
-            buildingMeshes.push(building);
-            
-            // Add broken windows
-            for (let i = 0; i < 5; i++) {
-                const windowGeometry = new THREE.BoxGeometry(2, 3, 0.1);
-                const windowMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0x0000ff,
-                    transparent: true,
-                    opacity: 0.3,
-                    emissive: 0x000044
+            // Background buildings (simple)
+            for (let i = -3; i <= 3; i += 2) {
+                if (i === 0) continue;
+                
+                const buildingGeometry = new THREE.BoxGeometry(3, Math.random() * 10 + 5, 2);
+                const buildingMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x2a2a4a,
+                    roughness: 0.9
                 });
-                const window = new THREE.Mesh(windowGeometry, windowMaterial);
                 
-                window.position.set(
-                    building.position.x + (Math.random() - 0.5) * width,
-                    building.position.y - height/2 + 5 + Math.random() * (height - 10),
-                    building.position.z + depth/2 + 0.1
-                );
-                
-                scene.add(window);
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                building.position.set(i * 3, buildingGeometry.parameters.height / 2, -15);
+                building.castShadow = true;
+                scene.add(building);
             }
         }
 
-        function createCar() {
-            const geometry = new THREE.BoxGeometry(4, 2, 8);
-            const material = new THREE.MeshPhongMaterial({ 
-                color: Math.random() > 0.5 ? 0xff0000 : 0x0000ff
-            });
-            const car = new THREE.Mesh(geometry, material);
+        function createDoors(count) {
+            // Remove existing doors
+            doors.forEach(door => scene.remove(door));
+            doors = [];
             
-            car.position.set(
-                (Math.random() - 0.5) * 180,
-                1,
-                (Math.random() - 0.5) * 180
-            );
+            const doorWidth = 1.5;
+            const spacing = 3;
+            const startX = -((count - 1) * spacing) / 2;
             
-            car.rotation.y = Math.random() * Math.PI * 2;
-            car.castShadow = true;
-            
-            scene.add(car);
+            for (let i = 0; i < count; i++) {
+                const doorGroup = new THREE.Group();
+                
+                // Door frame
+                const frameGeometry = new THREE.BoxGeometry(doorWidth, 3, 0.2);
+                const frameMaterial = new THREE.MeshStandardMaterial({ 
+                    color: CONFIG.DOOR_COLORS.DEFAULT,
+                    emissive: 0x222222,
+                    emissiveIntensity: 0.2
+                });
+                const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+                frame.castShadow = true;
+                frame.receiveShadow = true;
+                doorGroup.add(frame);
+                
+                // Door handle
+                const handleGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+                const handleMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
+                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+                handle.position.set(doorWidth / 2 - 0.1, 0, 0.11);
+                doorGroup.add(handle);
+                
+                // Question panel above door
+                const panelGeometry = new THREE.BoxGeometry(doorWidth, 0.5, 0.1);
+                const panelMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+                panel.position.set(0, 2, 0.11);
+                doorGroup.add(panel);
+                
+                // Position door
+                doorGroup.position.set(startX + i * spacing, 1.5, -5);
+                doorGroup.userData = {
+                    id: i,
+                    isCorrect: false,
+                    answer: ''
+                };
+                
+                scene.add(doorGroup);
+                doors.push(doorGroup);
+            }
         }
 
-        function createBarricade() {
-            const geometry = new THREE.BoxGeometry(1, 2, 10);
-            const material = new THREE.MeshPhongMaterial({ 
-                color: 0x8b4513
-            });
-            const barricade = new THREE.Mesh(geometry, material);
-            
-            barricade.position.set(
-                (Math.random() - 0.5) * 180,
-                1,
-                (Math.random() - 0.5) * 180
-            );
-            
-            barricade.rotation.y = Math.random() * Math.PI * 2;
-            barricade.castShadow = true;
-            
-            scene.add(barricade);
-        }
-
-        function createPlayer() {
-            // Player body
-            const bodyGeometry = new THREE.CapsuleGeometry(0.5, 1.8, 8, 16);
-            const bodyMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x00ff00,
-                emissive: 0x003300,
-                emissiveIntensity: 0.3
-            });
-            playerMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
-            playerMesh.position.set(0, 1, 0);
-            playerMesh.castShadow = true;
-            scene.add(playerMesh);
-
-            // Player arms (first person)
-            const armGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 8);
-            const armMaterial = new THREE.MeshPhongMaterial({ color: 0x00aa00 });
-            
-            // These would be positioned relative to camera in first person view
-        }
-
-        function createWeapon() {
-            // Create pistol
-            const handleGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.5);
-            const barrelGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 8);
-            
-            const weaponMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
-            
-            const handle = new THREE.Mesh(handleGeometry, weaponMaterial);
-            const barrel = new THREE.Mesh(barrelGeometry, weaponMaterial);
-            
-            barrel.position.y = 0.5;
-            barrel.position.z = 0.5;
-            
-            weaponMesh = new THREE.Group();
-            weaponMesh.add(handle);
-            weaponMesh.add(barrel);
-            
-            // Position weapon in first person view
-            weaponMesh.position.set(0.5, -0.3, -1);
-            weaponMesh.rotation.x = 0.2;
-            
-            scene.add(weaponMesh);
-        }
-
-        function spawnZombie() {
-            const zombieGeometry = new THREE.CapsuleGeometry(0.5, 1.8, 8, 16);
-            const zombieMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x00aa00,
-                emissive: 0x003300,
-                emissiveIntensity: 0.5
-            });
-            const zombie = new THREE.Mesh(zombieGeometry, zombieMaterial);
-            
-            // Spawn at random edge of map
-            const angle = Math.random() * Math.PI * 2;
-            const distance = 80;
-            const x = Math.cos(angle) * distance;
-            const z = Math.sin(angle) * distance;
-            
-            zombie.position.set(x, 1, z);
-            zombie.castShadow = true;
-            
-            scene.add(zombie);
-            
-            const zombieData = {
-                mesh: zombie,
-                health: 50 + (GameState.wave - 1) * 20,
-                speed: 0.03 + Math.random() * 0.02,
-                damage: 10 + (GameState.wave - 1) * 5
-            };
-            
-            zombieMeshes.push(zombieData);
-            GameState.zombies.push({
-                id: Date.now() + Math.random(),
-                position: { x, y: 1, z },
-                health: zombieData.health
+        function createPlayerMeshes() {
+            Object.values(gameState.players).forEach(player => {
+                // Player capsule
+                const group = new THREE.Group();
+                
+                // Body
+                const bodyGeometry = new THREE.CapsuleGeometry(0.3, 0.8, 4, 8);
+                const bodyMaterial = new THREE.MeshStandardMaterial({ 
+                    color: player.color,
+                    emissive: player.color,
+                    emissiveIntensity: 0.2
+                });
+                const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                body.castShadow = true;
+                group.add(body);
+                
+                // Glow effect
+                const glowGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: player.color,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                group.add(glow);
+                
+                // Name label
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 256;
+                canvas.height = 64;
+                
+                context.fillStyle = `#${player.color.toString(16).padStart(6, '0')}`;
+                context.font = '24px Arial';
+                context.textAlign = 'center';
+                context.fillText(player.name, 128, 40);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.position.y = 1.5;
+                sprite.scale.set(2, 0.5, 1);
+                group.add(sprite);
+                
+                group.position.set(player.position.x, player.position.y, player.position.z);
+                scene.add(group);
+                
+                playerMeshes[player.id] = group;
             });
         }
 
-        function createBulletEffect(position, direction) {
-            const geometry = new THREE.SphereGeometry(0.1, 8, 8);
-            const material = new THREE.MeshBasicMaterial({ 
-                color: 0xffff00,
-                transparent: true,
-                opacity: 0.8
+        function showQuestion() {
+            // Fetch question from API
+            fetchQuestion().then(question => {
+                if (!question) {
+                    // Fallback questions if API fails
+                    question = getFallbackQuestion();
+                }
+                
+                gameState.currentQuestion = question;
+                gameState.timeLeft = CONFIG.LEVELS[gameState.currentLevel].time;
+                
+                // Update UI
+                questionDisplay.classList.remove('hidden');
+                questionText.textContent = question.question;
+                categoryDisplay.textContent = question.category;
+                
+                // Reset timer bar
+                timerBar.style.width = '100%';
+                
+                // Set correct door
+                const correctDoorIndex = Math.floor(Math.random() * doors.length);
+                doors.forEach((door, index) => {
+                    door.userData.isCorrect = index === correctDoorIndex;
+                    door.userData.answer = index === correctDoorIndex ? 
+                        question.correct_answer : question.incorrect_answers[index] || `Option ${index + 1}`;
+                    
+                    // Update door color
+                    const frame = door.children[0];
+                    frame.material.color.setHex(CONFIG.DOOR_COLORS.DEFAULT);
+                });
+                
+                // Start timer
+                startTimer();
             });
-            const bullet = new THREE.Mesh(geometry, material);
+        }
+
+        async function fetchQuestion() {
+            try {
+                // Try Open Trivia DB first
+                const response = await fetch('https://opentdb.com/api.php?amount=1&type=multiple');
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    const question = data.results[0];
+                    
+                    // Decode HTML entities
+                    const decodeHTML = (html) => {
+                        const txt = document.createElement('textarea');
+                        txt.innerHTML = html;
+                        return txt.value;
+                    };
+                    
+                    return {
+                        question: decodeHTML(question.question),
+                        correct_answer: decodeHTML(question.correct_answer),
+                        incorrect_answers: question.incorrect_answers.map(decodeHTML),
+                        category: question.category
+                    };
+                }
+            } catch (error) {
+                console.log('Using fallback questions');
+            }
             
-            bullet.position.copy(position);
+            return null;
+        }
+
+        function getFallbackQuestion() {
+            const questions = [
+                {
+                    question: "What is the capital of France?",
+                    correct_answer: "Paris",
+                    incorrect_answers: ["London", "Berlin", "Madrid"],
+                    category: "Geography"
+                },
+                {
+                    question: "Which planet is known as the Red Planet?",
+                    correct_answer: "Mars",
+                    incorrect_answers: ["Venus", "Jupiter", "Saturn"],
+                    category: "Science"
+                },
+                {
+                    question: "What is the largest ocean on Earth?",
+                    correct_answer: "Pacific Ocean",
+                    incorrect_answers: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean"],
+                    category: "Geography"
+                },
+                {
+                    question: "Who painted the Mona Lisa?",
+                    correct_answer: "Leonardo da Vinci",
+                    incorrect_answers: ["Pablo Picasso", "Vincent van Gogh", "Michelangelo"],
+                    category: "Art"
+                },
+                {
+                    question: "What is the chemical symbol for gold?",
+                    correct_answer: "Au",
+                    incorrect_answers: ["Ag", "Fe", "Cu"],
+                    category: "Science"
+                }
+            ];
             
-            const bulletData = {
-                mesh: bullet,
-                direction: direction,
-                speed: 1,
-                distance: 0,
-                maxDistance: 50
-            };
+            return questions[Math.floor(Math.random() * questions.length)];
+        }
+
+        function startTimer() {
+            clearInterval(gameState.timer);
             
-            bulletMeshes.push(bulletData);
-            scene.add(bullet);
-            
-            // Remove after 1 second
-            setTimeout(() => {
-                scene.remove(bullet);
-                bulletMeshes = bulletMeshes.filter(b => b !== bulletData);
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                const percentage = (gameState.timeLeft / CONFIG.LEVELS[gameState.currentLevel].time) * 100;
+                timerBar.style.width = `${percentage}%`;
+                
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    handleTimeOut();
+                }
             }, 1000);
         }
 
-        function shoot() {
-            if (!GameState.gameStarted) return;
+        function handleTimeOut() {
+            // Time's up - wrong answer
+            const currentPlayer = gameState.players[gameState.currentPlayerId];
+            currentPlayer.lives--;
+            updatePlayerUI();
             
-            const weapon = GameState.currentWeapon;
-            const ammo = GameState.playerAmmo[weapon];
-            
-            if (ammo.current <= 0) {
-                network.showMessage("OUT OF AMMO!", 'error');
-                return;
-            }
-            
-            // Reduce ammo
-            ammo.current--;
-            updateHUD();
-            
-            // Create muzzle flash
-            const flashGeometry = new THREE.SphereGeometry(0.3, 8, 8);
-            const flashMaterial = new THREE.MeshBasicMaterial({ 
-                color: 0xffaa00,
-                transparent: true,
-                opacity: 0.9
-            });
-            const flash = new THREE.Mesh(flashGeometry, flashMaterial);
-            
-            flash.position.copy(camera.position);
-            flash.position.add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(1));
-            
-            scene.add(flash);
-            setTimeout(() => scene.remove(flash), 50);
-            
-            // Create bullet
-            const direction = camera.getWorldDirection(new THREE.Vector3());
-            createBulletEffect(camera.position.clone(), direction.clone());
-            
-            // Send shoot event
-            network.sendShoot(camera.position.clone(), direction.clone());
-            
-            // Check for zombie hit
-            checkZombieHit(camera.position, direction);
-            
-            // Weapon recoil animation
-            if (weaponMesh) {
-                weaponMesh.position.z -= 0.2;
-                weaponMesh.rotation.x += 0.1;
-                
-                setTimeout(() => {
-                    if (weaponMesh) {
-                        weaponMesh.position.z += 0.2;
-                        weaponMesh.rotation.x -= 0.1;
-                    }
-                }, 100);
-            }
-        }
-
-        function checkZombieHit(origin, direction) {
-            const raycaster = new THREE.Raycaster(origin, direction);
-            
-            for (let i = zombieMeshes.length - 1; i >= 0; i--) {
-                const zombie = zombieMeshes[i];
-                const intersects = raycaster.intersectObject(zombie.mesh);
-                
-                if (intersects.length > 0) {
-                    // Hit zombie
-                    zombie.health -= getWeaponDamage(GameState.currentWeapon);
-                    
-                    // Blood effect
-                    createBloodEffect(zombie.mesh.position);
-                    
-                    if (zombie.health <= 0) {
-                        // Zombie killed
-                        scene.remove(zombie.mesh);
-                        zombieMeshes.splice(i, 1);
-                        GameState.zombies.splice(i, 1);
-                        
-                        GameState.zombiesKilled++;
-                        GameState.score += 100;
-                        
-                        network.showMessage("ZOMBIE KILLED! +100", 'success');
-                        updateHUD();
-                    }
-                    break;
-                }
-            }
-        }
-
-        function getWeaponDamage(weapon) {
-            switch(weapon) {
-                case 'pistol': return 25;
-                case 'shotgun': return 60;
-                case 'rifle': return 35;
-                default: return 20;
-            }
-        }
-
-        function createBloodEffect(position) {
-            const bloodCount = 10;
-            for (let i = 0; i < bloodCount; i++) {
-                const geometry = new THREE.SphereGeometry(0.1, 4, 4);
-                const material = new THREE.MeshBasicMaterial({ 
-                    color: 0xff0000,
-                    transparent: true,
-                    opacity: 0.8
-                });
-                const blood = new THREE.Mesh(geometry, material);
-                
-                blood.position.copy(position);
-                blood.position.x += (Math.random() - 0.5) * 2;
-                blood.position.y += (Math.random() - 0.5) * 2;
-                blood.position.z += (Math.random() - 0.5) * 2;
-                
-                scene.add(blood);
-                
-                // Remove after 2 seconds
-                setTimeout(() => scene.remove(blood), 2000);
-            }
-        }
-
-        function updateZombies() {
-            for (let i = zombieMeshes.length - 1; i >= 0; i--) {
-                const zombie = zombieMeshes[i];
-                
-                // Move towards player
-                const dx = playerMesh.position.x - zombie.mesh.position.x;
-                const dz = playerMesh.position.z - zombie.mesh.position.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
-                
-                if (distance > 1) {
-                    zombie.mesh.position.x += (dx / distance) * zombie.speed;
-                    zombie.mesh.position.z += (dz / distance) * zombie.speed;
-                    
-                    // Rotate to face player
-                    zombie.mesh.lookAt(playerMesh.position);
-                    
-                    // Update game state
-                    if (GameState.zombies[i]) {
-                        GameState.zombies[i].position = {
-                            x: zombie.mesh.position.x,
-                            y: zombie.mesh.position.y,
-                            z: zombie.mesh.position.z
-                        };
-                    }
-                } else {
-                    // Zombie attacks player
-                    GameState.playerHealth -= zombie.damage;
-                    updateHUD();
-                    
-                    network.showMessage("ZOMBIE ATTACK! -" + zombie.damage, 'error');
-                    
-                    // Knockback effect
-                    const knockback = 0.5;
-                    playerMesh.position.x += (dx / distance) * -knockback;
-                    playerMesh.position.z += (dz / distance) * -knockback;
-                    
-                    // Check player death
-                    if (GameState.playerHealth <= 0) {
-                        playerDie();
-                    }
-                }
-                
-                // Zombie animation
-                zombie.mesh.position.y = 1 + Math.sin(Date.now() * 0.005 + i) * 0.1;
-            }
-            
-            // Sync zombies with network
-            if (GameState.isHost) {
-                network.sendMessage({
-                    type: 'zombieUpdate',
-                    zombies: GameState.zombies
-                });
-            }
-        }
-
-        function playerDie() {
-            GameState.gameStarted = false;
-            network.showMessage("YOU DIED! GAME OVER", 'error');
-            
-            // Show game over screen
-            const menu = document.getElementById('gameMenu');
-            menu.innerHTML = `
-                <h1 class="game-title">💀 YOU DIED</h1>
-                <div class="room-section">
-                    <h2 style="color: #ff0000;">SURVIVAL STATS</h2>
-                    <div style="font-size: 2rem; margin: 20px 0;">
-                        <div>WAVES SURVIVED: ${GameState.wave}</div>
-                        <div>ZOMBIES KILLED: ${GameState.zombiesKilled}</div>
-                        <div>FINAL SCORE: ${GameState.score}</div>
-                    </div>
-                    <div style="display: flex; gap: 20px;">
-                        <button class="btn btn-green" onclick="restartGame()">🔄 TRY AGAIN</button>
-                        <button class="btn btn-blue" onclick="showMenu()">🏠 MAIN MENU</button>
-                    </div>
-                </div>
-            `;
-            menu.classList.remove('hidden');
-        }
-
-        function restartGame() {
-            // Reset game state
-            GameState.gameStarted = true;
-            GameState.wave = 1;
-            GameState.zombiesKilled = 0;
-            GameState.playerHealth = 100;
-            GameState.score = 0;
-            GameState.playerAmmo = {
-                pistol: { current: 12, max: 12 },
-                shotgun: { current: 8, max: 8 },
-                rifle: { current: 30, max: 30 }
-            };
-            
-            // Clear zombies
-            zombieMeshes.forEach(zombie => scene.remove(zombie.mesh));
-            zombieMeshes = [];
-            GameState.zombies = [];
-            
-            // Reset player position
-            playerMesh.position.set(0, 1, 0);
-            
-            // Update HUD
-            updateHUD();
-            
-            // Hide menu
-            document.getElementById('gameMenu').classList.add('hidden');
-            
-            // Start first wave
-            startNextWave();
-        }
-
-        function startNextWave() {
-            GameState.wave++;
-            const zombieCount = 5 + GameState.wave * 3;
-            
-            network.showMessage(`WAVE ${GameState.wave} INCOMING!`, 'info');
-            
-            // Spawn zombies
-            for (let i = 0; i < zombieCount; i++) {
-                setTimeout(() => spawnZombie(), i * 500);
-            }
-            
-            // Give ammo resupply
-            GameState.playerAmmo.pistol.current = GameState.playerAmmo.pistol.max;
-            GameState.playerAmmo.shotgun.current = GameState.playerAmmo.shotgun.max;
-            GameState.playerAmmo.rifle.current = GameState.playerAmmo.rifle.max;
-            
-            updateHUD();
-        }
-
-        function updateHUD() {
-            // Health
-            const healthFill = document.getElementById('healthFill');
-            healthFill.style.width = `${GameState.playerHealth}%`;
-            healthFill.style.background = GameState.playerHealth > 50 ? 
-                'linear-gradient(90deg, #00ff00, #00aa00)' :
-                GameState.playerHealth > 25 ?
-                'linear-gradient(90deg, #ffff00, #ffaa00)' :
-                'linear-gradient(90deg, #ff0000, #aa0000)';
-            
-            // Ammo
-            const ammo = GameState.playerAmmo[GameState.currentWeapon];
-            document.getElementById('ammoCounter').textContent = 
-                `${ammo.current} / ${ammo.max}`;
-            
-            // Wave
-            document.getElementById('waveCounter').textContent = `WAVE: ${GameState.wave}`;
-            
-            // Kills
-            document.getElementById('killCounter').textContent = `ZOMBIES: ${GameState.zombiesKilled}`;
-            
-            // Score
-            document.getElementById('playerScore').textContent = GameState.score;
-            
-            // Player name
-            document.getElementById('playerName').textContent = 
-                GameState.isHost ? 'SQUAD LEADER' : 'SURVIVOR';
-        }
-
-        function gameLoop() {
-            if (GameState.gameStarted) {
-                // Update player position
-                updatePlayerMovement();
-                
-                // Update zombies
-                updateZombies();
-                
-                // Update bullets
-                updateBullets();
-                
-                // Check for wave completion
-                if (GameState.isHost && zombieMeshes.length === 0 && GameState.gameStarted) {
-                    setTimeout(() => startNextWave(), 2000);
-                }
-                
-                // Sync player state
-                if (Math.floor(Date.now() / 1000) % 2 === 0) {
-                    network.sendPlayerUpdate();
-                }
-            }
-            
-            // Update camera based on mouse
-            updateCamera();
-            
-            // Update weapon position (first person)
-            if (weaponMesh && camera) {
-                weaponMesh.position.copy(camera.position);
-                weaponMesh.position.x += 0.5;
-                weaponMesh.position.y -= 0.3;
-                weaponMesh.position.z -= 1;
-                
-                weaponMesh.rotation.copy(camera.rotation);
-                weaponMesh.rotation.x += 0.2;
-            }
-            
-            // Render scene
-            renderer.render(scene, camera);
-            
-            requestAnimationFrame(gameLoop);
-        }
-
-        function updatePlayerMovement() {
-            const speed = keys['shift'] ? 0.2 : 0.1;
-            const strafeSpeed = speed * 0.8;
-            
-            // Get camera direction
-            const cameraDirection = new THREE.Vector3();
-            camera.getWorldDirection(cameraDirection);
-            cameraDirection.y = 0;
-            cameraDirection.normalize();
-            
-            // Right vector for strafing
-            const rightVector = new THREE.Vector3();
-            rightVector.crossVectors(camera.up, cameraDirection).normalize();
-            
-            // Movement
-            if (keys['w'] || joystickPosition.y < -0.3) {
-                playerMesh.position.add(cameraDirection.clone().multiplyScalar(speed));
-            }
-            if (keys['s'] || joystickPosition.y > 0.3) {
-                playerMesh.position.add(cameraDirection.clone().multiplyScalar(-speed));
-            }
-            if (keys['a'] || joystickPosition.x < -0.3) {
-                playerMesh.position.add(rightVector.clone().multiplyScalar(-strafeSpeed));
-            }
-            if (keys['d'] || joystickPosition.x > 0.3) {
-                playerMesh.position.add(rightVector.clone().multiplyScalar(strafeSpeed));
-            }
-            
-            // Jump
-            if (keys[' ']) {
-                playerMesh.position.y = 1.5;
+            if (currentPlayer.lives <= 0) {
+                endGame();
             } else {
-                playerMesh.position.y = Math.max(1, playerMesh.position.y - 0.05);
-            }
-            
-            // Update game state
-            GameState.playerPosition = {
-                x: playerMesh.position.x,
-                y: playerMesh.position.y,
-                z: playerMesh.position.z
-            };
-            
-            // Camera follows player
-            camera.position.x = playerMesh.position.x;
-            camera.position.y = playerMesh.position.y + 1.6; // Eye height
-            camera.position.z = playerMesh.position.z;
-        }
-
-        function updateCamera() {
-            // Mouse look
-            if (mouse.down || joystickActive) {
-                const sensitivity = 0.002;
-                
-                camera.rotation.y -= mouse.x * sensitivity;
-                camera.rotation.x -= mouse.y * sensitivity;
-                
-                // Clamp vertical rotation
-                camera.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, camera.rotation.x));
-                
-                // Reset mouse delta
-                mouse.x = 0;
-                mouse.y = 0;
+                setTimeout(showQuestion, 2000);
             }
         }
 
-        function updateBullets() {
-            for (let i = bulletMeshes.length - 1; i >= 0; i--) {
-                const bullet = bulletMeshes[i];
+        function selectDoor(doorIndex) {
+            if (gameState.selectedDoor !== null) return;
+            
+            gameState.selectedDoor = doorIndex;
+            const door = doors[doorIndex];
+            
+            // Highlight selected door
+            const frame = door.children[0];
+            frame.material.color.setHex(CONFIG.DOOR_COLORS.SELECTED);
+            
+            // Check answer after delay
+            setTimeout(() => {
+                checkAnswer(doorIndex);
+            }, 1000);
+        }
+
+        function checkAnswer(doorIndex) {
+            clearInterval(gameState.timer);
+            
+            const door = doors[doorIndex];
+            const isCorrect = door.userData.isCorrect;
+            const currentPlayer = gameState.players[gameState.currentPlayerId];
+            
+            // Update door color
+            const frame = door.children[0];
+            frame.material.color.setHex(isCorrect ? CONFIG.DOOR_COLORS.CORRECT : CONFIG.DOOR_COLORS.WRONG);
+            
+            if (isCorrect) {
+                // Correct answer
+                currentPlayer.score += CONFIG.LEVELS[gameState.currentLevel].points;
+                updatePlayerUI();
                 
-                bullet.mesh.position.add(bullet.direction.clone().multiplyScalar(bullet.speed));
-                bullet.distance += bullet.speed;
+                // Move to next level
+                setTimeout(() => {
+                    gameState.currentLevel++;
+                    if (gameState.currentLevel >= CONFIG.LEVELS.length) {
+                        // Game completed
+                        currentPlayer.score += 1000; // Bonus
+                        endGame(true);
+                    } else {
+                        // Create new doors for next level
+                        createDoors(CONFIG.LEVELS[gameState.currentLevel].doors);
+                        gameState.selectedDoor = null;
+                        showQuestion();
+                    }
+                }, 2000);
+            } else {
+                // Wrong answer
+                currentPlayer.lives--;
+                updatePlayerUI();
                 
-                if (bullet.distance > bullet.maxDistance) {
-                    scene.remove(bullet.mesh);
-                    bulletMeshes.splice(i, 1);
+                if (currentPlayer.lives <= 0) {
+                    endGame();
+                } else {
+                    setTimeout(() => {
+                        gameState.selectedDoor = null;
+                        showQuestion();
+                    }, 2000);
                 }
             }
         }
 
-        // ==================== UI FUNCTIONS ====================
-        function showMenu() {
-            document.getElementById('gameMenu').classList.remove('hidden');
-            document.getElementById('joinSection').classList.remove('hidden');
-            document.getElementById('lobbySection').classList.add('hidden');
-            GameState.gameStarted = false;
+        function updatePlayerUI() {
+            Object.values(gameState.players).forEach((player, index) => {
+                const playerNum = index + 1;
+                document.getElementById(`player${playerNum}Name`).textContent = player.name;
+                document.getElementById(`player${playerNum}Score`).textContent = player.score;
+                
+                const livesContainer = document.getElementById(`player${playerNum}Lives`);
+                livesContainer.innerHTML = '';
+                
+                for (let i = 0; i < CONFIG.LIVES; i++) {
+                    const life = document.createElement('div');
+                    life.className = `life ${i >= player.lives ? 'lost' : ''}`;
+                    livesContainer.appendChild(life);
+                }
+            });
         }
 
-        function startGame() {
-            if (Object.keys(GameState.players).length < 1) {
-                network.showMessage("NEED AT LEAST 1 PLAYER!", 'error');
-                return;
+        function endGame(isVictory = false) {
+            gameState.gameActive = false;
+            clearInterval(gameState.timer);
+            
+            document.getElementById('finalScore').textContent = 
+                gameState.players[gameState.currentPlayerId].score;
+            document.getElementById('finalLevel').textContent = 
+                gameState.currentLevel + 1;
+            
+            gameOverScreen.classList.remove('hidden');
+            
+            if (isVictory) {
+                document.querySelector('.result-title').textContent = 'VICTORY!';
+                document.querySelector('.result-title').style.background = 
+                    'linear-gradient(45deg, #00ff9d, #00b8ff)';
             }
-            
-            GameState.gameStarted = true;
-            document.getElementById('gameMenu').classList.add('hidden');
-            
-            // Start first wave
-            startNextWave();
-            
-            network.showMessage("SURVIVAL BEGINS! GOOD LUCK!", 'success');
         }
 
-        // ==================== EVENT HANDLERS ====================
-        function setupControls() {
-            // Keyboard
-            document.addEventListener('keydown', (e) => {
-                keys[e.key.toLowerCase()] = true;
+        function resetGame() {
+            gameState.currentLevel = 0;
+            gameState.selectedDoor = null;
+            gameState.timeLeft = CONFIG.QUESTION_TIME;
+            
+            Object.values(gameState.players).forEach(player => {
+                player.score = 0;
+                player.lives = CONFIG.LIVES;
+            });
+            
+            updatePlayerUI();
+            gameOverScreen.classList.add('hidden');
+            
+            createDoors(CONFIG.LEVELS[0].doors);
+            showQuestion();
+        }
+
+        function sendChatMessage(message) {
+            const player = gameState.players[gameState.currentPlayerId];
+            const chatMessage = document.createElement('div');
+            chatMessage.className = 'chat-message';
+            chatMessage.innerHTML = `<strong>${player.name}:</strong> ${message}`;
+            chatMessages.appendChild(chatMessage);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // In production, send via WebRTC to other players
+        }
+
+        // Game Loop
+        function startGameLoop() {
+            function animate() {
+                requestAnimationFrame(animate);
                 
-                // Reload
-                if (e.key.toLowerCase() === 'r') {
-                    GameState.playerAmmo[GameState.currentWeapon].current = 
-                        GameState.playerAmmo[GameState.currentWeapon].max;
-                    updateHUD();
-                    network.showMessage("RELOADED!", 'info');
+                // Animate street lines
+                if (streetLines) {
+                    streetLines.position.z += 0.1;
+                    if (streetLines.position.z > 4) {
+                        streetLines.position.z = -40;
+                    }
                 }
                 
-                // Weapon switch
-                if (e.key === '1') {
-                    GameState.currentWeapon = 'pistol';
-                    updateHUD();
-                }
-                if (e.key === '2') {
-                    GameState.currentWeapon = 'shotgun';
-                    updateHUD();
-                }
-                if (e.key === '3') {
-                    GameState.currentWeapon = 'rifle';
-                    updateHUD();
+                // Animate player glow
+                Object.values(playerMeshes).forEach(mesh => {
+                    const glow = mesh.children[1];
+                    glow.scale.x = 1 + Math.sin(Date.now() * 0.002) * 0.1;
+                    glow.scale.y = 1 + Math.sin(Date.now() * 0.002) * 0.1;
+                    glow.scale.z = 1 + Math.sin(Date.now() * 0.002) * 0.1;
+                });
+                
+                // Update camera to follow player
+                const currentPlayer = gameState.players[gameState.currentPlayerId];
+                if (currentPlayer && camera) {
+                    const targetZ = currentPlayer.position.z - 10;
+                    camera.position.z += (targetZ - camera.position.z) * 0.05;
                 }
                 
-                // Fullscreen
-                if (e.key === 'f' && !document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                }
-            });
-            
-            document.addEventListener('keyup', (e) => {
-                keys[e.key.toLowerCase()] = false;
-            });
-            
-            // Mouse
-            document.addEventListener('mousedown', (e) => {
-                mouse.down = true;
-                if (e.button === 0) { // Left click
-                    shoot();
-                }
-            });
-            
-            document.addEventListener('mouseup', () => {
-                mouse.down = false;
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                mouse.x = e.movementX;
-                mouse.y = e.movementY;
-            });
-            
-            // Touch controls for mobile
-            const joystick = document.getElementById('joystick');
-            const joystickHandle = document.getElementById('joystickHandle');
-            let touchStart = null;
-            
-            joystick.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                joystickActive = true;
-                touchStart = {
-                    x: e.touches[0].clientX,
-                    y: e.touches[0].clientY
-                };
-            });
-            
-            document.addEventListener('touchmove', (e) => {
-                if (!joystickActive || !touchStart) return;
-                e.preventDefault();
-                
-                const touch = e.touches[0];
-                const deltaX = touch.clientX - touchStart.x;
-                const deltaY = touch.clientY - touchStart.y;
-                
-                // Limit joystick movement
-                const maxDistance = 40;
-                const distance = Math.min(maxDistance, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
-                const angle = Math.atan2(deltaY, deltaX);
-                
-                joystickPosition.x = (distance / maxDistance) * Math.cos(angle);
-                joystickPosition.y = (distance / maxDistance) * Math.sin(angle);
-                
-                // Update joystick visual
-                joystickHandle.style.transform = `translate(${deltaX * 0.5}px, ${deltaY * 0.5}px)`;
-                
-                // Also use as mouse look on right side of screen
-                if (touch.clientX > window.innerWidth / 2) {
-                    mouse.x = deltaX * 0.1;
-                    mouse.y = deltaY * 0.1;
-                }
-            });
-            
-            document.addEventListener('touchend', () => {
-                joystickActive = false;
-                joystickPosition.x = 0;
-                joystickPosition.y = 0;
-                joystickHandle.style.transform = 'translate(-50%, -50%)';
-            });
-            
-            // Shoot button for mobile
-            document.getElementById('shootBtn').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                shoot();
-            });
-            
-            // Reload button for mobile
-            document.getElementById('reloadBtn').addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                GameState.playerAmmo[GameState.currentWeapon].current = 
-                    GameState.playerAmmo[GameState.currentWeapon].max;
-                updateHUD();
-                network.showMessage("RELOADED!", 'info');
-            });
-            
-            // Window resize
-            window.addEventListener('resize', () => {
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        // Handle Window Resize
+        function onWindowResize() {
+            if (camera && renderer) {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-            
-            // Button event listeners
-            document.getElementById('createBtn').addEventListener('click', () => {
-                const roomCode = network.createRoom();
-                document.getElementById('roomCode').textContent = roomCode;
-                document.getElementById('joinSection').classList.add('hidden');
-                document.getElementById('lobbySection').classList.remove('hidden');
-                network.showMessage("SQUAD CREATED! SHARE CODE: " + roomCode, 'success');
-            });
-            
-            document.getElementById('joinBtn').addEventListener('click', () => {
-                const roomCode = document.getElementById('roomInput').value;
-                if (network.joinRoom(roomCode)) {
-                    document.getElementById('roomCode').textContent = roomCode;
-                    document.getElementById('joinSection').classList.add('hidden');
-                    document.getElementById('lobbySection').classList.remove('hidden');
-                    network.showMessage("JOINED SQUAD " + roomCode, 'success');
-                }
-            });
-            
-            document.getElementById('copyBtn').addEventListener('click', () => {
-                const code = document.getElementById('roomCode').textContent;
-                navigator.clipboard.writeText(code);
-                network.showMessage("CODE COPIED!", 'success');
-            });
-            
-            document.getElementById('startBtn').addEventListener('click', startGame);
-            
-            // Request fullscreen
-            document.addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                }
-            });
+            }
         }
 
-        // ==================== INITIALIZE GAME ====================
-        window.addEventListener('load', () => {
-            // Load Three.js first
-            if (typeof THREE !== 'undefined') {
-                setTimeout(() => {
-                    initGame();
-                }, 1000);
-            } else {
-                document.getElementById('loadingScreen').innerHTML = `
-                    <h1 style="color: #ff0000;">ERROR LOADING GAME</h1>
-                    <p style="color: #ffff00;">Three.js failed to load. Please check your internet connection.</p>
-                    <button onclick="location.reload()" style="
-                        background: #ff0000;
-                        color: white;
-                        border: none;
-                        padding: 15px 30px;
-                        font-size: 1.2rem;
-                        border-radius: 10px;
-                        margin-top: 20px;
-                        cursor: pointer;
-                    ">🔄 RELOAD PAGE</button>
-                `;
+        // Handle Keyboard Input
+        document.addEventListener('keydown', (event) => {
+            if (!gameState.gameActive) return;
+            
+            const currentPlayer = gameState.players[gameState.currentPlayerId];
+            if (!currentPlayer) return;
+            
+            // Move player
+            switch(event.key) {
+                case 'ArrowLeft':
+                case 'a':
+                    currentPlayer.position.x = Math.max(-4, currentPlayer.position.x - 1);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    currentPlayer.position.x = Math.min(4, currentPlayer.position.x + 1);
+                    break;
+                case '1':
+                    selectDoor(0);
+                    break;
+                case '2':
+                    selectDoor(1);
+                    break;
+                case '3':
+                    selectDoor(2);
+                    break;
+                case '4':
+                    selectDoor(3);
+                    break;
+                case '5':
+                    selectDoor(4);
+                    break;
             }
+            
+            // Update player mesh position
+            if (playerMeshes[currentPlayer.id]) {
+                playerMeshes[currentPlayer.id].position.x = currentPlayer.position.x;
+            }
+            
+            // In production, send position updates to other players
         });
 
-        // Make functions global for HTML event handlers
-        window.showMenu = showMenu;
-        window.restartGame = restartGame;
+        // Initialize game
+        init();
     </script>
 </body>
 </html>
